@@ -6,7 +6,7 @@
 
 ## 🤖 AI & Agents
 
--  [AGENTS.md](./ai-agents/AGENTS.md) — AI Agent 相关资料
+- [AGENTS.md](./ai-agents/AGENTS.md) — AI Agent 相关资料
 
 ---
 
