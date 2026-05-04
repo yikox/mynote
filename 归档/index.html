@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/themes/vue.css">
+    <link rel="stylesheet" href="https://unpkg.com/docsify-toc@1.0.0/dist/toc.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar-folder.min.css" />
+</head>
+
+<body>
+    <div id="app">加载中</div>
+    <!-- 添加编辑此页功能 -->
+    <script src="//cdn.jsdelivr.net/npm/docsify-edit-on-github"></script>
+
+    <script>
+        window.$docsify = {
+            name: "Yikox's Blog",
+            loadSidebar: true,
+            autoHeader: true,
+            loadNavbar: true,
+            // relativePath: true,
+            /*搜索相关设置*/
+            search: {
+                maxAge: 86400000,// 过期时间，单位毫秒，默认一天
+                paths: 'auto',// 注意：仅适用于 paths: 'auto' 模式
+                placeholder: '搜索',
+                // 支持本地化
+                placeholder: {
+                    '/zh-cn/': '搜索',
+                    '/': 'Type to search'
+                },
+                noData: '找不到结果',
+                depth: 4,
+                hideOtherSidebarContent: false,
+                namespace: 'Docsify-Guide',
+            },
+            toc: {
+                scope: '.markdown-section',
+                headings: 'h1, h2, h3, h4, h5, h6',
+                title: '目录',
+            },
+            plugins: [
+                EditOnGithubPlugin.create("https://github.com/yikox/yikox.github.io/edit/main/",
+                    null,
+                    "编辑")
+            ],
+        }
+    </script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+    <!-- emoji表情支持 -->
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
+    <!-- 图片放大缩小支持 -->
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+    <!-- 搜索功能支持 -->
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+    <!--在所有的代码块上添加一个简单的Click to copy按钮来允许用户从你的文档中轻易地复制代码-->
+    <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+
+    <!-- 添加目录 -->
+    <script src="https://unpkg.com/docsify-toc@1.0.0/dist/toc.js"></script>
+    <!-- 添加侧边栏文件折叠 -->
+    <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+
+    <script>
+    if (typeof navigator.serviceWorker !== 'undefined') {
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('SW registered', reg))
+            .catch(err => console.error('SW registration failed', err));
+    }
+    </script>
+</body>
+
+</html>
