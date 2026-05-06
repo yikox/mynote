@@ -45,9 +45,8 @@
 - [SQL基本语法.md](./tools/SQL基本语法.md) — SQL 基础语法
 - [markdown规范.md](./tools/markdown规范.md) — Markdown 写作规范
 - [常用软件安装.md](./tools/常用软件安装.md) — 软件安装指南
-- **工具配置**
-  - [vscode-sftp使用指南.md](./tools/工具/vscode-sftp使用指南.md) — VSCode SFTP 配置
-  - [hexo使用指南.md](./tools/工具/hexo使用指南.md) — Hexo 博客搭建
+- [vscode-sftp使用指南.md](./tools/vscode-sftp使用指南.md) — VSCode SFTP 配置
+- [hexo使用指南.md](./tools/hexo使用指南.md) — Hexo 博客搭建
 
 ---
 
