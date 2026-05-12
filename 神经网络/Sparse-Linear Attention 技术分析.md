@@ -14,8 +14,8 @@ SLA 将 attention weights 解耦为两部分：
 | **小权重** | 大量、低 rank | 低秩线性注意力 |
 
 ```
-Attention ≈ Sparse(QK^T)V  +  Linear(QK^T)V
-            ↑ 大权重区域      ↑ 小权重区域
+Attention ≈ Sparse(QK^T)V  +  proj(Linear(QK^T)V)
+            ↑ 大权重区域        ↑ 小权重区域
 ```
 
 ---
@@ -49,7 +49,7 @@ Attention ≈ Sparse(QK^T)V  +  Linear(QK^T)V
 
 ---
 
-## 3. 性能提升
+## 3. 原始 SLA 性能提升
 
 | 指标 | 提升幅度 |
 |------|----------|
@@ -60,110 +60,196 @@ Attention ≈ Sparse(QK^T)V  +  Linear(QK^T)V
 
 ---
 
-## 4. 实现细节
+## 4. 迭代技术（2025-2026）
 
-### 4.1 SageSLA (基于 SageAttention)
+### 4.1 SLA2 (2026.02) ⭐
 
-```python
-# 参考: SageSLA/ 目录
-# 基于 SageAttention 的高效实现
-# 支持 Triton kernel 加速
+> Paper: [arXiv:2602.12675](https://arxiv.org/abs/2602.12675) · 继承自 SLA
+
+**三大改进**：
+
+| 改进 | 说明 | 效果 |
+|------|------|------|
+| **可学习路由器** | 动态选择稀疏/线性注意力 | 自适应计算分配 |
+| **直接稀疏线性公式** | 使用可学习比率融合两分支 | 更忠实于原始注意力 |
+| **量化感知微调 (QAT)** | 低比特注意力 + 稀疏 | 减少量化误差 |
+
+**核心公式**：
+```
+Attention = Router(Q,K,V) ? Sparse(QK^T)V : Linear(QK^T)V
+                            + learnable ratio fusion
 ```
 
-**最新更新 (Issue #9)**：
-- Triton 实现更稳定
-- 训练更快速
-- 通常获得更好的训练结果
-
-### 4.2 可调节参数
-
-- `top-k`: 控制稀疏比例
-- `fine-tuning steps`: 仅需少量微调即可适配
+**性能**：
+- **97% 稀疏度**
+- **18.6x 加速** (vs FlashAttention)
+- 保持生成质量
 
 ---
 
-## 5. 相关技术扩展
+### 4.2 Re-ttention (NeurIPS 2025)
 
-### 5.1 Gated Linear Attention (GLA)
+> Paper: [arXiv:2505.22918](https://arxiv.org/abs/2505.22918) · **训练无关**
 
-> 参考：[GLA Transformer - ICML 2024](https://arxiv.org/abs/2312.06635)
+**核心思想**：利用扩散模型的**时间冗余性**重塑注意力分布
 
 ```
-S_t = G_t ⊙ S_{t-1} + k_t^T v_t
-       ↑
-   2D forget gate G_t ∈ R^{d×d}
+问题：极稀疏注意力会扭曲 softmax 分布
+解决：基于先前 softmax 分布历史重塑注意力分数
 ```
 
-| 模型 | 门控参数化 | 参数量 |
-|------|-----------|--------|
-| Mamba | exp(-(1/α_t) ⊙ exp(A)) | A, W_α1, W_α2 |
-| GLA | α_t 1^T, α_t = σ(x_t W_α1 W_α2) | W_α1, W_α2 |
-| RetNet | γ_t 1^T, γ_t = σ(x_t W_γ) | W_γ |
+**技术亮点**：
+- **训练无关**：无需微调，即插即用
+- **超稀疏**：仅需 **3.1%** tokens
+- 解决稀疏注意力的概率归一化偏移问题
 
-**优势**：
-- 硬件高效训练
-- 在 recall 密集任务中优于 RetNet/Mamba
-- 可扩展到大型语言模型
+**测试模型**：
+- CogVideoX (T2V)
+- PixArt DiT (T2I)
 
-### 5.2 SpargeAttention
-
-> 参考：[thu-ml/SpargeAttn](https://github.com/thu-ml/SpargeAttn) · ICML 2025
-
-**训练无关**的稀疏注意力方案：
-- 无需微调
-- Plug-and-play
-- 基于 SageAttention2
-
-### 5.3 其他高效注意力变体
-
-| 方法 | 复杂度 | 特点 |
-|------|--------|------|
-| Flash Attention | O(N²) | IO 优化 |
-| Linformer | O(N) | 低秩投影 |
-| ELFATT | O(N) | 视觉任务 4-7x 加速 |
-| RetNet | O(N) | 递归+并行双形式 |
-| RWKV | O(N) | 线性 RNN 风格 |
+**对比优势**：优于 FastDiTAttn、Sparse VideoGen、MInference
 
 ---
 
-## 6. 技术对比
+### 4.3 LLSA - Log-linear Sparse Attention (2025.12)
+
+> Paper: [arXiv:2512.16615](https://arxiv.org/pdf/2512.16615)
+
+**突破性创新**：首个 **O(N log N)** 复杂度的稀疏注意力
 
 ```
-Softmax Attention (标准)
-├── O(N²) 复杂度
-├── 完整注意力矩阵
-└── 表达能力强但慢
+标准稀疏注意力: O(N²)  - 选择阶段太慢
+LLSA:            O(N log N) - 层级化 Top-K 选择
+```
 
-Linear Attention
-├── O(N) 复杂度  
-├── 核函数近似 (φ(Q)φ(K)^T)V
-└── 高效但表达能力受限
+**层级化选择策略**：
 
-SLA (本文)
-├── O(N) 有效复杂度
-├── 稀疏 + 低秩混合
-├── 保留关键交互 + 高效近似
-└── 可训练适配
+```
+层级1: 在最粗粒度计算 Top-K (O(N) tokens)
+层级2: 递归计算剩余层级的稀疏 Top-K
+...
+最终: 每个 query 关注 O(K log N) 个 coarse tokens
+```
+
+**性能**：
+| 任务 | 加速比 |
+|------|--------|
+| 注意力推理 | **28.27x** |
+| DiT 训练 (256×256) | **6.09x** |
+| 生成质量 | 保持 |
+
+---
+
+### 4.4 EDiT - Efficient Diffusion Transformer (ICCV 2025)
+
+> Paper: [ICCV 2025](https://openaccess.thecvf.com/content/ICCV2025/papers/Becker_EDiT_Efficient_Diffusion_Transformers_with_Linear_Compressed_Attention_ICCV_2025_paper.pdf)
+
+**核心机制**：线性压缩注意力
+
+```
+架构设计：
+┌─────────────────────────────────────────────┐
+│  Q (Queries):  多层卷积处理                   │
+│  K/V (Keys/Values): 卷积压缩空间token          │
+└─────────────────────────────────────────────┘
+```
+
+**变体**：
+| 模型 | 注意力机制 |
+|------|-----------|
+| EDiT | 线性压缩注意力（单模态） |
+| MM-EDiT | 混合注意力：图像用线性压缩 + 文本用标准注意力 |
+
+---
+
+### 4.5 Block-Sparse DiT
+
+**技术特点**：
+- 稀疏注意力 + 动态块跳过
+- 时间特征相似性缓存
+- 模式特定注意力掩码
+
+**性能**：
+| 指标 | 提升 |
+|------|------|
+| 图像/视频合成加速 | **3x** |
+| 内核级加速 | **10-30x** |
+
+---
+
+## 5. 实现更新
+
+### 5.1 SageSLA (基于 SageAttention)
+
+> GitHub Issue #9 更新 (2025)
+
+**最新改进**：
+- ✅ Triton 实现更稳定
+- ✅ 训练更快速
+- ✅ 更好的训练结果
+
+**版本演进**：
+| 版本 | 特性 |
+|------|------|
+| SageAttention v1/v2/v3 | 基于量化的注意力加速 |
+| SageAttention 2.0.1 β | 线程级量化 |
+| SageSLA | SLA + SageAttention 高性能实现 |
+| SageAttention2++ | 免费版可用 |
+
+---
+
+## 6. 技术演进路线图
+
+```
+原始 SLA (2024)
+├── 稀疏 + 线性混合
+├── 固定比例融合
+└── 20x 计算减少
+
+    ↓ 迭代方向
+
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│  SLA2 (2026)                    Re-ttention (2025)      │
+│  ├── 可学习路由器 ←──────────→ 训练无关即插即用          │
+│  ├── 直接融合公式                    时间冗余利用        │
+│  └── 量化感知微调                    3.1% tokens        │
+│                                                         │
+│  LLSA (2025.12)              EDiT (ICCV 2025)          │
+│  ├── O(N log N) 复杂度 ─────→ 线性压缩注意力           │
+│  └── 层级化 Top-K               图像+多模态            │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+
+    ↓ 最终目标
+
+超稀疏 + 低延迟 + 无质量损失 + 即插即用
 ```
 
 ---
 
-## 7. 应用场景
+## 7. 性能对比总览
 
-1. **视频生成**：DiT、Diffusion Transformer
-2. **长序列建模**：注意力成为瓶颈的场景
-3. **实时生成**：延迟敏感应用
-4. **多模态生成**：图像/视频/音频
+| 方法 | 年份 | 稀疏度 | 加速比 | 训练需求 | 复杂度 |
+|------|------|--------|--------|----------|--------|
+| **SLA** | 2024 | ~80% | 20x | 微调 | O(N) |
+| **SLA2** | 2026 | 97% | 18.6x | 微调 | O(N) |
+| **Re-ttention** | 2025 | 97% | - | **无需** | O(N²) |
+| **LLSA** | 2025 | - | 28x | 训练 | **O(N log N)** |
+| **EDiT** | 2025 | - | - | - | O(N) |
+| **SpargeAttn** | 2025 | 高 | - | **无需** | O(N²) |
 
 ---
 
-## 8. 参考文献
+## 8. 应用场景扩展
 
-1. **SLA**: "SLA: Beyond Sparsity in Diffusion Transformers via Fine-Tunable Sparse-Linear Attention" - THU-ML, ICML/NeurIPS
-2. **GLA**: "Gated Linear Attention Transformers with Hardware-Efficient Training" - ICML 2024
-3. **SpargeAttn**: "SpargeAttention: A Training-Free Sparse Attention" - ICML 2025
-4. **Mamba**: "Mamba: Linear-Time Sequence Modeling with Selective State Spaces" - 2023
-5. **RetNet**: "Retentive Network: A Successor to Transformer for Large Language Models" - 2023
+| 场景 | 推荐技术 |
+|------|----------|
+| 视频生成 (Wan2.1) | SLA2 / SageSLA |
+| 即插即用加速 | Re-ttention / SpargeAttn |
+| 超长序列 | LLSA |
+| 多模态 DiT | MM-EDiT |
+| 低资源部署 | EDiT |
 
 ---
 
@@ -176,22 +262,44 @@ git clone https://github.com/thu-ml/SLA.git
 # 查看 SageSLA 实现 (推荐)
 cd SageSLA/
 
-# 基本使用
+# 基础使用
 python -c "
 from sage_sla import sage_sla_attention
 # 替换标准 attention
 "
+
+# 获取 SLA2
+git checkout sla2  # 或从新分支获取
 ```
 
 ---
 
-## 10. 未来方向
+## 10. 参考文献
 
-- [ ] 与更多扩散模型集成 (SD3, FLUX)
-- [ ] 硬件定制 kernel 优化
-- [ ] 自适应稀疏比例
-- [ ] 与 SSM 的进一步融合
+### 核心论文
+
+1. **SLA** (2024): "SLA: Beyond Sparsity in Diffusion Transformers via Fine-Tunable Sparse-Linear Attention" - THU-ML, ICML/NeurIPS
+2. **SLA2** (2026): "SLA2: Sparse-Linear Attention with Learnable Routing and QAT" - arXiv:2602.12675
+3. **Re-ttention** (NeurIPS 2025): "Ultra Sparse Visual Generation via Attention Statistical Reshape" - arXiv:2505.22918
+4. **LLSA** (2025): "Trainable Log-linear Sparse Attention for Efficient Diffusion Transformers" - arXiv:2512.16615
+5. **EDiT** (ICCV 2025): "Efficient Diffusion Transformers with Linear Compressed Attention"
+
+### 相关技术
+
+6. **GLA**: "Gated Linear Attention Transformers with Hardware-Efficient Training" - ICML 2024
+7. **SpargeAttn**: "SpargeAttention: A Training-Free Sparse Attention" - ICML 2025
+8. **Mamba**: "Mamba: Linear-Time Sequence Modeling with Selective State Spaces" - 2023
+9. **RetNet**: "Retentive Network: A Successor to Transformer" - 2023
 
 ---
 
-*Last updated: 基于 2025 年最新资料*
+## 11. 未来方向
+
+- [ ] LLSA 与 SLA 的结合 (层级化稀疏 + 线性补偿)
+- [ ] Re-ttention 与 QAT 的结合
+- [ ] 实时视频生成的端到端优化
+- [ ] 与 state space models 的进一步融合
+
+---
+
+*Last updated: 2026-02 (SLA2 发布)*
