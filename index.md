@@ -20,6 +20,7 @@
 
 ### AI 应用
 - [LLM应用设计指南.md](./神经网络/LLM应用设计指南.md) — LLM 应用设计指南
+- [大语言模型架构分析.md](./神经网络/大语言模型架构分析.md) — LLM 架构分析
 
 ### AIGC
 - [Nvidia-MPS使用指南.md](./神经网络/AIGC/Nvidia-MPS使用指南.md) — Nvidia MPS 使用
@@ -84,12 +85,6 @@
 - [常用软件安装.md](./工具/常用软件安装.md) — 软件安装指南
 - [VSCode-SFTP使用指南.md](./工具/VSCode-SFTP使用指南.md) — VSCode SFTP 配置
 - [Hexo使用指南.md](./工具/Hexo使用指南.md) — Hexo 博客搭建
-
----
-
-## 📄 根目录笔记
-
-- [大语言模型架构分析.md](./大语言模型架构分析.md) — LLM 架构分析
 
 ---
 
