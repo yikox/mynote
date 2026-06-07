@@ -77,7 +77,6 @@
 ## 🔬 预研
 
 * [RegionE图像编辑.md](./预研/RegionE图像编辑.md) — RegionE 图像编辑
-
 * \[Sparse-Linear Attention 技术分析.md]\(./预研/Sparse-Linear Attention 技术分析.md) — Sparse-Linear Attention 技术分析
 
 * [SDNQ项目分析报告.md](./预研/SDNQ项目分析报告.md) — SDNQ 项目分析
