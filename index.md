@@ -26,7 +26,6 @@
 ### AIGC
 
 * [Nvidia-MPS使用指南.md](./神经网络/AIGC/Nvidia-MPS使用指南.md) — Nvidia MPS 使用
-
 * [Polygraphy使用指南.md](./神经网络/AIGC/Polygraphy使用指南.md) — Polygraphy 工具
 
 * [软件环境配置.md](./神经网络/AIGC/软件环境配置.md) — 软件环境配置
