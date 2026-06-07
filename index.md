@@ -79,7 +79,6 @@
 * [RegionE图像编辑.md](./预研/RegionE图像编辑.md) — RegionE 图像编辑
 * \[Sparse-Linear Attention 技术分析.md]\(./预研/Sparse-Linear Attention 技术分析.md) — Sparse-Linear Attention 技术分析
 * [SDNQ项目分析报告.md](./预研/SDNQ项目分析报告.md) — SDNQ 项目分析
-
 * [GitNote笔记修改点.md](./预研/GitNote笔记修改点.md) — GitNote 笔记修改记录
 
 ***
