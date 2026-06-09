@@ -23,6 +23,11 @@
 * [LLM应用设计指南.md](./神经网络/LLM应用设计指南.md) — LLM 应用设计指南
 * [大语言模型架构分析.md](./神经网络/大语言模型架构分析.md) — LLM 架构分析
 
+### 并行策略
+
+* [DeepSpeed-Ulysses序列并行.md](./神经网络/并行策略/DeepSpeed-Ulysses序列并行.md) — DeepSpeed-Ulysses 序列并行
+* [Ring-Attention环形注意力.md](./神经网络/并行策略/Ring-Attention环形注意力.md) — Ring-Attention 环形注意力
+
 ### AIGC
 
 * [Nvidia-MPS使用指南.md](./神经网络/AIGC/Nvidia-MPS使用指南.md) — Nvidia MPS 使用
@@ -77,7 +82,7 @@
 ## 🔬 预研
 
 * [RegionE图像编辑.md](./预研/RegionE图像编辑.md) — RegionE 图像编辑
-* \[Sparse-Linear Attention 技术分析.md]\(./预研/Sparse-Linear Attention 技术分析.md) — Sparse-Linear Attention 技术分析
+* [Sparse-Linear Attention 技术分析.md](./预研/Sparse-Linear Attention 技术分析.md) — Sparse-Linear Attention 技术分析
 * [SDNQ项目分析报告.md](./预研/SDNQ项目分析报告.md) — SDNQ 项目分析
 * [GitNote笔记修改点.md](./预研/GitNote笔记修改点.md) — GitNote 笔记修改记录
 
@@ -96,4 +101,3 @@
 ***
 
 > 💡 按主题分类，点击链接可跳转查看详细内容
-
