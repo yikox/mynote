@@ -61,6 +61,7 @@ Diffusion 模型（尤其 DiT 架构视频/图像生成，如 Wan2.1、HunyuanVi
 | 层间轨迹相似   | **How to use cache** | Dynamic Cache Trajectory Alignment   |
 
 ***
+
 ## 3. DiCache 整体框架
 
 DiCache 是一个**轻量级旁路模块**，挂在 diffusion 模型前 m 层之后，**不修改主网络结构**。
