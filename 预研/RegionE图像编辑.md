@@ -168,7 +168,6 @@ flowchart TB
 
 
 
-
 ### 3.2 Region-Instruction KV Cache (RIKVCache) — 空间冗余优化
 
 **问题**：编辑时把 DiT 输入从 `[X_p, X_t, X_I]` 改成 `[X_p, X_E_t]`，**完全丢弃**了非编辑区 `X_U` 和指令图 `X_I`。但 DiT 的 attention 是全局 token 交互的，丢弃会导致编辑区缺乏上下文、偏差累积。
