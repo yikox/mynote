@@ -168,33 +168,7 @@ flowchart TB
 
 **完整推理伪代码**：
 
-```python
-Input: 带噪图像 X_T, 原始图像 X_ref, 指令图像 X_I
 
-for t in [T, ..., 2, 1, 0]:
-    if t > 16:                                       # ── STS 阶段 ──
-        v_t = DiT([X_p, X_t, X_I])                  # 标准去噪
-        if t == 16:
-            C_KV = cache_KV(v_t)                    # 缓存 KV
-
-    elif 2 < t ≤ 16:                                 # ── RAGS 阶段 ──
-        if first_iteration:
-            X_final = DiT_one_step(X_t)             # 单步估计
-            mask = compute_region_mask(X_final, X_ref)
-        if t == 16:                                  # 强制刷新步
-            v_t, C_KV = full_compute(X_t, C_KV)
-        else:
-            v_E = DiT_region([X_p, X_E_t], C_KV)    # 编辑区 DiT
-            v_U = one_step_predict(v_t)             # 非编辑区单步
-            v_t = merge(v_E, v_U, mask)
-
-    else:                                            # ── SMS 阶段 ──
-        v_t = DiT([X_p, X_t, X_I])                  # 完整去噪
-
-    X_{t-1} = X_t - Δt_t · v_t
-
-return X_0
-```
 
 ### 3.2 Region-Instruction KV Cache (RIKVCache) — 空间冗余优化
 
