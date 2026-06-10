@@ -170,20 +170,139 @@ flowchart TB
 
 ### 3.2 Region-Instruction KV Cache (RIKVCache) — 空间冗余优化
 
-**问题**：编辑时把 DiT 输入从 `[X_p, X_t, X_I]` 改成 `[X_p, X_E_t]`，**完全丢弃**了非编辑区 `X_U` 和指令图 `X_I`。但 DiT 的 attention 是全局 token 交互的，丢弃会导致编辑区缺乏上下文、偏差累积。
+**问题**：编辑时把 DiT 输入从 `[X_P, X_t, X_I]` 改成 `[X_P, X_E_t]`，**完全丢弃**了非编辑区 `X_U` 和指令图 `X_I`。但 DiT 的 attention 是全局 token 交互的，丢弃会导致编辑区缺乏上下文、偏差累积。
 
-**解决**：把 STS 阶段缓存的 `X_U` 和 `X_I` 的 KV 接回来：
+#### 🧩 A. 核心设计：RIKVCache 的"三件套"
 
-```text
-Attention = softmax([Q_P, Q_E] · [K_P, K_E, K_C^U, K_C^I]ᵀ / √d) · [V_P, V_E, V_C^U, V_C^I]
+RIKVCache 的精髓**不是单纯的"用 cache"**，而是把整个 RAGS 步的 DiT 前向**重新设计**成了三件套：
 
-其中：
-  Q_P, Q_E          ← 当前输入的 query
-  K_C^U, V_C^U      ← 非编辑区（STS 阶段缓存）
-  K_C^I, V_C^I      ← 指令图（STS 阶段缓存）
+**设计一：只跑编辑区**（最关键，决定 cache 必要性）
+
+```
+正常 DiT:   x_full → DiT(x_full)            # 跑全部 N 个 token
+RegionE:    x_e    → DiT(x_e)                # 只跑 rN 个 token（r = 编辑区占比）
 ```
 
-**数据流**：
+只跑 x_e 之后，**编辑区自然就"看不到"非编辑区了** —— 这是 cache 存在的前提。
+
+**设计二：一次性建 cache**（节省的是"重算"成本）
+
+```
+t=16 强制刷新步（必须全量 forward 一次）:
+    K_C^U, V_C^U, K_C^I, V_C^I = KV_noedit(x_full)[noedit_mask]   
+                                       # 截取非编辑区对应的 K, V 存下来
+                                       # 后续 RAGS 步不再算
+```
+
+这一步是不可省略的"建索引"成本，但**只发生一次**。
+
+**设计三：attn 时拼接注入**（让 x_e "看得到"非编辑区）
+
+```text
+A = softmax([Q_P, Q_E] · [K_P, K_E, K_C^U, K_C^I]ᵀ / √d) · [V_P, V_E, V_C^U, V_C^I]
+```
+
+这一行就是**整个 RIKVCache 算法的灵魂**。
+
+**三件套的逻辑闭环**：
+
+```
+设计一（只跑 x_e）
+    │  问题：编辑区看不到非编辑区 → 生成不连贯
+    ↓
+设计二（建 cache 存 K_C, V_C）
+    │  问题：怎么让 x_e 看到非编辑区？
+    ↓
+设计三（attn 拼接）→ 形成闭环
+```
+
+#### 📦 B. Cache 里到底存什么 —— 四 token 视角
+
+DiT 在编辑任务中涉及**四类 token**，cache 的内容是**精确选择**的结果：
+
+| Token | 含义 | 在 cache 吗 | 为什么 |
+| --- | --- | --- | --- |
+| **P** | Prompt（文字指令）| ❌ | 文字 prompt 参与 Q 计算但不存 |
+| **E** | Edited region（编辑区）| ❌ | **每步都在变化**（去噪过程），缓存没意义 |
+| **U** | Unedited region（非编辑区）| ✅ **K_C^U, V_C^U** | 空间邻接上下文（边缘延伸、纹理连续、阴影一致）|
+| **I** | Instruction image（指令图 / 原图）| ✅ **K_C^I, V_C^I** | **全局风格锚点**（整体色彩、构图、风格保持）|
+
+**为什么 I 也存**：编辑区只跑 x_e 后，会丢失"原图整体长啥样"的参考。比如把一只猫改成狗，只看 U（猫周围的草地）可能生成一只写实狗，但原图是卡通风格 → 应该生成卡通狗。I 提供了这个"全局风格锚点"。
+
+> 这一点**之前的笔记漏掉了**。论文公式 6 明示了 I 的存在，是 RegionE 设计中容易被忽略但关键的一环。
+
+#### 🧭 C. 位置编码适配性 —— "训练免费"能 work 的隐藏前提
+
+DiT 用 RoPE（旋转位置编码），K 矩阵里**嵌入了相对位置**。K_C^U、V_C^U、K_C^I、V_C^I 都保留原图 token 的**原始位置信息**。
+
+当拼接做 attention 时：
+
+- Q_E（编辑区当前位置）· K_C^U（非编辑区原位置）→ 相对距离**自动算出**
+- **不需要任何位置对齐处理**
+
+| 位置编码方式 | 在 K_V 里的体现 | 拼接时是否需要处理 |
+| --- | --- | --- |
+| **RoPE**（现代 DiT 主流）| K 矩阵里嵌入了相对位置 | ❌ 不需要 |
+| **2D 正弦 / Learned PE** | 加在 token embedding 上 | ❌ 不需要 |
+| **ALiBi**（线性偏置）| attention score 后加偏置 | ⚠️ 需要扩展 bias 表 |
+
+> 现代 DiT（FLUX、Qwen、Step1X）几乎都用 RoPE，所以 RegionE 不用特殊处理位置编码 —— **这是它能"训练免费"的隐藏前提**。
+
+#### 🔄 D. Cache 刷新机制
+
+cache **不是永久有效**，RAGS 阶段需要周期性刷新：
+
+| 阶段 | 缓存操作 | 说明 |
+| --- | --- | --- |
+| **STS 末（t=16）** | **建 cache**（首次） | 强制刷新步，全量 forward，截取 U/I 的 KV |
+| **RAGS 加速步（t=15, 14, ...）** | **用 cache** | 只跑 x_e，拼接 K_C^U、K_C^I |
+| **RAGS 强制刷新点** | **刷新 cache** | 论文 Figure 3 复数标注"forced update"，防漂移 |
+| **SMS（t=1, 0）** | **抛弃 cache** | 全量 forward，消除分块痕迹 |
+
+```mermaid
+flowchart LR
+    A["STS 末<br/>t=16 强制刷新"] -->|"建 cache<br/>K_C^U, V_C^U<br/>K_C^I, V_C^I"| B["RAGS<br/>t=15, 14, ...<br/>加速步"]
+    B -->|"强制刷新点<br/>(防 cache 漂移)"| A
+    B --> C["SMS<br/>t=1, 0<br/>全量 forward"]
+
+    style A fill:#e3f2fd
+    style B fill:#fff9c4
+    style C fill:#e8f5e9
+```
+
+**为什么要周期性刷新**：编辑区在去噪过程中 K_V 会缓慢变化，cache 用久了会"漂移"。强制刷新点相当于"重置" cache 到当前真实状态。
+
+**刷新频率论文没明说**，但根据"高质量"目标，密度不会太低（推测每 2-3 步一次）。
+
+#### 💾 E. 显存开销估算
+
+cache 显存占用（理论值，未压缩）：
+
+```text
+per_layer  = 2 (K+V) × (N_U + N_I) × num_heads × head_dim × dtype_bytes
+total      = per_layer × num_layers
+```
+
+以 FLUX-Kontext 为例（粗估）：
+
+| 参数 | 值 |
+| --- | --- |
+| num_layers | ~60（双 block + 单 block）|
+| N_U + N_I | 1024 token（=32×32 latent）|
+| num_heads × head_dim | d_kv ≈ 4096（FLUX）|
+| dtype | bf16 = 2 bytes |
+
+```text
+per_layer = 2 × 1024 × 4096 × 2 = 16 MB
+total     = 16 MB × 60 = ~1 GB
+```
+
+**Qwen-Image-Edit / Step1X 类似量级，~0.5-1 GB**。
+这是 RegionE 唯一的"额外显存开销"，相比 FLUX 模型本身的 24 GB 权重可以接受。
+
+> ⚠️ 实际可能有量化（fp8/int8）能减半。具体看代码实现（待确认）。
+
+#### 📌 数据流总览
 
 ```mermaid
 flowchart TB
@@ -199,14 +318,6 @@ flowchart TB
     style Cache fill:#fff9c4
     style Out fill:#e8f5e9
 ```
-
-**缓存更新策略**：
-
-| 阶段         | 缓存操作                     |
-| ---------- | ------------------------ |
-| STS        | 缓存所有 KV（包括 `X_U`, `X_I`） |
-| RAGS 正常步   | 使用 RIKVCache             |
-| RAGS 强制刷新步 | 跑一遍全图 DiT，刷新缓存           |
 
 ### 3.3 Adaptive Velocity Decay Cache (AVDCache) — 时间冗余优化
 
@@ -294,6 +405,8 @@ flowchart LR
     C --> E
     D --> E
     E --> F["scatter 写回 X_full"]
+
+    style E fill:#fff9c4
 ```
 
 **关键点**：
@@ -308,81 +421,6 @@ flowchart LR
 
 ### 5.1 整体性能（3 个模型 vs vanilla）
 
-| 模型              | 延迟 (s)            | 加速比       | PSNR ↑        | SSIM ↑ | LPIPS ↓       |
-| --------------- | ----------------- | --------- | ------------- | ------ | ------------- |
-| Step1X-Edit     | 27.95 → **10.87** | **2.57×** | 31.08 → 30.52 | 0.94   | 0.055 → 0.054 |
-| FLUX.1 Kontext  | 19.87 → **8.25**  | **2.41×** | 32.43 → 32.13 | 0.95   | 0.038         |
-| Qwen-Image-Edit | 17.51 → **8.50**  | **2.06×** | 31.35 → 31.12 | 0.94   | 0.046 → 0.045 |
+| 模型              | 延迟 (s)            | 加速比
 
-> 📊 **结论**：三个模型都能稳定拿到 2-2.5× 加速，质量损失微乎其微（PSNR 平均掉 0.3 dB）。
-
-### 5.2 消融实验（Step1X-Edit）
-
-| 组件变体            | PSNR ↑    | SSIM ↑ | LPIPS ↓   | 延迟 (s) ↓ | 加速比 ↑ | 评价                       |
-| --------------- | --------- | ------ | --------- | -------- | ----- | ------------------------ |
-| **完整 RegionE**  | **30.52** | 0.94   | **0.054** | 10.87    | 2.57× | —                        |
-| w/o RIKVCache   | 22.87     | 0.82   | 0.207     | 10.22    | 2.73× | ❌ PSNR −7.65，LPIPS 暴涨 4× |
-| w/o AVDCache    | 31.14     | 0.95   | 0.046     | 16.12    | 1.73× | ✅ 质量更高但速度慢（少了 47% 加速）    |
-| w/o STS         | 21.44     | 0.81   | 0.161     | 7.15     | 3.91× | ❌ 质量崩塌，PSNR −9           |
-| w/o SMS         | 28.86     | 0.90   | 0.085     | 9.77     | 2.86× | ⚠️ 质量略降                  |
-| w/o Forced Step | 28.45     | 0.92   | 0.080     | 10.20    | 2.74× | ⚠️ 质量略降                  |
-
-**关键发现**：
-
-1. **RIKVCache 至关重要** — 去掉 PSNR 直接掉 7.65 dB（说明局部生成需要全局 KV 注入）
-2. **AVDCache 贡献 47% 加速** — 1.73× → 2.57×
-3. **三阶段设计必要** — STS 和 SMS 都不能少
-
-***
-
-## 6. 与现有工作的区别
-
-| 方法   | 策略           | RegionE vs 它        |
-| ---- | ------------ | ------------------- |
-| RAS  | 只更新语义连贯区域    | + 同时处理**空间 + 时间**冗余 |
-| ToCa | 动态更新部分 token | + 利用 **IIE 轨迹特性**   |
-| DuCa | token 敏感度感知  | + **训练-free，即插即用**  |
-
-**RegionE 独特性**：
-
-1. 🎯 利用 IIE 任务特有的轨迹特性（非编辑区轨迹直线）
-2. 🎯 同时解决**空间**（KV Cache）和**时间**（速度跳步）两个维度
-3. 🎯 完全 **训练-free**，即插即用到任意 IIE 模型
-
-***
-
-## 7. 总结
-
-### 三大核心贡献
-
-| 缩写            | 全称                            | 解决什么           |
-| ------------- | ----------------------------- | -------------- |
-| **ARP**       | Adaptive Region Partition     | 编辑区 vs 非编辑区怎么分 |
-| **RIKVCache** | Region-Instruction KV Cache   | 丢弃区域信息怎么补      |
-| **AVDCache**  | Adaptive Velocity Decay Cache | 编辑区怎么跳步        |
-
-### 实现的三个层次
-
-| 层级          | 修改点                                 | 效果            |
-| ----------- | ----------------------------------- | ------------- |
-| 输入层         | `[X_p, X_t, X_I]` → `[X_p, X_E_t]`  | 减少 token 数    |
-| Attention 层 | K, V 拼接 cached KV（`K_C^U`, `K_C^I`） | 保留全局上下文       |
-| 调度层         | 三阶段策略 + 自适应跳步决策                     | 控制何时加速、何时刷新缓存 |
-
-### 关键公式速查
-
-```text
-① 区域划分:   mask = (|X_final − X_ref| > η)
-② RIKVCache: A = softmax(Q · [K, K_C]ᵀ / √d) · [V, V_C]
-③ AVDCache:  ‖v_ti‖ / ‖v_ti+1‖ = (1 − Δt_ti+1,ti) · γ_ti
-```
-
-***
-
-## 📚 参考资料
-
-* 论文：<https://arxiv.org/abs/2510.25590>
-
-* 代码：<https://github.com/Peyton-Chen/RegionE>
-
-* OpenReview：<https://openreview.net/forum?id=I6j5fLdH80>
+... (已截断，原始长度 10015 B, hash 8937f0ed)
