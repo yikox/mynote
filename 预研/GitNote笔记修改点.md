@@ -32,9 +32,9 @@
 * 新增"连接 GitHub"对话框（user\_code + 倒计时 + 取消按钮）
 
 * 设置页 UI 改造：
-
+  
   * PAT 输入框去掉
-
+  
   * 换成"已连接：@username" + "断开" + "重新选择仓库"
 
 * 错误态（rate limit / 拒绝 / 超时）
@@ -50,4 +50,3 @@
 * [GitHub Device Flow](https://docs.github.com/en/developers/apps/authorizing-oauth-apps#device-flow)
 
 * [Tauri opener plugin](https://github.com/tauri-apps/tauri-plugin-opener)
-
