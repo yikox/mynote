@@ -63,6 +63,7 @@ mask[i] = 1 if |X̂_0[i] - X_ref[i]| > η else 0
 
 **渲染版公式**：
 
+
 $$\hat{X}_0 = X_{t_{16}} + v_{t_{16}} \cdot (0 - 16)$$
 
 $$\text{mask}[i] = \mathbb{1}\left(|\hat{X}_0[i] - X_{\text{ref}}[i]| > \eta\right)$$
