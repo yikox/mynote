@@ -97,7 +97,7 @@ $$‖v_ti‖ / ‖v_ti+1‖ = (1 - Δt_ti+1,ti) · γ_ti$$
 
 跳步预测：
 
-v_tj   = v_ti · (1 - Δt_tj,ti) · γ_ti
+$$v_tj   = v_ti · (1 - Δt_tj,ti) · γ_ti
 
 **决策**：
 
