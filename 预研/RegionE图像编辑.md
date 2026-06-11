@@ -95,7 +95,8 @@ A = softmax([Q_P, Q_E] · [K_P, K_E, K_C^U, K_C^I]ᵀ / √d) · [V_P, V_E, V_C^
 
 $$‖v_ti‖ / ‖v_ti+1‖ = (1 - Δt_ti+1,ti) · γ_ti$$
 
-跳步预测：v_tj   = v_ti · (1 - Δt_tj,ti) · γ_ti
+跳步预测：
+v_tj   = v_ti · (1 - Δt_tj,ti) · γ_ti
 
 **决策**：
 
