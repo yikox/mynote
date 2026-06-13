@@ -51,4 +51,4 @@
 
 * [Tauri opener plugin](https://github.com/tauri-apps/tauri-plugin-opener)
 
-* 改名参考 Distill 蒸馏，源自 “Distill”（蒸馏、提取精华），去掉一个 “l” 更显极简科技感。AI 在底层像蒸馏器一样帮你把冗长的信息、网页剪藏浓缩成最易读的摘要和结构，服务于人类的真正吸收。
+* 改名参考 Distill 蒸馏，源。AI 在底层像蒸馏器一样帮你把冗长的信息、网页剪藏浓缩成最易读的摘要和结构，服务于人类的真正吸收。
