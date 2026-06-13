@@ -51,4 +51,4 @@
 
 * [Tauri opener plugin](https://github.com/tauri-apps/tauri-plugin-opener)
 
-* 
+* 改名参考
