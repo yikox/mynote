@@ -50,3 +50,5 @@
 * [GitHub Device Flow](https://docs.github.com/en/developers/apps/authorizing-oauth-apps#device-flow)
 
 * [Tauri opener plugin](https://github.com/tauri-apps/tauri-plugin-opener)
+
+* 
