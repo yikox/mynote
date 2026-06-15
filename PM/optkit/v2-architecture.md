@@ -1,7 +1,6 @@
 # optkit_v2 架构讲解（分享文档）
 
 > 面向新接入同学的代码导读。讲清三件事：**支持哪些优化方法及其限制**、**Context 的设计**、**已实现的模型 pipeline**。
-> 代码路径：`optkit_v2/`。配套：项目管理 `docs/v2-pm.md`；专题设计 `docs/v2-regione-design.md`、`docs/v2-regione-cp-design.md`。
 
 ---
 
