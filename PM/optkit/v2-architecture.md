@@ -70,7 +70,6 @@ images = pipe(prompt="...").images
 - **`auto_skip`（默认 True）**：按 `model.__class__.__name__` 查 skip 表，跳过 `norm_out / proj_out / time_embed / x_embedder / lora` 等关键模块，fallback 用 `common_skip_keys + lora_skip_keys`。设 False 只跳 `lora_A/lora_B`（其余全量化，易踩坑，不推荐）。
 - **限制 / 注意**：
   - **transformer 不做 cpu-offload**：torchao 量化张量与 accelerate 跨设备搬运不兼容；显存不足靠量化缩到常驻，而非 offload。
-  - v1/v2 量化产物不可混用。
 
 
 ### 1.3 torch.compile（`components/compile/`）—— 区域编译
