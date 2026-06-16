@@ -37,6 +37,7 @@
 - sage+fp8+compile
   - + ulysses 4 
   - + ring 2
+    - x
     - 
 - 分功能性和指标测试
 ---
