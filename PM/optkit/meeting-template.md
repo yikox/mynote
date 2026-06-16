@@ -33,7 +33,7 @@
 
 - 多机器并行
 - cache.tar 缓存下来
-- v2 测试项目 dai'tao'l
+- v2 测试项目 待讨论
 - sage+fp8+compile
 	- + ulysses 4 
 	- + ring 2
