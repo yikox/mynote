@@ -38,7 +38,7 @@
 	- + ulysses 4 
 	- + ring 2
 - 分功能性和指标测试
-	- 
+- 
 ---
 
 ### 3. lora_manager 设计与现状
