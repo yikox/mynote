@@ -20,7 +20,7 @@
 - pipe 对分辨率的特殊处理
 - 修改到 pipe的算法如何处理
 - 持续维护新模型的 pipe 
-- wan模型的确认（t2v i2v vace v）
+- wan模型的确认（t2v i2v vace vace）
 - 
 
 ---
