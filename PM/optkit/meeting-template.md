@@ -36,7 +36,7 @@
 - v2 测试项目
 	- sage+fp8+compile
 	- + ulysses 4 
-	- rin
+	- ring
 ---
 
 ### 3. lora_manager 设计与现状
