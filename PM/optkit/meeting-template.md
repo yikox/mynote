@@ -35,7 +35,7 @@
 - cache.tar 缓存下来
 - v2 测试项目
 	- sage+fp8+compile
-	- 
+	- ![](../../assets/20260616-165827-41cf.png)
 
 ---
 
