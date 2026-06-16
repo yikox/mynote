@@ -24,7 +24,7 @@ cfg = OptKitConfig(
 ctx = apply_warp(pipe, cfg)   # warp 按 pipe 类名自动解析
 images = pipe(prompt="...").images
 ```
-·
+
 三层 + 一契约：
 
 ```
