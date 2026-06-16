@@ -32,7 +32,7 @@
 **讨论要点**：
 
 - 多机器，
-- cache.tar huan'q
+- cache.tar 缓存下来
 
 ---
 
