@@ -36,7 +36,7 @@
 - v2 测试项目 待讨论
 - sage+fp8+compile
 	- + ulysses 4 
-- + ring 2
+  - + ring 2
 - 分功能性和指标测试
 ---
 
