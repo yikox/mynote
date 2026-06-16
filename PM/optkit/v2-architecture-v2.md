@@ -211,6 +211,7 @@ flowchart LR
     subgraph Sched["③ scheduler 层<br/>on_pipe_ready"]
         C1["换 RegionEFlowMatchScheduler"] --> C2["给每 block 准备 RegionEAttnState<br/>(cond + uncond)"]
     end
+
     Pipeline --> Attn --> Sched
 ```
 
@@ -353,7 +354,7 @@ warp 分两层（`warps/`）：
 | Qwen-Image-Edit-2509 | `QwenImageEditPlusPipeline` | `pipeline_qwenimage_edit_plus.py` | Plus 多图编辑 | 20B | 32G（量化后） | 是 | u4+regione **8.36×** |
 | FLUX.1 | `FluxPipeline` | `pipeline_flux.py` | t2i 文生图 | 12B | 24G | 否 | — |
 | FLUX.1-Kontext | `FluxKontextPipeline` | `pipeline_flux_kontext.py` | 参考编辑 | 12B | 24G | 是 | 待补 |
-| FLUX.1-Fill | `FluxFillPipeline` | `pipeline_flux_fill.py` | 通道级条件填充 | 12B | 24G | 否（通道条件） | — |
+| FLUX.1-Fill | `FluxFillPipeline` | `pipeline_flux_kontext.py`（注：原文件名 `pipeline_flux_fill.py`） | 通道级条件填充 | 12B | 24G | 否（通道条件） | — |
 | FLUX.1-Inpaint | `FluxInpaintPipeline` | `pipeline_flux_inpaint.py` | mask 重绘 | 12B | 24G | 否（mask 混合） | — |
 | FLUX.2-Klein | `Flux2KleinPipeline` | `pipeline_flux2_klein.py` | 编辑 | — | — | 是 | 待补 |
 | Wan | `WanPipeline` | `pipeline_wan.py` | t2v 文生视频 | 14B / A14B | — | 否（cross 透传） | — |
