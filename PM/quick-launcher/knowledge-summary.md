@@ -22,7 +22,7 @@
 
 - 通过公开 tap **`yikox/homebrew-tap`** 分发。`Formula/quicklauncher.rb` **从源码构建**：执行 `./scripts/build-app.sh`，把 `QuickLauncher.app` 装进 keg，并加 `quicklauncher` CLI 包装 `open` 启动它。
 - 源仓库 `yikox/quick-launcher` **必须公开**：Homebrew 是**未认证**直接拉取 `archive/refs/tags/*.tar.gz`，私有库会返回 404，谁都装不了。
-- formula **不写 `depends_on xcode`**：只需 Command Line Tools 自带的 swift（AppKit、SwiftUI、Yams 都在 CLT 的 SDK 内）；若写了，对没装完整 Xcode 的用户会报 “Xcode can be installed from the App Store”。
+- formula **不写 `depends_on xcode`**：只需 Command Line Tools 自带的 swift（AppKit、SwiftUI、Yams 都在 CLT 的 SDK 内）；若写了，对没装完整 Xcode 的用户会报 "Xcode can be installed from the App Store"。
 - formula 设置 `ENV["EXTRA_SWIFT_FLAGS"] = "--disable-sandbox"`：Homebrew 自身沙箱里 SwiftPM 解析 manifest 会嵌套调 `sandbox-exec` 被拒。
 - **CI 自动化**：tag 触发 `Release` + `Update Homebrew Tap`（后者重算 sha256 并提交新 url/sha 到 tap，需 secret `TAP_GITHUB_TOKEN`）。CI 只 sed `url`/`sha256`，formula 其它改动（依赖、install 逻辑）须手动提交到 tap。
 
@@ -58,11 +58,11 @@
 
 - **brew 装的 app 点了没反应 / 后台也没有（v1.1.3 之前）**
   - 现象：打包后启动即崩，因找不到资源 bundle。
-  - 根因：见“调查结果”小节。
+  - 根因：见"调查结果"小节。
   - 复现：把本地 `.build` 改名，再直接跑 `build/QuickLauncher.app/Contents/MacOS/QuickLauncher`。
   - 修复：v1.1.3。
 
-- **`brew install` 报 `Error: An unsatisfied requirement failed this build` / “Xcode can be installed from the App Store”**
+- **`brew install` 报 `Error: An unsatisfied requirement failed this build` / "Xcode can be installed from the App Store"**
   - 原因：formula 不应 `depends_on xcode`（已去掉）。
   - 若 `swift` 找不到：`xcode-select -p` 若指向已删除的 Xcode.app，执行 `sudo xcode-select --switch /Library/Developer/CommandLineTools`；未装 CLT 则 `xcode-select --install`。
 
@@ -80,7 +80,7 @@
 
 - **算 Homebrew 用的 sha256 要点**
   - `gh api .../tarball/REF` 与公开 `archive/refs/tags/TAG.tar.gz` **字节不同 → sha 不同**。
-  - Homebrew 下的是 archive URL，因此 sha 必须从 archive URL 算（CI 的 ubuntu runner 上 `curl|sha256sum` 即可；本地 Claude 沙箱无外网会取到假的 “Not Found”）。
+  - Homebrew 下的是 archive URL，因此 sha 必须从 archive URL 算（CI 的 ubuntu runner 上 `curl|sha256sum` 即可；本地 Claude 沙箱无外网会取到假的 "Not Found"）。
 
 - **`open --args` 投递行为（已实测，用最小探针 app）**
   - 参数只在 app **冷启动那一刻**注入 argv。
