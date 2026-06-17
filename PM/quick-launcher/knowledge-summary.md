@@ -48,7 +48,7 @@
 
 ## 五、故障排查
 
-- **编译报 `preformatted file ... compiled with module cache path .../agent-center/...`**
+- **编译报 `precompiled file ... compiled with module cache path .../agent-center/...`**
   - 原因：`.build/` 是从别的项目拷来的，ModuleCache 路径失效。
   - 解决：`rm -rf .build/*/debug/ModuleCache .build/*/release/ModuleCache` 后重建。
 
