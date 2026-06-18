@@ -1,6 +1,6 @@
 # QuickLauncher 知识摘要
 
-Last updated: 2026-06-17
+Last updated: 2026-06-18 (v1.2.1)
 
 ## Verified Commands
 - `swift build` — 编译。
@@ -21,10 +21,12 @@ Last updated: 2026-06-17
 - CI 自动化：tag 触发 `Release` + `Update Homebrew Tap`（后者重算 sha256 并提交新 url/sha 到 tap，需 secret `TAP_GITHUB_TOKEN`）。CI 只 sed `url`/`sha256`，formula 其它改动（依赖、install 逻辑）须手动提交到 tap。
 
 ## Architecture and Structure
-- `Sources/Core`（SwiftPM target `LauncherCore`，纯逻辑库，依赖 Yams）：Models（Action/Command/LauncherConfig）、Config（ConfigLoader/ConfigParser/ConfigWatcher）、Runner（ActionRunner/ProcessExecutor/TerminalScript）、Search（CommandFilter）、Util（PathUtil）。
+- `Sources/Core`（SwiftPM target `LauncherCore`，纯逻辑库，依赖 Yams）：Models（Action/Command/LauncherConfig/Workspace）、Config（ConfigLoader/ConfigParser/ConfigWatcher）、Runner（ActionRunner/ProcessExecutor/TerminalScript/WorkspaceRunner/WindowArranger/WindowGeometry）、Search（CommandFilter）、Util（PathUtil）。
+- **工作区(workspace)（v1.2.0）**：指令用 `workspace:` 替代 `actions:`/`children:` → `CommandKind.workspace`。`WorkspaceRunner` 逐窗口「防重复（查窗口标题含目录名）→ 打开/复用 → 排布」。排布走 System Events AppleScript（`WindowArranger` 生成 `set position/size`），`WindowGeometry` 做 Cocoa↔System Events 的 y 翻转。仅主屏。frame `[x,y,w,h]` 为可见区 0~1 占比、y 从顶。面板里三类指令有不同色胶囊角标（工作区紫/单层蓝/双层橙）。
 - `Sources/App`（target `QuickLauncher`，菜单栏 app，`LSUIElement`）：热键、面板窗口、SwiftUI 视图。
 - `Tests/CoreTests`（可执行 target）：`main.swift` 里注册各测试组后 `Test.run()`。
-- 配置位置优先级：显式 > 环境变量 `QUICKLAUNCHER_CONFIG` > `~/.config/quicklauncher/commands.yaml`；`manual.html` 与配置同目录。
+- 配置位置优先级：显式 > 环境变量 `QUICKLAUNCHER_CONFIG` > `~/.config/quicklauncher/commands.yaml`。
+- **使用手册 manual.md（v1.2.1）**：格式说明的唯一数据源是 `ConfigLoader.manualMarkdown`（Swift 常量），`ensureManual()` 在 `AppState.bootstrap()` 里**每次启动无条件覆盖**写到配置同目录 `manual.md`（随版本刷新、不动 commands.yaml）。`commands.yaml` 注释已瘦身为指引。菜单栏「打开使用手册」→ `openManual()`。默认「用 AI 配置」是两层组（Claude/Codex/Agent，各跑对应 CLI 读 manual.md）。注意 `ensureExists()` 不覆盖已存在 commands.yaml，故新默认组只对全新安装生效；老 `manual.html` 早已不存在（被注释块取代，现又抽成 manual.md）。
 - 平台：macOS 14+，仅需 Command Line Tools（无 XCTest，故自制测试运行器）。
 
 ## Conventions
@@ -41,6 +43,7 @@ Last updated: 2026-06-17
 - **`brew install` 报 `sandbox-exec: sandbox_apply: Operation not permitted`**：SwiftPM 在 Homebrew 沙箱内嵌套沙箱被拒，formula 需 `swift build --disable-sandbox`（经 `EXTRA_SWIFT_FLAGS`）。
 
 ## Investigation Results
+- **工作区分屏「给了权限还是不生效」根因（2026-06-17 实测）**：排布窗口需 **「辅助功能」权限**（`AXIsProcessTrusted`），跟首次弹的 Apple Events「想要控制」**是两回事**——macOS 不会为辅助功能自动弹框，须代码主动触发（`AXIsProcessTrustedWithOptions` + 打开设置面板）。更隐蔽的坑：`build-app.sh` 用 **ad-hoc 签名**（`codesign --sign -`），**每次重新编译都换 cdhash**，致先前授权的二进制不再被认；设置里那行**还勾着**（残留条目）但 `AXIsProcessTrusted=false`，反复弹框。解决：删掉列表里所有 QuickLauncher 条目 → 装到**固定位置**（/Applications）→ 授权后**别再重新编译**。System Events 未授权报错码 `-25211`/`-1719`（数字跨语言稳定），中文文案「不允许辅助访问」，`WorkspaceRunner.isPermissionError` 已兼容。
 - **打包后启动崩溃根因（2026-06-16 实测定位）**：App 是 SwiftPM `executableTarget` + `resources:[.process("Resources")]`，生成的 `Bundle.module` accessor 只查两处——`Bundle.main.bundleURL/QuickLauncher_QuickLauncher.bundle`（对 .app 来说是 **.app 根**，**不是** `Contents/Resources`）和**烤死的 `.build/<arch>/release/...` 绝对路径**。本地一直靠 `.build` 续命；`brew` 在 `/private/tmp` 构建完删掉 `.build` 即崩。把 bundle 放 .app 根能被找到但 codesign 报 `unsealed contents present in the bundle root`（.app 顶层只能有 `Contents/`）。**修复**：菜单栏图标改走 `Bundle.main` 读 `Contents/Resources`（开发态回退 `Bundle.module`），`build-app.sh` 平铺 `MenuBarIcon.png` 进 `Contents/Resources` 并自检（v1.1.3）。
 - **算 Homebrew 用的 sha256 要点**：`gh api .../tarball/REF` 与公开 `archive/refs/tags/TAG.tar.gz` **字节不同 → sha 不同**；Homebrew 下的是 archive URL，故 sha 必须从 archive URL 算（CI 的 ubuntu runner 上 `curl|sha256sum` 即可，本地 Claude 沙箱无外网会取到假 "Not Found"）。
 - **`open --args` 投递行为（已实测，用最小探针 app）**：参数只在 app **冷启动那一刻**注入 argv。app 已运行时（无 `-n`）参数被**静默丢弃**，仅激活窗口；加 `-n` 会开新实例并收到参数。→ 对常驻 app（如 VSCode）加参数不可靠。
