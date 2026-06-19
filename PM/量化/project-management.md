@@ -1,42 +1,66 @@
-# 量化 Project Management
+# 量化项目管理
 
-Last updated: 2026-06-19
+最后更新：2026-06-19
 
-## Overview
-- 个人量化项目，目标是先完成最小闭环：数据获取 -> 策略信号 -> 回测 -> 绩效分析 -> 可视化报告。
+## 项目概览
 
-## Current Status
-- Version: 初始最小闭环版本 + AkShare 数据源
-- State: 已完成本地可运行原型，并接入第一个真实 A 股数据 provider
-- Current focus: 完善真实数据获取、缓存、异常处理和后续 A 股交易规则。
+这是一个个人量化项目，当前目标是先跑通最小闭环：数据获取 -> 策略信号 -> 回测 -> 绩效分析 -> 可视化报告。项目先保持轻量、可解释、可本地运行，再逐步接入真实数据源和更完整的 A 股交易规则。
 
-## Active Tasks
-- 已创建 `quant_mini` Python 包，包含数据、策略、回测、绩效、报告和入口模块。
-- 已生成示例行情数据与 HTML 回测报告。
-- 已新增 `AkShareProvider`，支持通过 AkShare 获取 A 股日线 OHLCV 数据。
-- 已在项目本地 `.venv` 安装 AkShare，并用 `000001` 的 2024 年日线数据完成真实数据回测验证。
+## 当前状态
 
-## Milestones
-- 2026-06-19 - 完成无第三方依赖的最小闭环原型。
-- 2026-06-19 - 完成第一个真实数据源 `AkShareProvider`，并验证 `000001` 2024 年前复权日线回测。
-- 下一阶段 - 完善 AkShare 数据字段校验、异常处理和缓存策略。
-- 后续阶段 - 增加更完整的 A 股交易规则、参数实验和模拟交易账户。
+| 项目 | 内容 |
+| --- | --- |
+| 当前版本 | 初始最小闭环版本 + AkShare 数据源 |
+| 状态 | 已完成本地可运行原型，并接入第一个真实 A 股数据 provider |
+| 当前重点 | 完善真实数据获取、缓存、异常处理和后续 A 股交易规则 |
+| 主要入口 | `python3 -m quant_mini.run` |
+| 真实数据入口 | `.venv/bin/python -m quant_mini.run --provider akshare ...` |
 
-## Todo
-- 继续完善 AkShare 数据字段校验和异常处理。
-- 将 CSV 存储升级为 Parquet/DuckDB。
-- 在回测中加入 T+1、涨跌停、停牌、100 股整数倍等 A 股规则。
-- 增加更多策略和参数实验。
-- 增加模拟交易账户，为实盘交易执行模块做准备。
+## 已完成能力
 
-## Blockers and Risks
-- 当前真实数据源只接入 AkShare 日线数据，尚未覆盖分钟线、指数、财务或多市场数据。
-- AkShare 依赖网络和公开数据源稳定性，后续需要更明确的数据质量校验和失败重试。
-- 运行 AkShare 时出现 `urllib3` 关于 macOS LibreSSL 的 warning，目前不影响数据获取，但后续如遇 HTTPS 问题需要关注。
-- 真实数据源的 key/token 和收费权限暂未配置，后续不得把密钥写入仓库或项目记忆。
+| 能力 | 说明 | 状态 |
+| --- | --- | --- |
+| 示例数据闭环 | 使用 `SampleDataProvider` 生成可复现 OHLCV 数据，完成策略、回测、绩效、报告流程 | 已完成 |
+| AkShare 数据源 | 新增 `AkShareProvider`，通过 AkShare 获取 A 股日线 OHLCV 数据 | 已完成 |
+| 本地缓存 | 使用 CSV 缓存行情数据；AkShare 缓存文件名已包含代码、复权方式和日期区间 | 已完成 |
+| 报告输出 | 生成静态 HTML/SVG 回测报告 | 已完成 |
+| 错误处理 | AkShare 请求失败时输出友好错误，避免整段 traceback | 已完成 |
+| 重试机制 | AkShare 请求支持 `--retries` 和 `--retry-delay` | 已完成 |
 
-## Recent Updates
-- 2026-06-19 - 创建个人量化项目最小闭环，运行 `python3 -m quant_mini.run` 成功生成 260 根 K 线、4 个信号、3 笔成交，最终权益 125,653.53。
-- 2026-06-19 - 新增 `AkShareProvider`，新增 `requirements-akshare.txt`，入口支持 `--provider akshare`、`--symbol`、`--start`、`--end`、`--adjust` 和 `--refresh`。
-- 2026-06-19 - 运行 `.venv/bin/python -m quant_mini.run --provider akshare --symbol 000001 --start 2024-01-01 --end 2024-12-31 --refresh` 成功生成 242 根真实 A 股日线、12 个信号、11 笔成交，最终权益 95,820.72。
+## 里程碑
+
+| 日期 | 里程碑 | 结果 |
+| --- | --- | --- |
+| 2026-06-19 | 完成无第三方依赖的最小闭环原型 | sample 数据流程可运行 |
+| 2026-06-19 | 完成第一个真实数据源 `AkShareProvider` | `000001` 2024 年前复权日线回测验证通过 |
+| 2026-06-19 | 改进 AkShare 稳定性处理 | 加入请求重试、友好错误、刷新缓存保护、日期区间缓存名 |
+
+## 下一步计划
+
+| 优先级 | 任务 | 说明 |
+| --- | --- | --- |
+| P1 | 完善 AkShare 数据字段校验 | 检查返回列、空数据、日期范围、成交量单位等 |
+| P1 | 优化 AkShare 失败处理 | 区分网络失败、上游限流、无数据、代码错误 |
+| P2 | 将 CSV 存储升级为 Parquet/DuckDB | 提升多标的、多区间查询体验 |
+| P2 | 增加 A 股回测规则 | 加入 T+1、涨跌停、停牌、100 股整数倍等约束 |
+| P3 | 增加参数实验 | 支持不同均线窗口批量回测 |
+| P3 | 增加模拟交易账户 | 为后续交易执行模块做准备 |
+
+## 风险与注意事项
+
+| 风险 | 影响 | 当前处理 |
+| --- | --- | --- |
+| AkShare 上游接口断连 | 真实数据获取可能失败 | 已加入重试和友好错误；可去掉 `--refresh` 使用本地缓存 |
+| 公开数据源稳定性有限 | 数据可能延迟、缺失或接口变更 | 后续需要数据质量校验和失败重试策略 |
+| macOS LibreSSL warning | 运行 AkShare 时出现 urllib3 警告 | 当前不影响已验证流程；若后续 HTTPS 失败需关注 |
+| 真实数据源 key/token 管理 | 误提交密钥会带来安全风险 | `.env` 已忽略；项目记忆不记录任何密钥 |
+
+## 最近更新
+
+| 日期 | 更新 |
+| --- | --- |
+| 2026-06-19 | 创建个人量化项目最小闭环，运行 `python3 -m quant_mini.run` 成功生成 260 根 K 线、4 个信号、3 笔成交，最终权益 125,653.53。 |
+| 2026-06-19 | 新增 `AkShareProvider` 和 `requirements-akshare.txt`，入口支持 `--provider akshare`、`--symbol`、`--start`、`--end`、`--adjust`、`--refresh`。 |
+| 2026-06-19 | 用 `.venv/bin/python -m quant_mini.run --provider akshare --symbol 000001 --start 2024-01-01 --end 2024-12-31 --refresh` 验证真实 A 股数据：242 根日线、12 个信号、11 笔成交，最终权益 95,820.72。 |
+| 2026-06-19 | 针对 AkShare `RemoteDisconnected` 问题加入请求重试、友好错误提示；`--refresh` 改为获取成功后再覆盖缓存；缓存文件名加入日期区间。 |
 
