@@ -1,6 +1,6 @@
-# GitNote Knowledge Summary
+# Plexus Knowledge Summary
 
-Last updated: 2026-06-14
+Last updated: 2026-06-20
 
 ## Verified Commands
 - 前端开发：`npm run dev`
@@ -43,7 +43,7 @@ gh run watch $(gh run list --workflow=release.yml -L1 --json databaseId --jq '.[
 成功后 CI 自动创建/更新 **draft** release 并挂上 6 个安装包（dmg/exe/msi/AppImage/deb/rpm）。草稿不会自动公开。
 
 ### 第 4 步：检查并正式发布草稿
-- **网页**：Releases 页 → `GitNote vX.Y.Z`（Draft 标记）→ 确认 6 个安装包都在 → **Edit** → **Publish release**。
+- **网页**：Releases 页 → `Plexus vX.Y.Z`（Draft 标记）→ 确认 6 个安装包都在 → **Edit** → **Publish release**。
 - **命令**：
   ```bash
   gh release view v0.2.0 --web          # 浏览器检查
@@ -60,8 +60,9 @@ gh release edit v0.2.0 --draft=false
 ```
 
 ## Architecture and Structure
-- 桌面应用：Tauri 2（Rust 后端在 `src-tauri/`，标识符 `com.gitnote.app`）。
-- 前端：Vite + React 19 + TypeScript，编辑器用 CodeMirror / Milkdown，支持 KaTeX、Mermaid；状态用 zustand。
+- 桌面应用：Tauri 2（Rust 后端在 `src-tauri/`，标识符 `com.plexus.app`）。
+- 前端：Vite + React 19 + TypeScript，状态用 zustand；编辑器为自研的双模式 Markdown 编辑器（`rich` 模块/块模式与 `plain` 纯文本，均基于 `<textarea>`），支持 KaTeX、Mermaid。
+- 编辑器右键菜单：通用组件 `src/components/common/ContextMenu.tsx`（NoteTree / SessionsList / 编辑器共用）；编辑器菜单逻辑在 `src/components/Editor/useEditorContextMenu.tsx`。模块编辑器把文档渲染成多个预览块、只有活动块是 textarea，复制/剪切由其 `onCopy/onCut`（跨块→markdown）接管，故菜单基于实时选区走原生 execCommand、按钮 `preventDefault(mousedown)` 保住选区。
 - 发布 CI：`.github/workflows/release.yml`，触发条件为 push `v*` tag 或 workflow_dispatch。
   - 三个 job：`prepare`（校验 tag/分支/版本号）→ `build`（matrix：macos/linux/windows，各自构建并按平台上传安装包 artifact）→ `release`（汇总下载后用 softprops 创建单个 draft release）。
 
