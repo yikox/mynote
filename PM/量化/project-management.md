@@ -16,6 +16,7 @@
 | 主要入口 | `.venv/bin/python -m quant_mini.run` |
 | CSV 回退入口 | `python3 -m quant_mini.run --storage csv` |
 | 最近代码提交 | `9b4c129 Add DuckDB parquet bar storage` |
+| 项目记忆规则 | 已在 `/Users/zyc/Documents/量化/AGENTS.md` 初始化 |
 
 ## 已完成能力
 
@@ -29,6 +30,7 @@
 | 报告输出 | 生成静态 HTML/SVG 回测报告 | 已完成 |
 | 错误处理 | AkShare 和 DuckDB 依赖缺失时输出友好错误，避免整段 traceback | 已完成 |
 | Git 版本管理 | 已创建初始提交，并提交 DuckDB/Parquet 存储升级 | 已完成 |
+| Project Memory 初始化 | 已创建 `AGENTS.md`，连接外部项目记忆目录并说明何时更新笔记 | 已完成 |
 
 ## 里程碑
 
@@ -39,6 +41,7 @@
 | 2026-06-19 | 改进 AkShare 稳定性处理 | 加入请求重试、友好错误、刷新缓存保护、日期区间缓存名 |
 | 2026-06-19 | 升级为 DuckDB + Parquet 存储 | 默认走 `--storage parquet`，CSV 作为回退 |
 | 2026-06-19 | 使用 Git 管理项目版本 | 已提交 `9fe4d14` 和 `9b4c129` |
+| 2026-06-20 | 初始化 Project Memory 规则 | 已提交 `b5a76b0`，未来 agent 可通过 `AGENTS.md` 找到外部项目记忆 |
 
 ## 下一步计划
 
@@ -71,4 +74,4 @@
 | 2026-06-19 | 针对 AkShare `RemoteDisconnected` 问题加入请求重试、友好错误提示；`--refresh` 改为获取成功后再覆盖缓存；缓存文件名加入日期区间。 |
 | 2026-06-19 | 新增 DuckDB + Parquet 存储层，默认 `--storage parquet`，保留 `--storage csv` 回退；验证 sample Parquet、CSV 回退、DuckDB 区间查询均通过。 |
 | 2026-06-19 | 提交存储升级：`9b4c129 Add DuckDB parquet bar storage`。 |
-
+| 2026-06-20 | 创建 `/Users/zyc/Documents/量化/AGENTS.md`，连接外部项目记忆 `/Users/zyc/notes/PM/量化/`，并提交 `b5a76b0 Initialize project memory instructions`。 |

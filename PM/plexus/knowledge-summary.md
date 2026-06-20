@@ -1,6 +1,6 @@
 # Plexus Knowledge Summary
 
-Last updated: 2026-06-20（追加：上下文折叠占位串回写死循环的排查结论）
+Last updated: 2026-06-20（移除活动工作集，根除折叠占位串回写死循环；commit 0457456）
 
 ## Verified Commands
 - 前端开发：`npm run dev`
@@ -75,12 +75,14 @@ gh release edit v0.2.0 --draft=false
 - **tauri-action 报 `No artifacts were found`（即使 build 成功）**：tauri-action 的产物探测在没有 updater 签名密钥时会期待 `.sig`/`.zip` 更新器产物而判定为空。解决方案：不用 tauri-action 的构建+上传，改为 `npm exec tauri -- build` 直接构建，再用 `softprops/action-gh-release` 按显式文件 glob 上传安装包（`.dmg/.AppImage/.deb/.rpm/.msi/-setup.exe`）。
 - **package.json 的 `tauri` 脚本含 `PATH="$HOME/.cargo/bin:$PATH"` 前缀**：在 Windows runner 的 cmd 下可能异常；CI 里用 `npm exec tauri --`（直接调用 `node_modules/.bin` 的二进制）可绕过该包装脚本。
 - 矩阵作业各自创建 draft release 会有竞态/重复草稿风险：用独立的 `release` 汇总 job 一次性创建，避免竞态。
-- **AI 会话对同一笔记反复 `update_note` 死循环 / 笔记被覆盖成一行占位文字**（2026-06-20 排查并修复）：根因是 `contextBuilder` 的 `foldWriteArgs`（`src/ai/contextTransforms.ts`）把历史里 `update_note`/`create_note` 的长 `content` 参数折叠成「长得像正文的占位串」省 token，模型重试时**照抄自己上一条调用的参数**把占位串当真实内容写回，覆盖整篇笔记；读回又被 `foldNoteReads` 折叠看不到磁盘真相 → 道歉重写 → 真实内容又被折叠 → 无限自我覆盖。修复：折叠占位串改用带哨兵前缀 `⟦已折叠·…⟧` 的标记（`src/ai/foldMarkers.ts`），并在 `update_note`/`create_note` 执行前用 `rejectElidedWrite`（`src/ai/tools/shared.ts`）检测到 content 是折叠标记就拒写、不触达后端。
+- **AI 会话对同一笔记反复 `update_note` 死循环 / 笔记被覆盖成一行占位文字**（2026-06-20 排查并彻底修复，commit `0457456`）：根因是「活动工作集」机制——`contextBuilder` 的 `foldWriteArgs` 把历史里 `update_note`/`create_note` 的长 `content` 折叠成「长得像正文的占位串」省 token，模型重试时**照抄自己上一条调用的参数**把占位串当真实内容写回，覆盖整篇笔记；读回又被折叠看不到磁盘真相 → 道歉重写 → 又被折叠 → 无限自我覆盖。最终方案：**直接移除整个活动工作集机制**（见下方 Decisions），占位串不再产生，问题根除。（中途曾试过「换哨兵标记 + 写工具守卫」的补丁，已被移除方案取代。）
 
 ## 关键原则（上下文折叠）
-- **绝不能把「会被回传的、长得像正文/参数的占位串」放进模型自己的 tool_call 参数里**——LLM 会模仿自己的历史动作把它照抄回去。折叠模型自身的调用参数（如 `foldWriteArgs`）必须用不可误当正文的哨兵标记，且写工具要有兜底守卫拒绝该标记。折叠 *tool 结果*（如 `foldNoteReads`/`foldWebSearch`）相对安全，因为模型不会把结果当参数照抄。
+- **绝不能把「会被回传的、长得像正文/参数的占位串」放进模型自己的 tool_call 参数里**——LLM 会模仿自己的历史动作把它照抄回去，若该参数会落盘就会造成数据丢失+死循环。这正是工作集 `foldWriteArgs` 被移除的原因。
+- 折叠 *tool 结果*（如保留的 `foldNoteReads` 重复读取去重、`foldWebSearch`）相对安全，因为模型不会把工具结果当调用参数照抄。这类去重可保留。
 
 ## Decisions
+- **移除「活动工作集」上下文机制**（2026-06-20，commit `0457456`）：删 `workingSet.ts`/`activeNotes.ts`/`foldWriteArgs` 及 `workingSetMaxTokens` 等配置与 UI。原机制把笔记当前内容单独注入一层、并把对话历史里的读/写正文折叠成指针，但折叠写工具调用参数会被模型照抄回写覆盖笔记（见 Troubleshooting）。现笔记正文由对话中的 `read_note` 结果自然承载；保留 `foldNoteReads`（同路径重复读取仅留最近一份）、`recentTurnsKept` + 超预算 LLM 总结兜底。
 - 仓库保持 **私有**（2026-06-13）：因此 Release 仅协作者可见；要公开下载须改 Public（无"私有仓库+公开 release"组合）。
 - 安装包 **不做代码签名/公证**（先用未签名版，后续再加）。
 - 发布为 **draft**，人工 Review 后再 Publish。
