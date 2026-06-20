@@ -23,8 +23,6 @@ Last updated: 2026-06-20
 ## 待办
 - [ ] **状态回执自动覆盖历史**：LLM 调用修改工具后，工具返回的「成功+Diff」回执使模型在思维链中自然合并原始文本与差异、感知最新状态，无需重复 read。
 - [ ] **上下文压缩前钩子（Pre-Compaction Hook）**：当对话轮次过长触发上下文压缩时，先由模型将最终代码/笔记状态提炼为 State Snapshot，旧历史裁切后将该快照重新注入上下文顶部，避免简单滑动窗口导致关键状态丢失。
-- [ ] **AI 会话列表排序**：新建/最近活跃会话目前出现在列表顶部，应改为底部锚定（最新会话沉底），符合聊天应用习惯；同时需确保列表自动滚动到底部。
-- [ ] **AI 消息泡增加时间戳**：每条消息气泡显示发送时间（相对时间如"3 分钟前"或绝对时间），便于回溯对话节奏。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
 
@@ -33,6 +31,8 @@ Last updated: 2026-06-20
 - 安装包未签名 → macOS 首次打开需在「隐私与安全性」放行；Windows 可能触发 SmartScreen。
 
 ## 最近更新
+- 2026-06-20 - 合并 **AI 消息气泡时间戳** 到 `main`（merge `--no-ff`，未发新版）：每条 user/assistant 气泡显示发送时间，**< 30 分钟相对时间（刚刚 / N 分钟前）、≥ 30 分钟绝对时间（同日 HH:MM、跨日 M月D日 HH:MM、跨年带年）**，悬停 title 显示完整绝对时间。`Message` 增可选 `createdAt`（挂在共享 `CompressibleMessage` 上，零迁移），`agentLoop` 抽出 `buildUserMessage`/`newAssistantMessage` 在创建时打戳（流式只改 content 不动时间）；格式化逻辑独立为可测的 `messageTime.ts`；`MessageItem` 在角色标签旁渲染，tool/system 与无戳的旧消息不显示（用户选定）。新增 `messageTime.test.ts` + MessageItem/agentLoop 用例，全套 452/452 通过、`npm run build` 绿。完成原「待办」中的消息时间戳项。
+- 2026-06-20 - 合并 **AI 会话列表底部锚定** 到 `main`（merge `--no-ff`，未发新版）：会话列表由「最新在顶部」改为聊天式「最新沉底」。顺序真源在 `sessionsStore.index`：`sortIndex` 改升序、`bumpIndex`/`newSession` 改为追加到末尾（最近活跃/新建会话落到底部）。`SessionsList` 给滚动容器 `<ul.sessions__list>` 加 ref + effect，仅在会话**数量增加**时（首次加载 0→N、新建 N→N+1）滚到底，活跃重排序（数量不变）与删除不强制滚动，避免上滚查看旧会话时被拽走。新增 `SessionsList.test.tsx` + 3 条 store 排序用例，全套 437/437 通过、`npm run build` 绿。完成原「待办」中的会话列表排序项。
 - 2026-06-20 - 合并 **前台笔记标签页自动刷新** 到 `main`（merge `--no-ff`，未发新版）：前台打开的笔记被外部（AI 工具 `update_note`/`delete_note`/`move_note`）改动后编辑器自动同步。**复用既有基础设施**，Rust 无改动 —— `src-tauri/src/watcher.rs` 已对工作区递归 fs-watch 并 emit `notes://changed { kind, path }`，前端 `useNoteDraft` 新增订阅 + 按**内容比较**协调：回声（disk==当前草稿）忽略、干净（无未保存编辑）静默自动刷新并尽力保留滚动、脏且不同弹**非破坏性冲突提示条**（重新加载/保留我的修改，绝不自动覆盖）、`removed` 弹删除提示条并保留标签与内容。仅当前激活编辑器订阅（后台标签重激活时本就重读盘）。`MarkdownEditor` 渲染提示条并把滚动容器 ref 传入 hook。最终评审修掉 2 个定时器竞态（reloadFromDisk 取消挂起保存、回声分支清理过期提示条）。全套测试 432/432 通过、`npm run build` 绿。完成原「待办」中的前台自动刷新项。
 - 2026-06-20 - 合并 **AI 输入框草稿持久化（切页面不丢失）** 到 `main`（merge `fd1ddf3`，未发新版）：新增按 `sessionId` 键控的纯内存 `chatDraftsStore`（`src/stores/chatDraftsStore.ts`），把输入框文本/附件文件/待发图片提升到 store，沿用 `aiRunsStore`/`pendingInput` 范式 —— 切换标签页导致 `ChatPanel`/`InputBox` 卸载后切回不丢失；纯内存不写盘，**重启不保留**（按需求）。`InputBox` 在有 `sessionId` 时走 store、无则回退本地 `useState`（保持旧测试通过，避免条件式 Hook）；发送/斜杠命令/Esc 成功路径清空草稿；`sessionsStore.remove` 删除会话时一并清理草稿避免内存残留。全套测试 422/422 通过，`npm run build` 绿。完成原「待办」中的草稿持久化项。
 - 2026-06-20 - **移除 AI 活动工作集**（commit `0457456`），根除 `⟦已折叠…⟧`/`（已写入…）` 占位串回写笔记的死循环：工作集把历史正文替换成占位指针，模型会照抄回 `update_note` 的 content 覆盖真实笔记。系统性解决 = 直接删除工作集（`workingSet.ts`/`activeNotes.ts` 及测试、相关预算/breakdown/配置项与 UI、`foldWriteArgs` 变换）；正文改由对话中的 `read_note` 结果自然承载，超预算走既有 LLM 总结兜底。完成原「待办」中的占位符系统性问题。
