@@ -15,7 +15,7 @@
 | 当前重点 | 完善 AkShare 数据校验、批量查询 API 和后续 A 股交易规则 |
 | 主要入口 | `.venv/bin/python -m quant_mini.run` |
 | CSV 回退入口 | `python3 -m quant_mini.run --storage csv` |
-| 最近代码提交 | `9b4c129 Add DuckDB parquet bar storage` |
+| 最近代码提交 | `d5434f0 Update project memory task rule` |
 | 项目记忆规则 | 已在 `/Users/zyc/Documents/量化/AGENTS.md` 初始化 |
 
 ## 已完成能力
@@ -42,6 +42,7 @@
 | 2026-06-19 | 升级为 DuckDB + Parquet 存储 | 默认走 `--storage parquet`，CSV 作为回退 |
 | 2026-06-19 | 使用 Git 管理项目版本 | 已提交 `9fe4d14` 和 `9b4c129` |
 | 2026-06-20 | 初始化 Project Memory 规则 | 已提交 `b5a76b0`，未来 agent 可通过 `AGENTS.md` 找到外部项目记忆 |
+| 2026-06-20 | 更新 Project Memory 任务记录规则 | 已提交 `d5434f0`，开始非平凡任务时需记录/更新进行中的任务 |
 
 ## 下一步计划
 
@@ -75,3 +76,4 @@
 | 2026-06-19 | 新增 DuckDB + Parquet 存储层，默认 `--storage parquet`，保留 `--storage csv` 回退；验证 sample Parquet、CSV 回退、DuckDB 区间查询均通过。 |
 | 2026-06-19 | 提交存储升级：`9b4c129 Add DuckDB parquet bar storage`。 |
 | 2026-06-20 | 创建 `/Users/zyc/Documents/量化/AGENTS.md`，连接外部项目记忆 `/Users/zyc/notes/PM/量化/`，并提交 `b5a76b0 Initialize project memory instructions`。 |
+| 2026-06-20 | 更新 `AGENTS.md` 的 Project Memory 规则：开始非平凡项目工作时，应在项目管理笔记中记录当前任务，并随进展关闭或更新；提交 `d5434f0 Update project memory task rule`。 |
