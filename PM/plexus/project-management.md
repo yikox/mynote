@@ -1,6 +1,6 @@
 # Plexus 项目管理
 
-Last updated: 2026-06-20
+Last updated: 2026-06-21
 
 ## 概述
 - Plexus：基于 Tauri 2 + React 的桌面 Markdown 笔记应用，笔记以本地文件存储并通过 git 同步，集成 AI 会话。
@@ -9,8 +9,9 @@ Last updated: 2026-06-20
 - 历史：原名 GitNote，于 2026-06-19 全项目改名为 Plexus（productName / bundle identifier `com.plexus.app` / crate `plexus`·`plexus_lib` / OAuth env `PLEXUS_GITHUB_OAUTH_CLIENT_ID`；数据目录 `~/.gitnote`→`~/.plexus`、工作区内 `.gitnote/`→`.plexus/`、localStorage `gitnote.*`→`plexus.*` 均带无感迁移）。
 
 ## 当前状态
-- Version: 0.4.2（5 个版本文件一致）；tag `v0.4.2` 已推送，CI 6 安装包构建成功，Release 已**正式发布**：https://github.com/yikox/plexus/releases/tag/v0.4.2 。本地 `Plexus_0.4.2_aarch64.dmg` 已编译。
-- State: 开发中；连发 3 个补丁（v0.4.1 白屏、v0.4.2 滚底+空路径写根目录）。
+- Version: 0.4.4（5 个版本文件一致）；tag `v0.4.4` 已推送，CI 构建中（完成后自动转正式发布）。本地 `Plexus_0.4.4_aarch64.dmg` 编译中。
+- v0.4.3 已**正式发布**（6 安装包齐全）：https://github.com/yikox/plexus/releases/tag/v0.4.3 。
+- State: 开发中；连发 4 个补丁/小版本（v0.4.1 白屏、v0.4.2 滚底+空路径、v0.4.3 写工具 path 描述、v0.4.4 空状态引导页）。
 - Current focus: 编辑器/AI 会话体验打磨。
 
 ## 进行中任务
@@ -23,11 +24,12 @@ Last updated: 2026-06-20
 - v0.4.0（2026-06-21）：上下文压缩前状态快照（自动按 80% 阈值 + 手动 `/compact`，模型蒸馏任务进展/笔记最新状态注入上下文顶部）首次随版本发布；CI 构建 6 安装包并正式发布 Release。
 - v0.4.1（2026-06-21）：补丁版——修复进入 AI 页面整窗白屏（zustand v5 selector 无限重渲染崩溃，全新安装必现）。
 - v0.4.2（2026-06-21）：补丁版——① 聊天消息进入已有会话自动滚到底部（上滚阅读不打扰）；② `update_note` 漏传 path 不再把空路径写到工作区根目录（`Is a directory`），工具层回可执行报错 + Rust `write_file` 拒绝空路径/目录目标。
+- v0.4.3（2026-06-21）：补丁版——给写工具补齐 `path` 参数说明（`update_note`/`delete_note`/`move_note` 描述显式要求每次传相对路径、`.md` 结尾、不可省略），降低模型漏传 path 概率。
+- v0.4.4（2026-06-21）：空状态引导页——无标签页打开时，笔记主区域显示引导页（打开笔记 / 新建笔记 / 最近 5 条修改），AI 主区域显示引导页（新建会话 + 使用提示）。
 
 ## 待办
 - [ ] **全文搜索（⌘P 扩展）**：当前 ⌘P 快速打开仅递归搜索笔记标题，需扩展为全文内容搜索，匹配行带关键词高亮预览，支持 ↑↓ 浏览命中、Enter 跳转到对应笔记并定位到匹配行。
 - [ ] **AI 对话 @ 笔记引用**：当前引用笔记需用鼠标在顶部「引用的笔记」区域点击添加，应支持在输入框中通过 `@` 唤起笔记搜索下拉（与 ⌘P 共享搜索能力但轻量），选中后注入为引用，键盘流无需离开输入框。
-- [ ] **空状态占位页**：当无笔记标签页打开时，笔记区域显示引导页（快捷操作：打开笔记 / 新建笔记 / 最近修改列表）；AI 会话列表为空时同理（新建会话入口 + 使用提示）。
 - [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
@@ -37,6 +39,8 @@ Last updated: 2026-06-20
 - 安装包未签名 → macOS 首次打开需在「隐私与安全性」放行；Windows 可能触发 SmartScreen。
 
 ## 最近更新
+- 2026-06-21 - **v0.4.4 空状态引导页**（merge `--no-ff` `d34c386`，patch 发版，本地 dmg 已出、CI 构建中）：把 `MainArea` 无标签页时的一行纯文本占位换成带快捷操作的引导页。新增纯函数 `collectRecentNotes`（递归取最近 5 条 `.md`，`modifiedMs` 倒序、null 排末尾）+ 两个自包含组件 `NotesWelcome`（打开笔记→`openQuickOpen` / 新建笔记→`createUntitledNote`→`refreshRoot`→`openNote` / 最近列表点开）与 `AiWelcome`（新建会话→`newSession`→`openAi` + 3 条使用提示）；`MainArea` 按 `activeSpace` 分发。侧栏空状态（`SessionsList`/`Sidebar`）按设计保持不动。全套 502/502（+8）、tsc 绿。走 brainstorm→spec→plan→内联 TDD 执行流程。
+- 2026-06-21 - **v0.4.3 写工具 path 描述补齐**（merge `0491c22`，patch 发版，本地+CI dmg 均出）：审查给 AI 的工具描述，发现写工具 `path` 参数说明缺失/不足。`update_note`/`delete_note`/`move_note` 的描述与参数 schema 补上"每次必须显式传相对路径、`.md` 结尾、不可省略沿用上次"，从描述层降低模型漏传 path（v0.4.2 的 `Is a directory` 根因）的概率。`readNote`/`listNotes`/`searchNotes`/`createNote` 等审查后无需改。TS 494/494 绿。
 - 2026-06-21 - **v0.4.2 修复两枚 bug**（merge `9a0270b`，patch 发版，本地+CI dmg 均出）：① **进入已有会话不滚底**——`MessageList` 原先无任何滚动逻辑，进会话停在顶部；改为挂载/消息条数变化时若「贴底」则滚到底，用户上滚阅读（距底 >80px）不打扰。注意此前「会话列表底部锚定」是会话**侧栏** `SessionsList`，与聊天**消息列表**无关，故没覆盖到。② **AI 改笔记报 `io error: Is a directory (os error 21)`**——读会话 `2026-06-20-d8d35f2d` 实锤：模型连续编辑同一篇时漏传 `path`，`textArg` 取空串，后端 `resolve(root,'')` 塌缩到**工作区根目录**，写目录 → EISDIR。修复防御两层：工具层 `update_note.execute` path 为空直接回可执行报错；Rust `write_file` 拒绝空路径与目录目标（`InvalidInput`）。新增 TS 用例 + 2 条 Rust 用例，TS 494/494、Rust `core::notes` 16/16、`npm run build` 绿。
 - 2026-06-21 - **v0.4.1 修复进入 AI 页面整窗白屏**（merge `--no-ff`，patch 发版）：`ChatPanel` 的 `pendingImages` selector 在会话尚无草稿时每次 render 返回新 `[]` 引用，zustand v5 判定快照一直在变 → 无限重渲染（`Maximum update depth exceeded`）；项目无 ErrorBoundary → React 树崩溃 → 整窗白屏。**全新安装首次点 AI 聊天必现**。修复：selector 改用模块级稳定常量 `EMPTY_IMAGES`（commit `5331cf1`）。新增 jsdom 回归测试 `ChatPanel.test.tsx`，全套 491/491 通过。已扫描全仓库无其他 `?? []`/`?? {}` 直接出现在 store selector 内。
 - 2026-06-21 - 合并 **上下文压缩前状态快照（Pre-Compaction State Snapshot）** 到 `main`（merge `--no-ff` `48cbb9b`，未发新版）：由模型生成、带缓存+增量扩展的「状态快照」（任务目标/关键决定/笔记最新状态/待办），超预算裁切旧轮前注入上下文顶部。触发阈值可配（`snapshotTriggerRatio` 默认 `0.8`）；设置开关 `stateSnapshotEnabled`（默认开）；手动 `/compact` 强制触发。新增 `snapshotStore`、`stateSnapshot.ts`、`completion.ts`。全套 490/490 通过。完成原「待办」中的上下文压缩前钩子项。
