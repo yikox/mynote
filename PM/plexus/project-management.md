@@ -9,10 +9,10 @@ Last updated: 2026-06-21
 - 历史：原名 GitNote，于 2026-06-19 全项目改名为 Plexus（productName / bundle identifier `com.plexus.app` / crate `plexus`·`plexus_lib` / OAuth env `PLEXUS_GITHUB_OAUTH_CLIENT_ID`；数据目录 `~/.gitnote`→`~/.plexus`、工作区内 `.gitnote/`→`.plexus/`、localStorage `gitnote.*`→`plexus.*` 均带无感迁移）。
 
 ## 当前状态
-- Version: 0.4.6（5 个版本文件一致）；tag `v0.4.6` 已推送，CI 构建中（完成后自动转正式发布）。本地 dmg 编译中。
-- v0.4.5 已**正式发布**（6 安装包齐全）：https://github.com/yikox/plexus/releases/tag/v0.4.5 。
-- State: 开发中；连发多个补丁/小版本（…、v0.4.4 空状态引导页、v0.4.5 @ 笔记引用、v0.4.6 ⌘⇧F 全局全文搜索）。
-- Current focus: 编辑器/AI 会话体验打磨；搜索三件套（⌘P 已有 / ⌘⇧F 已做 / ⌘F 待做）。
+- Version: 0.4.7（5 个版本文件一致）；tag `v0.4.7` 已推送，CI 构建中（完成后自动转正式发布）。本地 dmg 编译中。
+- v0.4.6 已**正式发布**（6 安装包齐全）：https://github.com/yikox/plexus/releases/tag/v0.4.6 。
+- State: 开发中；连发多个补丁/小版本（…、v0.4.5 @ 笔记引用、v0.4.6 ⌘⇧F 全局全文搜索、v0.4.7 ⌘F 标签内查找）。
+- Current focus: 编辑器/AI 会话体验打磨。搜索三件套（⌘P 文件选择器 / ⌘⇧F 全局全文搜索 / ⌘F 标签内查找）**全部完成**。
 
 ## 进行中任务
 - （无进行中阻塞项）
@@ -28,9 +28,10 @@ Last updated: 2026-06-21
 - v0.4.4（2026-06-21）：空状态引导页——无标签页打开时，笔记主区域显示引导页（打开笔记 / 新建笔记 / 最近 5 条修改），AI 主区域显示引导页（新建会话 + 使用提示）。
 - v0.4.5（2026-06-21）：AI 输入框 `@` 笔记引用——在聊天输入框词边界处敲 `@` 即弹出现有「引用笔记」树形选择器（NotePicker），键盘选中后作为引用 chip 注入，全程不离开输入框。
 - v0.4.6（2026-06-21）：⌘⇧F 全局全文搜索——弹框对所有笔记做全文内容搜索（复用 Rust grep 后端），匹配行带关键词高亮预览，↑↓ 浏览、Enter 打开笔记并定位到匹配行。
+- v0.4.7（2026-06-21）：⌘F 当前标签页内查找——编辑器右上角 VSCode 风格查找框，搜源码、显示当前/总数、↑↓/Enter 环绕导航；纯文本模式 textarea 精确选中、模块模式滚到匹配所在模块。搜索三件套收齐。
 
 ## 待办
-- [ ] **⌘F 当前标签页内查找**（搜索三件套之三）：当前文档内的 VSCode 风格查找框（↑↓ 命中、Enter/Shift+Enter 跳转、匹配高亮）。注：原「全文搜索（⌘P 扩展）」经讨论拆为三件套——⌘P 文件选择器（保持现状）、⌘⇧F 全局全文搜索（v0.4.6 已做）、⌘F 标签页内查找（本项）。各自独立 spec→plan→实现。
+- （搜索三件套 ⌘P/⌘⇧F/⌘F 已全部完成；当前无明确功能待办）
 - [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
@@ -40,6 +41,7 @@ Last updated: 2026-06-21
 - 安装包未签名 → macOS 首次打开需在「隐私与安全性」放行；Windows 可能触发 SmartScreen。
 
 ## 最近更新
+- 2026-06-21 - **v0.4.7 ⌘F 当前标签页内查找**（merge `--no-ff`，patch 发版，本地 dmg + CI 构建）：编辑器右上角 VSCode 风格查找框，统一搜**源码字符串**（`draft`）。新增纯函数 `findMatches`（大小写不敏感、不重叠匹配偏移）、`stepIndex`（环绕步进）；新组件 `EditorFindBar`（受控：输入 + `n/total` 计数 + 上/下/关闭，Enter/Shift+Enter/Esc、focusNonce 聚焦）；uiStore 加 `findOpen`/`findNonce` + `openFind`/`closeFind`/`toggleFind`；快捷键 `find`=⌘F（与 ⌘⇧F globalSearch 靠 shift 区分，已测不冲突）+ escapeBack 关闭；`MarkdownEditor` 持 query/index 状态，`navigateToMatch` 按模式分叉——**plain 模式** textarea `setSelectionRange`+滚动（不抢查找框焦点）、**rich 模式**复用 `handleJump(offset)` 滚到模块（块级，无行内高亮）。index 用 `Math.min` 钳制防 query 变短时越界。搜索三件套（⌘P/⌘⇧F/⌘F）收齐。全套 560/560（+22）、tsc + build 绿。
 - 2026-06-21 - **v0.4.6 ⌘⇧F 全局全文搜索**（merge `--no-ff`，patch 发版，本地 dmg + CI 构建）：纯前端组装，后端 `search_notes`（Rust grep，字面量、.md、上限 50，返回 `{path,line,content}`）与编辑器 `handleJump(pos)` 均复用。新增纯函数 `lineToOffset`（1-based 行号→字符偏移，越界收敛文末）、`highlightSegments`（大小写不敏感切高亮段）；新组件 `GlobalSearchModal`（复用 `.quick-open` 弹框壳、输入 150ms 防抖、扁平行列表 + `<mark>` 高亮、↑↓/Enter/Esc）；uiStore 加 `globalSearchOpen` 开关 + `locateRequest{path,line,nonce}` 投递（仿 `chatFocusNonce` nonce 范式）；`MarkdownEditor` effect 监听 locateRequest，命中本 path 且 loaded 时 `handleJump(lineToOffset(draft,line))`（rAF 等 DOM、ref 防重复）；快捷键加 `globalSearch`=⌘⇧F + escapeBack 关闭。**需求反复**：原 todo「全文搜索（⌘P 扩展）」被用户重定为三件套（⌘P 保持 / ⌘⇧F 全局 / ⌘F 标签内），按 brainstorm scope-check 拆分、先做 ⌘⇧F。全套 538/538（+21）、tsc + build 绿。
 - 2026-06-21 - **v0.4.5 AI 输入框 @ 笔记引用**（merge `--no-ff`，patch 发版，本地 dmg + CI 构建）：聊天输入框词边界（行首或空白后）敲 `@` 即弹出现有「引用笔记」树形选择器（NotePicker），`@` 字符即时移除，键盘浏览树→选中→走现有 `attachNote` 注入引用 chip，全程不离开输入框。新增纯函数 `mentionQuery.ts`（`detectMention` 词边界检测 + `removeMention` 移除 token）。**设计反复**：初版按 spec 做成「⌘P 风格扁平搜索下拉」（`collectNoteFiles`+`filterNoteFiles`+键盘导航+懒加载），用户实测后觉得不合适，要求复用「引用文件」树形窗口而非 ⌘P 窗口；遂在合并到 main（未推送、未发版）后开 `fix/` 分支重构为纯触发树形选择器，删掉扁平菜单/键盘导航/懒加载/mention-menu 样式，仅保留 `detectMention`/`removeMention`。教训：交互细节（用哪种选择器窗口）值得在 brainstorm 时用可视化或更具体的选项确认，避免按字面 spec（「搜索下拉」）做出非预期实现。全套 516/516、tsc + build 绿。
 - 2026-06-21 - **v0.4.4 空状态引导页**（merge `--no-ff` `d34c386`，patch 发版，本地 dmg 已出、CI 构建中）：把 `MainArea` 无标签页时的一行纯文本占位换成带快捷操作的引导页。新增纯函数 `collectRecentNotes`（递归取最近 5 条 `.md`，`modifiedMs` 倒序、null 排末尾）+ 两个自包含组件 `NotesWelcome`（打开笔记→`openQuickOpen` / 新建笔记→`createUntitledNote`→`refreshRoot`→`openNote` / 最近列表点开）与 `AiWelcome`（新建会话→`newSession`→`openAi` + 3 条使用提示）；`MainArea` 按 `activeSpace` 分发。侧栏空状态（`SessionsList`/`Sidebar`）按设计保持不动。全套 502/502（+8）、tsc 绿。走 brainstorm→spec→plan→内联 TDD 执行流程。
