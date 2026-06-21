@@ -34,7 +34,6 @@ Last updated: 2026-06-21
 
 ## 待办
 - [ ] 内置几个 agent , 一个是研究型 agent 当我想了解一些不了解的内容时使用；一个是助手型 agent 当我想整理笔记，修改笔记，整理笔记内容时使用；等
-- 
 - [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
