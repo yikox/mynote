@@ -9,9 +9,9 @@ Last updated: 2026-06-21
 - 历史：原名 GitNote，于 2026-06-19 全项目改名为 Plexus（productName / bundle identifier `com.plexus.app` / crate `plexus`·`plexus_lib` / OAuth env `PLEXUS_GITHUB_OAUTH_CLIENT_ID`；数据目录 `~/.gitnote`→`~/.plexus`、工作区内 `.gitnote/`→`.plexus/`、localStorage `gitnote.*`→`plexus.*` 均带无感迁移）。
 
 ## 当前状态
-- Version: 0.4.4（5 个版本文件一致）；tag `v0.4.4` 已推送，CI 构建中（完成后自动转正式发布）。本地 `Plexus_0.4.4_aarch64.dmg` 编译中。
-- v0.4.3 已**正式发布**（6 安装包齐全）：https://github.com/yikox/plexus/releases/tag/v0.4.3 。
-- State: 开发中；连发 4 个补丁/小版本（v0.4.1 白屏、v0.4.2 滚底+空路径、v0.4.3 写工具 path 描述、v0.4.4 空状态引导页）。
+- Version: 0.4.5（5 个版本文件一致）；tag `v0.4.5` 已推送，CI 构建中（完成后自动转正式发布）。本地 dmg 编译中。
+- v0.4.4 已**正式发布**（6 安装包齐全）：https://github.com/yikox/plexus/releases/tag/v0.4.4 。
+- State: 开发中；连发多个补丁/小版本（v0.4.1 白屏、v0.4.2 滚底+空路径、v0.4.3 写工具 path 描述、v0.4.4 空状态引导页、v0.4.5 @ 笔记引用）。
 - Current focus: 编辑器/AI 会话体验打磨。
 
 ## 进行中任务
@@ -26,10 +26,10 @@ Last updated: 2026-06-21
 - v0.4.2（2026-06-21）：补丁版——① 聊天消息进入已有会话自动滚到底部（上滚阅读不打扰）；② `update_note` 漏传 path 不再把空路径写到工作区根目录（`Is a directory`），工具层回可执行报错 + Rust `write_file` 拒绝空路径/目录目标。
 - v0.4.3（2026-06-21）：补丁版——给写工具补齐 `path` 参数说明（`update_note`/`delete_note`/`move_note` 描述显式要求每次传相对路径、`.md` 结尾、不可省略），降低模型漏传 path 概率。
 - v0.4.4（2026-06-21）：空状态引导页——无标签页打开时，笔记主区域显示引导页（打开笔记 / 新建笔记 / 最近 5 条修改），AI 主区域显示引导页（新建会话 + 使用提示）。
+- v0.4.5（2026-06-21）：AI 输入框 `@` 笔记引用——在聊天输入框词边界处敲 `@` 即弹出现有「引用笔记」树形选择器（NotePicker），键盘选中后作为引用 chip 注入，全程不离开输入框。
 
 ## 待办
 - [ ] **全文搜索（⌘P 扩展）**：当前 ⌘P 快速打开仅递归搜索笔记标题，需扩展为全文内容搜索，匹配行带关键词高亮预览，支持 ↑↓ 浏览命中、Enter 跳转到对应笔记并定位到匹配行。
-- [ ] **AI 对话 @ 笔记引用**：当前引用笔记需用鼠标在顶部「引用的笔记」区域点击添加，应支持在输入框中通过 `@` 唤起笔记搜索下拉（与 ⌘P 共享搜索能力但轻量），选中后注入为引用，键盘流无需离开输入框。
 - [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
@@ -39,6 +39,7 @@ Last updated: 2026-06-21
 - 安装包未签名 → macOS 首次打开需在「隐私与安全性」放行；Windows 可能触发 SmartScreen。
 
 ## 最近更新
+- 2026-06-21 - **v0.4.5 AI 输入框 @ 笔记引用**（merge `--no-ff`，patch 发版，本地 dmg + CI 构建）：聊天输入框词边界（行首或空白后）敲 `@` 即弹出现有「引用笔记」树形选择器（NotePicker），`@` 字符即时移除，键盘浏览树→选中→走现有 `attachNote` 注入引用 chip，全程不离开输入框。新增纯函数 `mentionQuery.ts`（`detectMention` 词边界检测 + `removeMention` 移除 token）。**设计反复**：初版按 spec 做成「⌘P 风格扁平搜索下拉」（`collectNoteFiles`+`filterNoteFiles`+键盘导航+懒加载），用户实测后觉得不合适，要求复用「引用文件」树形窗口而非 ⌘P 窗口；遂在合并到 main（未推送、未发版）后开 `fix/` 分支重构为纯触发树形选择器，删掉扁平菜单/键盘导航/懒加载/mention-menu 样式，仅保留 `detectMention`/`removeMention`。教训：交互细节（用哪种选择器窗口）值得在 brainstorm 时用可视化或更具体的选项确认，避免按字面 spec（「搜索下拉」）做出非预期实现。全套 516/516、tsc + build 绿。
 - 2026-06-21 - **v0.4.4 空状态引导页**（merge `--no-ff` `d34c386`，patch 发版，本地 dmg 已出、CI 构建中）：把 `MainArea` 无标签页时的一行纯文本占位换成带快捷操作的引导页。新增纯函数 `collectRecentNotes`（递归取最近 5 条 `.md`，`modifiedMs` 倒序、null 排末尾）+ 两个自包含组件 `NotesWelcome`（打开笔记→`openQuickOpen` / 新建笔记→`createUntitledNote`→`refreshRoot`→`openNote` / 最近列表点开）与 `AiWelcome`（新建会话→`newSession`→`openAi` + 3 条使用提示）；`MainArea` 按 `activeSpace` 分发。侧栏空状态（`SessionsList`/`Sidebar`）按设计保持不动。全套 502/502（+8）、tsc 绿。走 brainstorm→spec→plan→内联 TDD 执行流程。
 - 2026-06-21 - **v0.4.3 写工具 path 描述补齐**（merge `0491c22`，patch 发版，本地+CI dmg 均出）：审查给 AI 的工具描述，发现写工具 `path` 参数说明缺失/不足。`update_note`/`delete_note`/`move_note` 的描述与参数 schema 补上"每次必须显式传相对路径、`.md` 结尾、不可省略沿用上次"，从描述层降低模型漏传 path（v0.4.2 的 `Is a directory` 根因）的概率。`readNote`/`listNotes`/`searchNotes`/`createNote` 等审查后无需改。TS 494/494 绿。
 - 2026-06-21 - **v0.4.2 修复两枚 bug**（merge `9a0270b`，patch 发版，本地+CI dmg 均出）：① **进入已有会话不滚底**——`MessageList` 原先无任何滚动逻辑，进会话停在顶部；改为挂载/消息条数变化时若「贴底」则滚到底，用户上滚阅读（距底 >80px）不打扰。注意此前「会话列表底部锚定」是会话**侧栏** `SessionsList`，与聊天**消息列表**无关，故没覆盖到。② **AI 改笔记报 `io error: Is a directory (os error 21)`**——读会话 `2026-06-20-d8d35f2d` 实锤：模型连续编辑同一篇时漏传 `path`，`textArg` 取空串，后端 `resolve(root,'')` 塌缩到**工作区根目录**，写目录 → EISDIR。修复防御两层：工具层 `update_note.execute` path 为空直接回可执行报错；Rust `write_file` 拒绝空路径与目录目标（`InvalidInput`）。新增 TS 用例 + 2 条 Rust 用例，TS 494/494、Rust `core::notes` 16/16、`npm run build` 绿。
