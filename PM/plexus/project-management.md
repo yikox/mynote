@@ -9,11 +9,12 @@ Last updated: 2026-06-21
 - 历史：原名 GitNote，于 2026-06-19 全项目改名为 Plexus（productName / bundle identifier `com.plexus.app` / crate `plexus`·`plexus_lib` / OAuth env `PLEXUS_GITHUB_OAUTH_CLIENT_ID`；数据目录 `~/.gitnote`→`~/.plexus`、工作区内 `.gitnote/`→`.plexus/`、localStorage `gitnote.*`→`plexus.*` 均带无感迁移）。
 
 ## 当前状态
-- Version: 0.4.8（5 个版本文件一致）；tag `v0.4.8` 已推送。**CI 构建（mac/win/linux 三平台）均成功，但最后的 Publish 作业被 GitHub Actions 账单限额阻断未起**；已手动从构建产物建 Release（`gh run download` 6 安装包 → `gh release create`，走 API 不消耗 Actions 额度）。v0.4.8 已**正式发布**（6 安装包齐全）：https://github.com/yikox/plexus/releases/tag/v0.4.8 。本地 `Plexus_0.4.8_aarch64.dmg` 已出。
-- **⚠️ 阻塞项：GitHub Actions 账单/spending limit 需在 Settings → Billing & plans 修复**，否则后续版本的自动发布（Publish 作业）会继续被阻断；修复后可对失败 run 用 `gh run rerun --failed`，或继续沿用「产物手动建 Release」兜底。
+- Version: 0.4.9（5 个版本文件一致）；tag `v0.4.9` 已推送。本地 `Plexus_0.4.9_aarch64.dmg`（13M，aarch64）已出。**CI 账单限额阻断已升级**：v0.4.9 的 release run 在 `Validate tag` 即被账单门阻断（4s 失败），Build 三平台作业**根本未起、无产物上传** → 上一版「`gh run download` 产物 → `gh release create`」兜底**此次不再适用**（没有产物可下）。故 v0.4.9 **尚未建 GitHub Release**，仅本地 dmg。要正式发版须先修账单，或本地把三平台都构建出来再 `gh release create`。
+- v0.4.8 已**正式发布**（6 安装包齐全，当时构建作业成功、仅 Publish 被阻）：https://github.com/yikox/plexus/releases/tag/v0.4.8 。
+- **⚠️ 阻塞项：GitHub Actions 账单/spending limit 需在 Settings → Billing & plans 修复**，否则后续发版的整条 release 流水线都会在第一步被阻断；修复后可对失败 run 用 `gh run rerun --failed`。
 - v0.4.7 已**正式发布**（6 安装包齐全）：https://github.com/yikox/plexus/releases/tag/v0.4.7 。
-- State: 开发中；连发多个补丁/小版本（…、v0.4.6 ⌘⇧F 全局全文搜索、v0.4.7 ⌘F 标签内查找、v0.4.8 跳转渐隐高亮）。
-- Current focus: 编辑器/AI 会话体验打磨。搜索三件套（⌘P 文件选择器 / ⌘⇧F 全局全文搜索 / ⌘F 标签内查找）**全部完成**。
+- State: 开发中；连发多个补丁/小版本（…、v0.4.7 ⌘F 标签内查找、v0.4.8 跳转渐隐高亮、v0.4.9 词级跳转高亮）。
+- Current focus: 编辑器/AI 会话体验打磨。搜索三件套（⌘P 文件选择器 / ⌘⇧F 全局全文搜索 / ⌘F 标签内查找）**全部完成**；跳转高亮已迭代到词级（v0.4.9）。
 
 ## 进行中任务
 - （无进行中阻塞项）
@@ -31,6 +32,7 @@ Last updated: 2026-06-21
 - v0.4.6（2026-06-21）：⌘⇧F 全局全文搜索——弹框对所有笔记做全文内容搜索（复用 Rust grep 后端），匹配行带关键词高亮预览，↑↓ 浏览、Enter 打开笔记并定位到匹配行。
 - v0.4.7（2026-06-21）：⌘F 当前标签页内查找——编辑器右上角 VSCode 风格查找框，搜源码、显示当前/总数、↑↓/Enter 环绕导航；纯文本模式 textarea 精确选中、模块模式滚到匹配所在模块。搜索三件套收齐。
 - v0.4.8（2026-06-21）：跳转目标渐隐高亮——检索/定位跳转后，模块模式给目标模块加约 1.4s 渐隐高亮、纯文本模式定位改为选中整行，让用户看清落点（改 `handleJump` 一处覆盖 ⌘⇧F/⌘F/TOC 所有跳转）。
+- v0.4.9（2026-06-21）：词级跳转高亮——把 v0.4.8 的整块渐隐收窄为只高亮**被检索的词**（Custom Highlight API，深色 `--color-accent`，10s）。SDD 流程产出后用户实测连修 3 处：① 跳下一个不清上一个 → `highlightRange` 改注册一次的单例 `Highlight`，每次 `clear()+add()` 复用（new+set 在 WebKit 不能可靠抹旧绘制）；② 大模块里词在折叠区下方看不见高亮 → 滚到 `range.getBoundingClientRect()` 匹配词而非模块顶部；③ 顶贴生硬 → 目标定位到视口约 1/4 处（`clientHeight*0.25`，scrollTop 自动钳位，文末自然落底）。
 
 ## 待办
 - [ ] 内置几个 agent , 一个是研究型 agent 当我想了解一些不了解的内容时使用；一个是助手型 agent 当我想整理笔记，修改笔记，整理笔记内容时使用；等
@@ -39,11 +41,12 @@ Last updated: 2026-06-21
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
 
 ## 风险与阻塞
-- **GitHub Actions 账单限额（2026-06-21 起）**：v0.4.8 发布时 Publish 作业因「recent account payments have failed or your spending limit needs to be increased」未起（构建作业本身成功、产物已上传）。需在 Settings → Billing & plans 修复；未修复前每次发版的 Publish 作业都会被阻断，需走「`gh run download` 产物 → `gh release create`」手动兜底。
+- **GitHub Actions 账单限额（2026-06-21 起，已升级）**：起初（v0.4.8）仅最后的 Publish 作业被「recent account payments have failed or your spending limit needs to be increased」阻断，构建作业仍成功、产物可下，故能 `gh run download` 兜底。到 v0.4.9 升级为**整条流水线第一步 `Validate tag` 即被阻断（4s 失败），Build 作业根本不起、无产物上传**，`gh run download` 兜底**失效**。需在 Settings → Billing & plans 修复；未修复前发版只能拿本地构建产物 `gh release create`（但本地仅 macOS dmg，缺 win/linux）。
 - 仓库私有 → Release 与安装包仅对有仓库权限的人可见（匿名用户 404）。
 - 安装包未签名 → macOS 首次打开需在「隐私与安全性」放行；Windows 可能触发 SmartScreen。
 
 ## 最近更新
+- 2026-06-21 - **v0.4.9 词级跳转高亮**（merge `--no-ff`，patch 发版，本地 dmg 已出；**CI 账单阻断升级**：release run 在 `Validate tag` 即失败、Build 三平台未起无产物，`gh run download` 兜底失效，故仅本地 dmg、尚未建 GitHub Release）：v0.4.8 的整块渐隐高亮太大太淡，收窄为只高亮被检索的词。走 **subagent-driven-development**（首次选 SDD 而非内联）产出 3 任务：新增 `findTextRange.ts`（`findNthTextRange` 跨节点找第 n 个出现 + `highlightRange` Custom Highlight API）、`uiStore.locateRequest` 透传 `query`、`handleJump(pos, query?)` 算模块内出现序号高亮该词。**occurrence-aware 重搜渲染文本**而非源码→渲染字符映射（后者仅行内块可靠）。SDD 终审通过后用户实测连修 3 处（systematic-debugging）：① **跳下一个不清上一个**——根因 `new Highlight()+set()` 在 WebKit 不能可靠抹掉上次绘制；改注册一次的**单例 `Highlight`**，每次 `clear()+add()` 复用，天然单高亮 + 计时器只留最新。② **大模块里词看不见**——高亮成功时滚到 `range.getBoundingClientRect()` 匹配词而非模块顶部（块级兜底仍滚模块顶）。③ **顶贴生硬**——目标定位到视口约 1/4 处（`clientHeight*0.25`，rich/plain 一致，scrollTop 自动钳位故文末自然落底）。全套 572/572（+1 单高亮回归测试）、tsc + build 绿。
 - 2026-06-21 - **v0.4.8 跳转目标渐隐高亮**（merge `--no-ff`，patch 发版；**发布遇 GitHub Actions 账单限额**：三平台构建均成功、产物已上传，但 Publish 作业未起，遂 `gh run download` 6 安装包 + `gh release create` 手动建 Release，本地 dmg 亦已出）：用户反馈检索跳转后看不出落点。改 `MarkdownEditor.handleJump`（所有跳转汇聚点，一处覆盖 ⌘⇧F 定位/⌘F 富文本查找/TOC）。新增纯函数 `flashJumpTarget(el, className, durationMs)`（移除→reflow→加 class→定时移除，返回取消函数防悬挂 timer）。**rich 模式**滚到目标模块后加 `module-markdown-editor__module--flash`（CSS `@keyframes editor-jump-flash` 背景 `--color-accent-soft`→透明，1.4s ease-out），用 `flashCancelRef` 连续跳转取消上一个、组件卸载清理。**plain 模式**把定位的塌缩光标改为选中整行（`lastIndexOf('\n')`/`indexOf('\n')` 算行首尾），靠选区高亮（textarea 无法叠渐隐层）；既有 locate 测试只断言 `selectionStart`=行首故不破。全套 563/563（+3）、tsc + build 绿。
 - 2026-06-21 - **v0.4.7 ⌘F 当前标签页内查找**（merge `--no-ff`，patch 发版，本地 dmg + CI 构建）：编辑器右上角 VSCode 风格查找框，统一搜**源码字符串**（`draft`）。新增纯函数 `findMatches`（大小写不敏感、不重叠匹配偏移）、`stepIndex`（环绕步进）；新组件 `EditorFindBar`（受控：输入 + `n/total` 计数 + 上/下/关闭，Enter/Shift+Enter/Esc、focusNonce 聚焦）；uiStore 加 `findOpen`/`findNonce` + `openFind`/`closeFind`/`toggleFind`；快捷键 `find`=⌘F（与 ⌘⇧F globalSearch 靠 shift 区分，已测不冲突）+ escapeBack 关闭；`MarkdownEditor` 持 query/index 状态，`navigateToMatch` 按模式分叉——**plain 模式** textarea `setSelectionRange`+滚动（不抢查找框焦点）、**rich 模式**复用 `handleJump(offset)` 滚到模块（块级，无行内高亮）。index 用 `Math.min` 钳制防 query 变短时越界。搜索三件套（⌘P/⌘⇧F/⌘F）收齐。全套 560/560（+22）、tsc + build 绿。
 - 2026-06-21 - **v0.4.6 ⌘⇧F 全局全文搜索**（merge `--no-ff`，patch 发版，本地 dmg + CI 构建）：纯前端组装，后端 `search_notes`（Rust grep，字面量、.md、上限 50，返回 `{path,line,content}`）与编辑器 `handleJump(pos)` 均复用。新增纯函数 `lineToOffset`（1-based 行号→字符偏移，越界收敛文末）、`highlightSegments`（大小写不敏感切高亮段）；新组件 `GlobalSearchModal`（复用 `.quick-open` 弹框壳、输入 150ms 防抖、扁平行列表 + `<mark>` 高亮、↑↓/Enter/Esc）；uiStore 加 `globalSearchOpen` 开关 + `locateRequest{path,line,nonce}` 投递（仿 `chatFocusNonce` nonce 范式）；`MarkdownEditor` effect 监听 locateRequest，命中本 path 且 loaded 时 `handleJump(lineToOffset(draft,line))`（rAF 等 DOM、ref 防重复）；快捷键加 `globalSearch`=⌘⇧F + escapeBack 关闭。**需求反复**：原 todo「全文搜索（⌘P 扩展）」被用户重定为三件套（⌘P 保持 / ⌘⇧F 全局 / ⌘F 标签内），按 brainstorm scope-check 拆分、先做 ⌘⇧F。全套 538/538（+21）、tsc + build 绿。
