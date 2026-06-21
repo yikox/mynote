@@ -77,6 +77,11 @@ gh release edit v0.2.0 --draft=false
 - 矩阵作业各自创建 draft release 会有竞态/重复草稿风险：用独立的 `release` 汇总 job 一次性创建，避免竞态。
 - **AI 会话对同一笔记反复 `update_note` 死循环 / 笔记被覆盖成一行占位文字**（2026-06-20 排查并彻底修复，commit `0457456`）：根因是「活动工作集」机制——`contextBuilder` 的 `foldWriteArgs` 把历史里 `update_note`/`create_note` 的长 `content` 折叠成「长得像正文的占位串」省 token，模型重试时**照抄自己上一条调用的参数**把占位串当真实内容写回，覆盖整篇笔记；读回又被折叠看不到磁盘真相 → 道歉重写 → 又被折叠 → 无限自我覆盖。最终方案：**直接移除整个活动工作集机制**（见下方 Decisions），占位串不再产生，问题根除。（中途曾试过「换哨兵标记 + 写工具守卫」的补丁，已被移除方案取代。）
 
+- **进入 AI 页面整窗白屏 / `Maximum update depth exceeded`**（2026-06-21 排查，修复 commit `5331cf1`，自 `chatDraftsStore` 特性起即潜伏、v0.3.0 同样受影响，**全新安装首次点 AI 聊天必现**）：根因是 zustand v5 selector 返回**新引用**。`ChatPanel` 的 `useChatDraftsStore((s) => s.drafts[sessionId]?.images ?? [])` 在会话尚无草稿时每次 render 都返回新 `[]`，zustand v5 用 `useSyncExternalStore`、快照引用每次变 → 无限重渲染；项目**无 ErrorBoundary**，React 树崩溃 → 整窗白屏。修复：selector 改用模块级稳定常量 `EMPTY_IMAGES`。**通用规则：zustand selector 绝不能内联 `?? []`/`?? {}`/`?? {…}` 返回新对象/数组**——要么返回稳定常量引用，要么用 `useShallow` 包裹（如 `AgentStatusWindow` 那样 `?? DEFAULT_ENTRY` + `useShallow`）。排查手法：jsdom 里 mock `@tauri-apps/api/core` 的 `invoke` 后 `render(<ChatPanel/>)` 即可稳定复现，无需打包。
+
+- **AI 改笔记报 `io error: Is a directory (os error 21)`**（2026-06-21 修复 `df1a9ae`/v0.4.2）：根因是写工具**漏传/传空 `path`**。`textArg(args,'path')` 取到空串后，Rust `core/notes.rs::resolve(root, "")` 把空相对路径塌缩到**工作区根目录**，`write_file` 对目录调 `fs::write` → EISDIR。修复防御两层：① 工具层 `update_note.execute` 检测 `path` 为空直接回 `{ok:false,error:'缺少 path…'}`，绝不带空路径下发后端；② Rust `write_file` 拒绝空 `rel` 与「目标是目录」（`AppError::InvalidInput`），从根上保护根目录不被误写。**通用规则：任何接受相对路径的写命令都要先校验非空**——空相对路径在 `resolve` 下等于根目录，是危险的隐式目标。
+- **排查 AI 工具行为的实锤手法**：Plexus 会话持久化在 `<workspace>/.plexus/sessions/*.json`（含完整 messages + `tool_calls` 的 `function.arguments`）。`grep -l "错误串" .plexus/sessions/*.json` 找到出事会话，再用 python 遍历 `messages[*].tool_calls` 打印每次调用的工具名+参数，即可复现「模型到底传了什么」。本次正是借此发现模型从某轮起连发**无 path** 的 `update_note`。
+
 ## 关键原则（上下文折叠）
 - **绝不能把「会被回传的、长得像正文/参数的占位串」放进模型自己的 tool_call 参数里**——LLM 会模仿自己的历史动作把它照抄回去，若该参数会落盘就会造成数据丢失+死循环。这正是工作集 `foldWriteArgs` 被移除的原因。
 - 折叠 *tool 结果*（如保留的 `foldNoteReads` 重复读取去重、`foldWebSearch`）相对安全，因为模型不会把工具结果当调用参数照抄。这类去重可保留。
