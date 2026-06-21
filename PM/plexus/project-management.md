@@ -33,7 +33,7 @@ Last updated: 2026-06-21
 - v0.4.8（2026-06-21）：跳转目标渐隐高亮——检索/定位跳转后，模块模式给目标模块加约 1.4s 渐隐高亮、纯文本模式定位改为选中整行，让用户看清落点（改 `handleJump` 一处覆盖 ⌘⇧F/⌘F/TOC 所有跳转）。
 
 ## 待办
-- [ ] 新
+- [ ] 内置几个
 - [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
