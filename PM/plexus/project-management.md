@@ -9,9 +9,9 @@ Last updated: 2026-06-20
 - 历史：原名 GitNote，于 2026-06-19 全项目改名为 Plexus（productName / bundle identifier `com.plexus.app` / crate `plexus`·`plexus_lib` / OAuth env `PLEXUS_GITHUB_OAUTH_CLIENT_ID`；数据目录 `~/.gitnote`→`~/.plexus`、工作区内 `.gitnote/`→`.plexus/`、localStorage `gitnote.*`→`plexus.*` 均带无感迁移）。
 
 ## 当前状态
-- Version: 0.2.0（`package.json`、`src-tauri/tauri.conf.json`、`src-tauri/Cargo.toml` 一致）；tag `v0.2.0` 已推送。`main` 已领先 tag：合并了快捷键扩展（未发新版）。
-- State: 开发中；改名收尾完成，新增编辑器交互特性 + 全局快捷键扩展。
-- Current focus: 编辑器/AI 会话体验打磨、键盘可达性。
+- Version: 0.4.0（`package.json`、`package-lock.json`、`src-tauri/tauri.conf.json`、`src-tauri/Cargo.toml`、`src-tauri/Cargo.lock` 一致）；tag `v0.4.0` 已推送，CI 6 安装包构建成功，Release 已**正式发布**（非 draft）：https://github.com/yikox/plexus/releases/tag/v0.4.0 。
+- State: 开发中；v0.4.0（含上下文压缩前状态快照）已发布。
+- Current focus: 编辑器/AI 会话体验打磨。
 
 ## 进行中任务
 - （无进行中阻塞项）
@@ -19,9 +19,11 @@ Last updated: 2026-06-20
 ## 里程碑
 - v0.1.0：首个可下载构建（Tauri 三平台 Release 流程就绪）。
 - v0.2.0（2026-06-20）：笔记编辑器右键菜单（基础编辑 + 问 AI）首次随版本发布。
+- v0.3.0（2026-06-21）：写操作 Diff 回执（`update_note` 写成功返回「成功 + Diff」状态回执）首次随版本发布；CI 构建 6 安装包并正式发布 Release。
+- v0.4.0（2026-06-21）：上下文压缩前状态快照（自动按 80% 阈值 + 手动 `/compact`，模型蒸馏任务进展/笔记最新状态注入上下文顶部）首次随版本发布；CI 构建 6 安装包并正式发布 Release。
 
 ## 待办
-- [ ] **上下文压缩前钩子（Pre-Compaction Hook）**：当对话轮次过长触发上下文压缩时，先由模型将最终代码/笔记状态提炼为 State Snapshot，旧历史裁切后将该快照重新注入上下文顶部，避免简单滑动窗口导致关键状态丢失。
+- [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
 
@@ -30,6 +32,7 @@ Last updated: 2026-06-20
 - 安装包未签名 → macOS 首次打开需在「隐私与安全性」放行；Windows 可能触发 SmartScreen。
 
 ## 最近更新
+- 2026-06-21 - 合并 **上下文压缩前状态快照（Pre-Compaction State Snapshot）** 到 `main`（merge `--no-ff` `48cbb9b`，未发新版）：把 `contextBuilder` 中**未接线、只回退占位串**的 `summarize` 步骤，变为**由模型生成、带缓存+增量扩展的「状态快照」**（任务目标/关键决定/笔记最新状态/待办），超预算裁切旧轮前注入上下文顶部，解决朴素滑动窗口丢失关键状态。触发阈值**可配**（`snapshotTriggerRatio` 默认 `0.8`，对话层用到预算 80% 即提前压缩，`?? 1` 回退保旧测试）；**设置开关** `stateSnapshotEnabled`（默认开，仅门控**自动**触发）；现有空操作 `/compact` 接成**手动强制触发**（`compactSessionNow`，独立于开关、忽略阈值）。被裁轮次**绝不发模型**，完整历史留在 `sessionsStore`（不写回）。新增：`snapshotStore`（按 sessionId 纯内存缓存 `{coveredMsgCount,snapshotText}`，会话删除时清理）、`stateSnapshot.ts`（增量内核 `generateSnapshotFromOlder`：消息条数前缀单调、命中缓存零调用、失败保留旧快照不推进 covered、4000 字符代理对安全封顶；`buildSnapshotRequest` 全量/增量提示词；`makeSnapshotSummarizer` 自动闭包工厂；`compactSessionNow` 手动入口，按缓存 covered 判定真成功，失败如实提示）、`completion.ts`（一次性非流式 LLM 调用 `runCompletion`，复用 `aiService` 流式接口）。`contextBuilder` 导出 `splitTurns`/`splitOlderKept` 供自动+手动共享同一折叠+边界（**无漂移**）。设置→上下文管理加开关与阈值百分比控件。subagent 驱动开发：9 任务逐个 spec+quality 评审 + opus 全分支评审（修掉手动 /compact 失败误报成功 + compressing 重入守卫未接线，复评 Ready to merge）。全套 490/490 通过、`npm run build` 绿。spec/plan 见 `docs/superpowers/{specs,plans}/2026-06-21-pre-compaction-state-snapshot*`。完成原「待办」中的上下文压缩前钩子项。
 - 2026-06-21 - 合并 **状态回执自动覆盖历史（写操作 Diff 回执）** 到 `main`（merge `--no-ff`，未发新版）：`update_note` 写成功后不再只回 `{ok,action,path}`，而是返回**「成功 + Diff」JSON 回执**，让模型在思维链中合并原文+差异、感知最新状态，免去为「确认」而重复 `read_note`、省上下文。`src/ai/tools/shared.ts` 新增 `buildWriteDiffReceipt`（复用 `buildLineDiff`/`boundDiff`，diff 渲染为带 `  `/`+ `/`- ` 前缀的文本字符串，`linesAdded/Removed` 取截断前完整 diff，渲染后按码元封顶 `RECEIPT_DIFF_CHAR_LIMIT=6000` < `MAX_TOOL_RESULT_CHARS=8000` 且不切断 UTF-16 代理对）；`boundDiff` 加可选 `charLimit`（默认 12000 不变）；`update_note.execute` 写前读 before、读失败回退无-diff 回执 + warning。UI 抽出共享 `DiffView`（行号双计数 + app 色板红/绿整行轻底色），`ConfirmToolDialog` 与聊天 `MessageItem` 的新 `DiffWriteResult` 共用（聊天默认展开、>20 行可折叠、截断提示、「打开」按钮）；仅默认系统提示词加「写后勿为确认重读」引导句。范围限 `update_note`（create/move/delete 不变；未做写后折叠；不注入自定义提示词）。subagent 驱动开发：5 任务逐个 spec+quality 评审 + 最终全分支评审（Ready to merge），全套 465/465 通过、`npm run build` 绿。spec/plan 见 `docs/superpowers/{specs,plans}/2026-06-20-write-diff-receipt*`。完成原「待办」中的状态回执项。
 - 2026-06-20 - 合并 **AI 消息气泡时间戳** 到 `main`（merge `--no-ff`，未发新版）：每条 user/assistant 气泡显示发送时间，**< 30 分钟相对时间（刚刚 / N 分钟前）、≥ 30 分钟绝对时间（同日 HH:MM、跨日 M月D日 HH:MM、跨年带年）**，悬停 title 显示完整绝对时间。`Message` 增可选 `createdAt`（挂在共享 `CompressibleMessage` 上，零迁移），`agentLoop` 抽出 `buildUserMessage`/`newAssistantMessage` 在创建时打戳（流式只改 content 不动时间）；格式化逻辑独立为可测的 `messageTime.ts`；`MessageItem` 在角色标签旁渲染，tool/system 与无戳的旧消息不显示（用户选定）。新增 `messageTime.test.ts` + MessageItem/agentLoop 用例，全套 452/452 通过、`npm run build` 绿。完成原「待办」中的消息时间戳项。
 - 2026-06-20 - 合并 **AI 会话列表底部锚定** 到 `main`（merge `--no-ff`，未发新版）：会话列表由「最新在顶部」改为聊天式「最新沉底」。顺序真源在 `sessionsStore.index`：`sortIndex` 改升序、`bumpIndex`/`newSession` 改为追加到末尾（最近活跃/新建会话落到底部）。`SessionsList` 给滚动容器 `<ul.sessions__list>` 加 ref + effect，仅在会话**数量增加**时（首次加载 0→N、新建 N→N+1）滚到底，活跃重排序（数量不变）与删除不强制滚动，避免上滚查看旧会话时被拽走。新增 `SessionsList.test.tsx` + 3 条 store 排序用例，全套 437/437 通过、`npm run build` 绿。完成原「待办」中的会话列表排序项。
