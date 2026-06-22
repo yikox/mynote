@@ -36,7 +36,7 @@ Last updated: 2026-06-22
 - v0.4.10（2026-06-22）：内置 4 个预设 agent——复用既有多模板基础设施，内置「通用助手（default-agent 改名）/研究助手/笔记管家/写作助手」，各带定制系统提示词、工具集（笔记读写全开、写操作手动确认）、温度（研究 0.3/写作 0.8）与联网开关（研究开、管家/写作关）；自动出现在输入框 Agent 下拉与配置弹框。一次性版本批次播种（`presetSeedVersion`，删除不复活）；恢复默认按 id（`builtinTemplateDefaults`）修复 4 同 id bug；`.plexus/system-prompt.md` 兼容式分层注入到预设（通用助手行为不变）。
 - v0.4.11（2026-06-22）：上下文预算改为模型窗口优先——抽出 `contextBudgetTokens(limits, config)`，设了模型上下文窗口就用「窗口−输出预留−安全余量」、**不再被默认上限封顶**（大窗口模型如 1M 不再过早压缩）；默认上限 `budgetCapTokens` 120000→`256*1024`（1K=1024，`formatK` 显示恰为 256K，此前 120000÷1024≈117 才显示成迷惑的「117K」）；老配置一次性迁移（播种 v2 空批次触发，仅旧 stock 值 120000 提升、自定义值不动）；ChatPanel 分母与压缩对齐（运行时用 `breakdown.budgetTokens`、空闲同样窗口优先）。
 
-## 待办
+·## 待办
 - [x] 内置几个 agent（v0.4.10 完成：通用/研究/笔记管家/写作 4 个预设）
 - [ ] 做代码格式的渲染，目前的代码就是简单的文本框显示，没有代码框那种对关键词高亮等渲染
 - [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
