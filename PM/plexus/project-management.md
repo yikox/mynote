@@ -39,7 +39,7 @@ Last updated: 2026-06-22
 ## 待办
 - [x] 内置几个 agent（v0.4.10 完成：通用/研究/笔记管家/写作 4 个预设）
 - [ ] 做代码格式的渲染，目前的代码就是简单的文本框显示，没有代码框那种对关键词高亮等渲染
-- - [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
+- [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
 
