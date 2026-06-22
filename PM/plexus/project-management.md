@@ -41,7 +41,7 @@ Last updated: 2026-06-22
 - [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
-- [] 
+- [ ]  
 
 ## 风险与阻塞
 - **GitHub Actions 账单限额（2026-06-21 起，已升级）**：起初（v0.4.8）仅最后的 Publish 作业被「recent account payments have failed or your spending limit needs to be increased」阻断，构建作业仍成功、产物可下，故能 `gh run download` 兜底。到 v0.4.9 升级为**整条流水线第一步 `Validate tag` 即被阻断（4s 失败），Build 作业根本不起、无产物上传**，`gh run download` 兜底**失效**。需在 Settings → Billing & plans 修复；未修复前发版只能拿本地构建产物 `gh release create`（但本地仅 macOS dmg，缺 win/linux）。
