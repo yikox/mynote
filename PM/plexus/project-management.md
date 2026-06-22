@@ -1,6 +1,6 @@
 # Plexus 项目管理
 
-Last updated: 2026-06-21
+Last updated: 2026-06-22
 
 ## 概述
 - Plexus：基于 Tauri 2 + React 的桌面 Markdown 笔记应用，笔记以本地文件存储并通过 git 同步，集成 AI 会话。
@@ -9,12 +9,12 @@ Last updated: 2026-06-21
 - 历史：原名 GitNote，于 2026-06-19 全项目改名为 Plexus（productName / bundle identifier `com.plexus.app` / crate `plexus`·`plexus_lib` / OAuth env `PLEXUS_GITHUB_OAUTH_CLIENT_ID`；数据目录 `~/.gitnote`→`~/.plexus`、工作区内 `.gitnote/`→`.plexus/`、localStorage `gitnote.*`→`plexus.*` 均带无感迁移）。
 
 ## 当前状态
-- Version: 0.4.9（5 个版本文件一致）；tag `v0.4.9` 已推送。本地 `Plexus_0.4.9_aarch64.dmg`（13M，aarch64）已出。**CI 账单限额阻断已升级**：v0.4.9 的 release run 在 `Validate tag` 即被账单门阻断（4s 失败），Build 三平台作业**根本未起、无产物上传** → 上一版「`gh run download` 产物 → `gh release create`」兜底**此次不再适用**（没有产物可下）。故 v0.4.9 **尚未建 GitHub Release**，仅本地 dmg。要正式发版须先修账单，或本地把三平台都构建出来再 `gh release create`。
+- Version: 0.4.11（5 个版本文件一致；Cargo.lock 仅 bump `plexus` crate，第三方 `erased-serde` 恰为 0.4.10 不动）；tag `v0.4.11` 已推送。本地 `Plexus_0.4.11_aarch64.dmg`（11M）已出（路径 `src-tauri/target/release/bundle/dmg/`）。**CI 账单限额仍阻断**：v0.4.11 release run 同样在 `Validate tag` 即被账单门阻断（3s 失败，run 27912776834），Build 三平台未起、无产物 → `gh run download` 兜底失效。故 v0.4.11 **尚未建 GitHub Release**，仅本地 dmg。
+- v0.4.10（内置预设 agent）、v0.4.9（词级跳转高亮）：同样仅本地 dmg、未建 Release（账单阻断）。
 - v0.4.8 已**正式发布**（6 安装包齐全，当时构建作业成功、仅 Publish 被阻）：https://github.com/yikox/plexus/releases/tag/v0.4.8 。
 - **⚠️ 阻塞项：GitHub Actions 账单/spending limit 需在 Settings → Billing & plans 修复**，否则后续发版的整条 release 流水线都会在第一步被阻断；修复后可对失败 run 用 `gh run rerun --failed`。
-- v0.4.7 已**正式发布**（6 安装包齐全）：https://github.com/yikox/plexus/releases/tag/v0.4.7 。
-- State: 开发中；连发多个补丁/小版本（…、v0.4.7 ⌘F 标签内查找、v0.4.8 跳转渐隐高亮、v0.4.9 词级跳转高亮）。
-- Current focus: 编辑器/AI 会话体验打磨。搜索三件套（⌘P 文件选择器 / ⌘⇧F 全局全文搜索 / ⌘F 标签内查找）**全部完成**；跳转高亮已迭代到词级（v0.4.9）。
+- State: 开发中；连发多个补丁/小版本（…、v0.4.9 词级跳转高亮、v0.4.10 内置预设 agent、v0.4.11 上下文预算窗口优先）。
+- Current focus: 编辑器/AI 会话体验打磨。搜索三件套全部完成；跳转高亮已迭代到词级（v0.4.9）；内置 4 个预设 agent（v0.4.10）；上下文预算/压缩按模型真实窗口（v0.4.11）。
 
 ## 进行中任务
 - （无进行中阻塞项）
@@ -33,9 +33,11 @@ Last updated: 2026-06-21
 - v0.4.7（2026-06-21）：⌘F 当前标签页内查找——编辑器右上角 VSCode 风格查找框，搜源码、显示当前/总数、↑↓/Enter 环绕导航；纯文本模式 textarea 精确选中、模块模式滚到匹配所在模块。搜索三件套收齐。
 - v0.4.8（2026-06-21）：跳转目标渐隐高亮——检索/定位跳转后，模块模式给目标模块加约 1.4s 渐隐高亮、纯文本模式定位改为选中整行，让用户看清落点（改 `handleJump` 一处覆盖 ⌘⇧F/⌘F/TOC 所有跳转）。
 - v0.4.9（2026-06-21）：词级跳转高亮——把 v0.4.8 的整块渐隐收窄为只高亮**被检索的词**（Custom Highlight API，深色 `--color-accent`，10s）。SDD 流程产出后用户实测连修 3 处：① 跳下一个不清上一个 → `highlightRange` 改注册一次的单例 `Highlight`，每次 `clear()+add()` 复用（new+set 在 WebKit 不能可靠抹旧绘制）；② 大模块里词在折叠区下方看不见高亮 → 滚到 `range.getBoundingClientRect()` 匹配词而非模块顶部；③ 顶贴生硬 → 目标定位到视口约 1/4 处（`clientHeight*0.25`，scrollTop 自动钳位，文末自然落底）。
+- v0.4.10（2026-06-22）：内置 4 个预设 agent——复用既有多模板基础设施，内置「通用助手（default-agent 改名）/研究助手/笔记管家/写作助手」，各带定制系统提示词、工具集（笔记读写全开、写操作手动确认）、温度（研究 0.3/写作 0.8）与联网开关（研究开、管家/写作关）；自动出现在输入框 Agent 下拉与配置弹框。一次性版本批次播种（`presetSeedVersion`，删除不复活）；恢复默认按 id（`builtinTemplateDefaults`）修复 4 同 id bug；`.plexus/system-prompt.md` 兼容式分层注入到预设（通用助手行为不变）。
+- v0.4.11（2026-06-22）：上下文预算改为模型窗口优先——抽出 `contextBudgetTokens(limits, config)`，设了模型上下文窗口就用「窗口−输出预留−安全余量」、**不再被默认上限封顶**（大窗口模型如 1M 不再过早压缩）；默认上限 `budgetCapTokens` 120000→`256*1024`（1K=1024，`formatK` 显示恰为 256K，此前 120000÷1024≈117 才显示成迷惑的「117K」）；老配置一次性迁移（播种 v2 空批次触发，仅旧 stock 值 120000 提升、自定义值不动）；ChatPanel 分母与压缩对齐（运行时用 `breakdown.budgetTokens`、空闲同样窗口优先）。
 
 ## 待办
-- [ ] 内置几个 agent , 一个是研究型 agent 当我想了解一些不了解的内容时使用；一个是助手型 agent 当我想整理笔记，修改笔记，整理笔记内容时使用；等
+- [x] 内置几个 agent（v0.4.10 完成：通用/研究/笔记管家/写作 4 个预设）
 - [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
@@ -46,6 +48,8 @@ Last updated: 2026-06-21
 - 安装包未签名 → macOS 首次打开需在「隐私与安全性」放行；Windows 可能触发 SmartScreen。
 
 ## 最近更新
+- 2026-06-22 - **v0.4.11 上下文预算窗口优先**（直接在 main 提交、patch 发版，本地 `Plexus_0.4.11_aarch64.dmg`（11M）已出；CI 仍账单阻断、未建 Release）：用户发现 AI 会话右下角分母「117K」恒定不变、自己从没设过——根因是显示分母直接取静态 `budgetCapTokens`（默认 120000），且 `formatK` 按 1K=1024 换算（120000÷1024≈117）才显示成 117K；更要命的是 `computeBudget` 用 `Math.min(budgetCapTokens, 窗口−预留)` **把真实窗口封顶到 12 万**，1M 窗口模型也只按 ~117K 预算 → 过早触发压缩。**改动**：① `contextBuilder.ts` 抽出 `contextBudgetTokens(limits, config)`，设了模型窗口就用「窗口−`maxOutputTokens`−`marginTokens`」、删掉默认上限封顶，仅无窗口时退回 `budgetCapTokens`；② 默认 `budgetCapTokens` 120000→`256*1024`（=262144，显示干净的 256K）；③ 老配置一次性迁移——新增播种 `version:2` 空批次把 `CURRENT_PRESET_SEED_VERSION` 抬到 2，在 mergeConfig 既有 seed 块里加「仍是旧 stock 值 `LEGACY_DEFAULT_BUDGET_CAP=120000` → 新默认」的 remap，自定义值与已迁移配置不动；④ `ChatPanel` 分母改为运行时取 `breakdown.budgetTokens`、空闲时按同一窗口优先逻辑算（不再恒为静态值）。**坑**：bump 版本时 Cargo.lock 有两处 `0.4.10`——line 2900 是 `plexus` crate（改）、line 963 是第三方 `erased-serde`（恰好同号，不能动），按行号精确 sed。新增 5 个用例（contextBuilder 窗口优先/无窗口退回 2 例 + migration 旧值升/自定义不动/已迁移不二次升 3 例），改 1 个旧断言（默认 120k→256K），全套 587/587、tsc 绿。
+- 2026-06-22 - **v0.4.10 内置预设 agent**（merge `--no-ff`，patch 发版，本地 `Plexus_0.4.10_aarch64.dmg` 已出；CI 仍账单阻断、未建 Release）：复用既有多 agent 模板基础设施（`agentTemplates[]`、全局 active、输入框下拉、配置弹框），内置 4 个预设。走 **brainstorm→spec→plan→SDD（3 任务）**，含一轮详尽用户评审修订。**Task 1**（store）：3 个预设常量（研究/笔记管家/写作）+ `presetTools(webSearch)` 助手；`default-agent` 改名「通用助手」（`LEGACY_DEFAULT_AGENT_NAME='Agent 对话'` 一次性改名、自定义名保留）；`presetSeedVersion` + `PRESET_SEED_BATCHES` **版本批次播种**（仅播 `batch.version>seedVersion`，故删除的预设不复活、未来新批次不复活早期被删项）。**Task 2**：`builtinTemplateDefaults(id)` + 5 个 section（含 LoopCard）「恢复默认」改用按 id 取各自出厂值——修复原 `restoreAllDefaults` 用 `defaultAgentTemplate()` 生成 4 个同 id（React key 重复）的 bug。**Task 3**：`buildSystemPrompt` 兼容式分层——`.plexus/system-prompt.md` 作工作区全局规则，**追加**到 systemPromptTemplate 非空的预设之后；`default-agent`（null prompt）行为零变化（仍以该文件为角色、不双重追加）。工具策略：四内置笔记读写全开、写操作 `perToolWriteAutoAllow` 全 false（手动确认而非关工具）；温度 研究 0.3/写作 0.8/通用·管家 null；web_search 研究·通用开、管家·写作关。终审 opus「Ready to merge: Yes」，仅 LoopCard 一处遗漏（已补 `6b26eaa`）。全套 582/582、tsc + build 绿。**评审教训**：内置预设会破坏现有「恢复默认」（硬编码单一默认）、需 `builtinTemplateDefaults(id)`；版本播种要按批次否则未来会复活用户删的旧预设；预设非空 prompt 会绕过工作区 system-prompt.md，需分层注入。
 - 2026-06-21 - **v0.4.9 词级跳转高亮**（merge `--no-ff`，patch 发版，本地 dmg 已出；**CI 账单阻断升级**：release run 在 `Validate tag` 即失败、Build 三平台未起无产物，`gh run download` 兜底失效，故仅本地 dmg、尚未建 GitHub Release）：v0.4.8 的整块渐隐高亮太大太淡，收窄为只高亮被检索的词。走 **subagent-driven-development**（首次选 SDD 而非内联）产出 3 任务：新增 `findTextRange.ts`（`findNthTextRange` 跨节点找第 n 个出现 + `highlightRange` Custom Highlight API）、`uiStore.locateRequest` 透传 `query`、`handleJump(pos, query?)` 算模块内出现序号高亮该词。**occurrence-aware 重搜渲染文本**而非源码→渲染字符映射（后者仅行内块可靠）。SDD 终审通过后用户实测连修 3 处（systematic-debugging）：① **跳下一个不清上一个**——根因 `new Highlight()+set()` 在 WebKit 不能可靠抹掉上次绘制；改注册一次的**单例 `Highlight`**，每次 `clear()+add()` 复用，天然单高亮 + 计时器只留最新。② **大模块里词看不见**——高亮成功时滚到 `range.getBoundingClientRect()` 匹配词而非模块顶部（块级兜底仍滚模块顶）。③ **顶贴生硬**——目标定位到视口约 1/4 处（`clientHeight*0.25`，rich/plain 一致，scrollTop 自动钳位故文末自然落底）。全套 572/572（+1 单高亮回归测试）、tsc + build 绿。
 - 2026-06-21 - **v0.4.8 跳转目标渐隐高亮**（merge `--no-ff`，patch 发版；**发布遇 GitHub Actions 账单限额**：三平台构建均成功、产物已上传，但 Publish 作业未起，遂 `gh run download` 6 安装包 + `gh release create` 手动建 Release，本地 dmg 亦已出）：用户反馈检索跳转后看不出落点。改 `MarkdownEditor.handleJump`（所有跳转汇聚点，一处覆盖 ⌘⇧F 定位/⌘F 富文本查找/TOC）。新增纯函数 `flashJumpTarget(el, className, durationMs)`（移除→reflow→加 class→定时移除，返回取消函数防悬挂 timer）。**rich 模式**滚到目标模块后加 `module-markdown-editor__module--flash`（CSS `@keyframes editor-jump-flash` 背景 `--color-accent-soft`→透明，1.4s ease-out），用 `flashCancelRef` 连续跳转取消上一个、组件卸载清理。**plain 模式**把定位的塌缩光标改为选中整行（`lastIndexOf('\n')`/`indexOf('\n')` 算行首尾），靠选区高亮（textarea 无法叠渐隐层）；既有 locate 测试只断言 `selectionStart`=行首故不破。全套 563/563（+3）、tsc + build 绿。
 - 2026-06-21 - **v0.4.7 ⌘F 当前标签页内查找**（merge `--no-ff`，patch 发版，本地 dmg + CI 构建）：编辑器右上角 VSCode 风格查找框，统一搜**源码字符串**（`draft`）。新增纯函数 `findMatches`（大小写不敏感、不重叠匹配偏移）、`stepIndex`（环绕步进）；新组件 `EditorFindBar`（受控：输入 + `n/total` 计数 + 上/下/关闭，Enter/Shift+Enter/Esc、focusNonce 聚焦）；uiStore 加 `findOpen`/`findNonce` + `openFind`/`closeFind`/`toggleFind`；快捷键 `find`=⌘F（与 ⌘⇧F globalSearch 靠 shift 区分，已测不冲突）+ escapeBack 关闭；`MarkdownEditor` 持 query/index 状态，`navigateToMatch` 按模式分叉——**plain 模式** textarea `setSelectionRange`+滚动（不抢查找框焦点）、**rich 模式**复用 `handleJump(offset)` 滚到模块（块级，无行内高亮）。index 用 `Math.min` 钳制防 query 变短时越界。搜索三件套（⌘P/⌘⇧F/⌘F）收齐。全套 560/560（+22）、tsc + build 绿。
