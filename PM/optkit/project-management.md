@@ -36,7 +36,7 @@ Last updated: 2026-06-15
 ## Todo
 
 - [ ] Wan t2v/ti2v/VACE 真实权重验证收口
-- [ ] qwen t2i u4+CFG NaN 缺陷定位（怀疑 all_to_all split sizes 变化的通信层行为）:做 bug 定位，需要确定错误原因，修改的方案，输出一个bug
+- [ ] qwen t2i u4+CFG NaN 缺陷定位（怀疑 all_to_all split sizes 变化的通信层行为）:做 bug 定位，需要确定错误原因，修改的方案，输出一个bug 修复报告到
 - [ ] 性能基线报告归档（M4 交付物）
 - [ ] 补齐 v2 用户文档：README + 各模型 doc + v1→v2 迁移说明（M5）
 
