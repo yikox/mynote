@@ -13,8 +13,8 @@ Last updated: 2026-06-22
 | 字段 | 值 |
 | --- | --- |
 | 版本 | 未设置 |
-| 状态 | 探索与脚本化阶段 |
-| 当前重点 | 基于神舟临时查询与数据地图，导出算法 GPU/初始化耗时监控 CSV |
+| 状态 | 脚本已验证可用 |
+| 当前重点 | 基于导出的算法 GPU 指标 CSV 做监控分析与优化筛选 |
 
 ## 版本与发布记录
 
@@ -24,8 +24,7 @@ Last updated: 2026-06-22
 
 ## 活跃任务
 
-- 获取 `stat_meitu.mpub_mdz_deployment_metric` 的 SELECT 权限，或找到有权限的项目/token，以便导出完整算法 GPU 指标。
-- 在权限可用后运行 `export_algo_gpu_metrics.py --date 20260617 --project AIGC监控 -o algo_gpu_metrics_20260617.csv` 验证完整链路。
+- 基于 `algo_gpu_metrics_20260617.csv` 做算法 GPU 利用率、平均耗时、初始化耗时和使用卡量分析。
 - 若只需要初始化耗时维度，可继续使用 `stat_aigc.cost_odz_pod_init_detail_info` 做按天/按算法服务聚合。
 
 ## 里程碑
@@ -33,13 +32,13 @@ Last updated: 2026-06-22
 | 里程碑 | 状态 | 备注 |
 | --- | --- | --- |
 | 项目记忆初始化 | 完成 | 2026-06-22 初始化 PM 文档与 AGENTS.md 规则。 |
-| 算法 GPU 指标脚本 | 部分完成 | 脚本已创建并通过 dry-run/语法检查；真实导出受 SELECT 权限阻塞。 |
+| 算法 GPU 指标脚本 | 完成 | 2026-06-22 workflowId `46230449` 成功导出 `algo_gpu_metrics_20260617.csv`。 |
 
 ## 测试与验证
 
 - 已验证 `stat_aigc.cost_odz_pod_init_detail_info` 可在 `AIGC监控` 项目下查询。
 - 已验证 `stat_meitu.mpub_mdz_deployment_metric` 数据地图元数据可查，字段齐全，分区键为 `date_p`。
-- 已验证当前用户 `czy5` 在 `AIGC监控` 项目下没有 `stat_meitu.mpub_mdz_deployment_metric` 的 SELECT 权限；2026-06-22 用户反馈补权后重试 workflowId `46229958`，后台再次调整后重试 workflowId `46230116`，仍为同一 SELECT 权限错误。
+- 已验证当前用户 `czy5` 在 `AIGC监控` 项目下可查询 `stat_meitu.mpub_mdz_deployment_metric`；2026-06-22 workflowId `46230449` 成功导出 20260617 CSV。
 
 ## 部署
 
@@ -49,7 +48,7 @@ Last updated: 2026-06-22
 
 | 风险/阻塞 | 影响 | 缓解/状态 |
 | --- | --- | --- |
-| `stat_meitu.mpub_mdz_deployment_metric` SELECT 权限缺失 | 无法生成完整 GPU 指标 CSV | 需要给用户 `czy5` 开通权限，或改用有权限的项目/token。 |
+| `stat_meitu.mpub_mdz_deployment_metric` SELECT 权限曾缺失 | 曾无法生成完整 GPU 指标 CSV | 2026-06-22 已验证权限生效，workflowId `46230449` 成功导出。 |
 | 只用 `cost_odz_pod_init_detail_info` | 缺少 GPU 型号、GPU 利用率、使用卡量 | 只能作为初始化耗时监控的短期替代。 |
 
 ## ADR 摘要
@@ -61,4 +60,5 @@ Last updated: 2026-06-22
 
 ## 最近更新
 
+- 2026-06-22 - workflowId `46230449` 成功导出 `algo_gpu_metrics_20260617.csv`，共 2486 行，约 639 KB。
 - 2026-06-22 - 初始化项目记忆与协作规则。

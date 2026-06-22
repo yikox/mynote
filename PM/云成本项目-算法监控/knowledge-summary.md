@@ -8,6 +8,7 @@ Last updated: 2026-06-22
 - 查询神舟项目列表：`python3 .agents/skills/shenzhou-temp-query/scripts/temp_query.py projects --env default`。
 - 查询单表元数据：`python3 .agents/skills/workflow-lineage-query/scripts/data_meta.py -q <db.table> --json`。
 - 运行算法 GPU 指标导出脚本 dry-run：`python3 export_algo_gpu_metrics.py --dry-run`。
+- 成功导出 20260617 算法 GPU 指标：`python3 export_algo_gpu_metrics.py --date 20260617 --project AIGC监控 -o algo_gpu_metrics_20260617.csv`；workflowId `46230449`，输出 2486 行，文件约 639 KB。
 
 ## 架构与结构
 
@@ -33,7 +34,7 @@ Last updated: 2026-06-22
 
 - `SHOW TABLES` / `SHOW SCHEMAS` 不适合神舟临时查询下载链路；平台会包装成 `insert overwrite directory ... SHOW ...` 导致语法失败。
 - 数据地图 `table/info` 是精确单表查询，不支持空表名或通配符列全库表。
-- `stat_meitu.mpub_mdz_deployment_metric` 当前真实查询报错：`Permission denied: user [czy5] does not have [SELECT] privilege on [stat_meitu/mpub_mdz_deployment_metric/*]`。2026-06-22 用户反馈已补权后再次执行 `export_algo_gpu_metrics.py --date 20260617 --project AIGC监控 -o algo_gpu_metrics_20260617.csv`，workflowId `46229958`；2026-06-22 后台再次调整后重试 workflowId `46230116`，仍返回同一 SELECT 权限错误。
+- `stat_meitu.mpub_mdz_deployment_metric` 曾在 `AIGC监控` 项目下报 SELECT 权限错误；2026-06-22 多次补权后，workflowId `46230449` 已成功导出 `algo_gpu_metrics_20260617.csv`。
 
 ## 调查结果
 
