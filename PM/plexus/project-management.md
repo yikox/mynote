@@ -8,6 +8,18 @@ Last updated: 2026-06-22
 - 仓库：`yikox/plexus`（GitHub，当前为 **私有**仓库）。
 - 历史：原名 GitNote，于 2026-06-19 全项目改名为 Plexus（productName / bundle identifier `com.plexus.app` / crate `plexus`·`plexus_lib` / OAuth env `PLEXUS_GITHUB_OAUTH_CLIENT_ID`；数据目录 `~/.gitnote`→`~/.plexus`、工作区内 `.gitnote/`→`.plexus/`、localStorage `gitnote.*`→`plexus.*` 均带无感迁移）。
 
+## 设计文档
+
+| 类型 | 路径 | 状态 | 备注 |
+| --- | --- | --- | --- |
+| 主设计文档 | architecture/main-design.md | implemented | 系统范围、模块地图、核心流程、共享约束、跨模块决策 |
+| 模块: 编辑器 Editor | architecture/modules/editor.md | implemented | 双模式 Markdown 编辑、查找、跳转高亮；含界面示意图；代码块高亮渲染已有 spec 待实现 |
+| 模块: AI Agent | architecture/modules/ai-agent.md | implemented | 会话编排、上下文预算/压缩、状态快照、预设 agent |
+| 模块: AI 工具 AI Tools | architecture/modules/ai-tools.md | implemented | 工具定义/注册、写守卫、Diff 回执 |
+| 模块: 笔记 Notes | architecture/modules/notes.md | implemented | 笔记 CRUD/检索/监听，落盘真相在 Rust |
+| 模块: UI 外壳 UI Shell | architecture/modules/ui-shell.md | implemented | 布局、导航、弹框、全局快捷键、引导页 |
+| 模块: 同步 Sync | architecture/modules/sync.md | implemented | git 远程同步、GitHub OAuth 与仓库管理 |
+
 ## 当前状态
 - Version: 0.4.11（5 个版本文件一致；Cargo.lock 仅 bump `plexus` crate，第三方 `erased-serde` 恰为 0.4.10 不动）；tag `v0.4.11` 已推送。本地 `Plexus_0.4.11_aarch64.dmg`（11M）已出（路径 `src-tauri/target/release/bundle/dmg/`）。**CI 账单限额仍阻断**：v0.4.11 release run 同样在 `Validate tag` 即被账单门阻断（3s 失败，run 27912776834），Build 三平台未起、无产物 → `gh run download` 兜底失效。故 v0.4.11 **尚未建 GitHub Release**，仅本地 dmg。
 - v0.4.10（内置预设 agent）、v0.4.9（词级跳转高亮）：同样仅本地 dmg、未建 Release（账单阻断）。
@@ -17,7 +29,7 @@ Last updated: 2026-06-22
 - Current focus: 编辑器/AI 会话体验打磨。搜索三件套全部完成；跳转高亮已迭代到词级（v0.4.9）；内置 4 个预设 agent（v0.4.10）；上下文预算/压缩按模型真实窗口（v0.4.11）。
 
 ## 进行中任务
-- （无进行中阻塞项）
+- **代码块语法高亮**（2026-06-23 起，进行中）：给围栏代码块加 highlight.js/lowlight 高亮，覆盖笔记编辑器预览（ModuleMarkdownEditor codeBlock）+ AI 聊天（MessageItem react-markdown），现成 github-light/dark 主题按 data-theme 切换。spec 已写并 commit 到分支 `feat/code-syntax-highlighting`（`docs/superpowers/specs/2026-06-23-code-syntax-highlighting-design.md`）。下一步：用户评审 spec → writing-plans。
 
 ## 里程碑
 - v0.1.0：首个可下载构建（Tauri 三平台 Release 流程就绪）。
