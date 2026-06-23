@@ -1,6 +1,6 @@
 # 云成本项目-算法监控 知识摘要
 
-Last updated: 2026-06-22
+Last updated: 2026-06-23
 
 ## 已验证命令
 
@@ -9,6 +9,8 @@ Last updated: 2026-06-22
 - 查询单表元数据：`python3 .agents/skills/workflow-lineage-query/scripts/data_meta.py -q <db.table> --json`。
 - 运行算法 GPU 指标导出脚本 dry-run：`python3 export_algo_gpu_metrics.py --dry-run`。
 - 成功导出 20260617 算法 GPU 指标：`python3 export_algo_gpu_metrics.py --date 20260617 --project AIGC监控 -o algo_gpu_metrics_20260617.csv`；workflowId `46230449`，输出 2486 行，文件约 639 KB。
+- 2026-06-23 成功导出并生成 20260622 算法监控日报：`/Users/chenzeyang/miniforge3/bin/python3 export_algo_gpu_metrics.py --date 20260622 -o algo_gpu_metrics_20260622.csv`，workflowId `46263889`，下载 587.5 KB；随后运行 `node spreadsheet_build/build_daily_algo_monitor.mjs --date 20260622`，输出源数据 2282 条、初始化明细 49 条/35 个算法、低利用率明细 289 条/185 个算法。
+- 2026-06-23 验证 Streamlit 看板、自动化与数据层：`/Users/chenzeyang/miniforge3/bin/python3 -m pytest tests/test_daily_report_automation.py tests/test_streamlit_layout.py tests/test_dashboard_data.py -q` 通过 11 个测试；`/Users/chenzeyang/miniforge3/bin/python3 -m py_compile dashboard_data.py daily_report_automation.py streamlit_app.py` 通过；`curl http://localhost:8501` 可访问看板页面。
 
 ## 架构与结构
 
@@ -16,17 +18,25 @@ Last updated: 2026-06-22
 - 外部项目记忆位于 `~/zycode/zynode/PM/云成本项目-算法监控/`。
 - 项目内已安装 `.agents/skills/shenzhou-temp-query` 与 `.agents/skills/workflow-lineage-query`。
 - 本地脚本 `export_algo_gpu_metrics.py` 使用项目内神舟临时查询脚本提交 SQL 并下载 CSV。
+- 本地 Web 看板入口为 `streamlit_app.py`，数据加载与汇总逻辑在 `dashboard_data.py`，读取 `outputs/algo-monitor-<YYYYMMDD>/csv/` 下的日报 CSV。
+- 看板内置日报自动化逻辑在 `daily_report_automation.py`，配置文件为 `config/daily_report_automation.json`，运行状态写入 `outputs/daily-report-automation-state.json`，日志写入 `outputs/automation-logs/`。
 
 ## 约定
 
 - 回复与文档条目使用中文。
 - 神舟临时查询必须显式指定 `--project`，当前默认项目为 `AIGC监控`。
+- 当前环境中 bundled Python 与 Homebrew Python 缺少 `requests`；运行神舟导出脚本可使用 `/Users/chenzeyang/miniforge3/bin/python3`。
 - 分区表查询必须带完整分区条件；相关表当前已知分区键多为 `date_p`。
 - 不记录 token、凭证、私钥或临时敏感信息。
 
 ## 工作流
 
 - 完整算法 GPU 指标导出：使用 `stat_meitu.mpub_mdz_deployment_metric`，按 `date_p` 过滤并导出 CSV。
+- 算法监控日报固定流程：先运行 `/Users/chenzeyang/miniforge3/bin/python3 export_algo_gpu_metrics.py --date <YYYYMMDD> -o algo_gpu_metrics_<YYYYMMDD>.csv` 导出源数据，再运行 `node spreadsheet_build/build_daily_algo_monitor.mjs --date <YYYYMMDD>` 生成筛选 CSV、初始化聚合 Excel、低利用率聚合 Excel 与日期命名报告，输出目录为 `outputs/algo-monitor-<YYYYMMDD>/`。
+- 算法监控 Web 看板启动：`/Users/chenzeyang/miniforge3/bin/python3 -m streamlit run streamlit_app.py --server.port 8501 --server.headless true`，访问 `http://localhost:8501`。
+- 看板页面层级：侧边栏先用“页面”在“日报分析 / 算法查询”间切换；“数据日期”和 Top N 只属于日报分析，“算法查询”是跨日期页面级入口，不应放在单日日报 Tab 内。
+- 看板自动化页面：默认启用每天 `09:00` 运行，目标日期偏移为 `T-2`，即生成前天日报；后台调度器随 Streamlit 服务启动，仅在配置的小时和分钟匹配时触发，页面可保存配置或手动触发指定日期日报。
+- 看板“算法查询”日期范围默认按最新数据往前 7 天，但默认值必须通过 `clamp_date_range` 夹紧到本地已生成日报数据的最小/最大日期，否则 Streamlit `date_input` 会因默认值越界报错。
 - 初始化耗时分析：使用 `stat_aigc.cost_odz_pod_init_detail_info`，按 `date_p` 过滤，可按 `service_name` 聚合。
 - 表结构/分区键确认：优先使用 `workflow-lineage-query/scripts/data_meta.py`。
 
