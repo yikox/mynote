@@ -39,6 +39,23 @@ Status: implemented
 - 写笔记：Editor/AI Tools → `update_note` → Rust 写盘 → watcher 通知前台标签页刷新。
 - 检索：⌘⇧F → `search_notes`（grep）→ 扁平结果 + 高亮预览 → 选中投递 locateRequest。
 
+## 运行流程图
+
+```mermaid
+flowchart TB
+    frontend["前端 services/notes.ts"] --> tauri["Tauri invoke"]
+    tauri --> rustNotes["core::notes CRUD"]
+    tauri --> rustSearch["core::search grep"]
+    tauri --> rustAssets["core::assets 资源"]
+    rustNotes --> workspace["工作区 .md 文件"]
+    rustAssets --> assets["工作区资源文件"]
+    rustSearch --> results["搜索结果 path + line + content"]
+    results --> locate["uiStore.locateRequest"]
+    workspace --> watcher["notify watcher"]
+    watcher --> tabs["前台标签页刷新 / 冲突提示"]
+```
+
+
 ## 依赖
 
 - Rust `core::notes`/`core::search`/`core::assets` + `watcher`。

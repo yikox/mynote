@@ -1,6 +1,6 @@
 # 量化项目管理
 
-最后更新：2026-06-19
+最后更新：2026-06-24
 
 ## 项目概览
 
@@ -12,11 +12,35 @@
 | --- | --- |
 | 当前版本 | 最小闭环版本 + AkShare 数据源 + DuckDB/Parquet 存储 |
 | 状态 | 已完成本地可运行原型，已接入真实 A 股日线数据源，并完成存储层升级 |
-| 当前重点 | 完善 AkShare 数据校验、批量查询 API 和后续 A 股交易规则 |
+| 当前重点 | 完善 AkShare 数据校验、优化/暴露批量查询能力，并推进 A 股交易规则设计落地 |
 | 主要入口 | `.venv/bin/python -m quant_mini.run` |
 | CSV 回退入口 | `python3 -m quant_mini.run --storage csv` |
 | 最近代码提交 | `d5434f0 Update project memory task rule` |
-| 项目记忆规则 | 已在 `/Users/zyc/Documents/量化/AGENTS.md` 初始化 |
+| 项目记忆规则 | 已在 `/Users/zyc/Documents/量化/AGENTS.md` 初始化，2026-06-24 已补充需求待办、设计文档和架构文档规则 |
+
+## 进行中的任务
+
+| 日期 | 任务 | 状态 | 下一步 / 备注 |
+| --- | --- | --- | --- |
+| 2026-06-24 | PM skills 端到端试跑：记录 A 股交易规则需求并生成设计文档 | done | 已创建架构文档和 Backtest 模块变更设计 |
+
+## 需求待办
+
+| ID | 日期 | 需求 | 状态 | 优先级 | 模块/范围 | 下一步 / 备注 |
+| --- | --- | --- | --- | --- | --- | --- |
+| REQ-20260624-a-share-trading-rules | 2026-06-24 | 为回测模块增加可配置 A 股交易规则层，覆盖 T+1、涨跌停、停牌和 100 股整数倍等约束，并保持现有 sample 闭环可运行 | designed | P2 | backtest | Design: architecture/modules/backtest/changes/2026-06-24-a-share-trading-rules.md |
+
+## 设计文档
+
+| 类型 | 路径 | 状态 | 备注 |
+| --- | --- | --- | --- |
+| 主设计文档 | architecture/main-design.md | draft | 从当前代码和 PM 笔记生成，待人工复核 |
+| 模块: Data | architecture/modules/data.md | draft | 数据源、CSV 缓存、DuckDB/Parquet 存储 |
+| 模块: Strategy | architecture/modules/strategy.md | draft | 双均线交叉信号 |
+| 模块: Backtest | architecture/modules/backtest.md | draft | 长仓撮合和权益曲线 |
+| 模块: Reporting | architecture/modules/reporting.md | draft | 绩效指标和 HTML/SVG 报告 |
+| 模块: CLI Runner | architecture/modules/cli-runner.md | draft | 命令行参数和闭环编排 |
+| 变更设计 | architecture/modules/backtest/changes/2026-06-24-a-share-trading-rules.md | proposed | REQ-20260624-a-share-trading-rules；尚未实现 |
 
 ## 已完成能力
 
@@ -50,8 +74,8 @@
 | --- | --- | --- |
 | P1 | 完善 AkShare 数据字段校验 | 检查返回列、空数据、日期范围、成交量单位等 |
 | P1 | 优化 AkShare 失败处理 | 区分网络失败、上游限流、无数据、代码错误 |
-| P2 | 为 DuckDB/Parquet 增加批量查询 API | 进一步支持多标的、多区间研究和组合回测 |
-| P2 | 增加 A 股回测规则 | 加入 T+1、涨跌停、停牌、100 股整数倍等约束 |
+| P2 | 优化并暴露 DuckDB/Parquet 批量查询能力 | 代码已有 `DuckDbParquetBarStore.load_many`；后续重点是更高效批量查询、研究入口暴露和组合回测接入 |
+| P2 | 增加 A 股回测规则 | 已记录为 REQ-20260624-a-share-trading-rules，并生成 Backtest 变更设计；尚未实现 |
 | P3 | 增加参数实验 | 支持不同均线窗口批量回测 |
 | P3 | 增加模拟交易账户 | 为后续交易执行模块做准备 |
 
@@ -77,3 +101,5 @@
 | 2026-06-19 | 提交存储升级：`9b4c129 Add DuckDB parquet bar storage`。 |
 | 2026-06-20 | 创建 `/Users/zyc/Documents/量化/AGENTS.md`，连接外部项目记忆 `/Users/zyc/notes/PM/量化/`，并提交 `b5a76b0 Initialize project memory instructions`。 |
 | 2026-06-20 | 更新 `AGENTS.md` 的 Project Memory 规则：开始非平凡项目工作时，应在项目管理笔记中记录当前任务，并随进展关闭或更新；提交 `d5434f0 Update project memory task rule`。 |
+| 2026-06-24 | 使用 PM skills 端到端试跑：补充架构设计文档、记录 A 股交易规则需求、生成 Backtest 变更设计，并更新 `AGENTS.md` 项目记忆规则。 |
+| 2026-06-24 | 通过 PM 审计发现“批量查询 API”计划表述已落后于代码事实：`DuckDbParquetBarStore.load_many` 已存在，已将下一步调整为优化和暴露批量查询能力。 |

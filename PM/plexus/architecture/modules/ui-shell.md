@@ -86,6 +86,30 @@ Status: implemented
 - 快捷键：`useGlobalHotkeys` 捕获 → 触发 store 动作（开弹框/切空间/查找）。
 - 定位：搜索命中 → `uiStore.locateRequest` → Editor effect 消费。
 
+## 运行流程图
+
+```mermaid
+flowchart TB
+    app["AppShell"] --> topBar["TopBar"]
+    app --> activity["ActivityBar"]
+    app --> sidebar["Sidebar"]
+    app --> tabs["TabBar"]
+    app --> main["MainArea"]
+    app --> status["StatusBar"]
+    activity --> activeSpace{"activeSpace"}
+    activeSpace -->|notes| noteTree["Sidebar: NoteTree"]
+    activeSpace -->|ai| sessions["Sidebar: SessionsList"]
+    main --> activeTab{"活动标签"}
+    activeTab -->|note| editor["MarkdownEditor"]
+    activeTab -->|ai| chat["ChatPanel + AgentStatusWindow"]
+    activeTab -->|无标签| welcome["NotesWelcome / AiWelcome"]
+    app --> overlays["Overlays<br/>Settings / Search / Confirm / Prompt"]
+    shortcuts["useGlobalHotkeys"] --> uiStore["uiStore nonce + modal state"]
+    uiStore --> main
+    uiStore --> overlays
+```
+
+
 ## 依赖
 
 - Editor、AIChat（ChatPanel/SessionsList）、Notes（NoteTree/QuickOpen/GlobalSearch）、Settings/Sync 设置区作为子内容。

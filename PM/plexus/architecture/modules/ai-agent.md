@@ -42,6 +42,33 @@ Status: implemented
 5. 循环：有工具调用则带结果再进一轮；无则结束。
 6. 持久化：落 sessions。
 
+## 运行流程图
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant Chat as ChatPanel / InputBox
+    participant Agent as agentLoop
+    participant Context as contextBuilder
+    participant Proxy as Rust ai_proxy
+    participant Provider as Provider
+    participant Tools as AI Tools
+    participant Sessions as sessionsStore
+
+    User->>Chat: 发送消息
+    Chat->>Agent: runAgentLoop
+    Agent->>Context: 构建系统提示 + 历史 + 快照
+    Context-->>Agent: 已裁剪上下文
+    Agent->>Proxy: ai_chat stream
+    Proxy->>Provider: OpenAI 兼容请求
+    Provider-->>Proxy: SSE 增量
+    Proxy-->>Agent: 文本 / tool_call
+    Agent->>Tools: 执行工具调用
+    Tools-->>Agent: 工具结果 / Diff
+    Agent->>Sessions: 持久化 messages
+```
+
+
 ## 依赖
 
 - AI Tools（工具 schema + 执行器）。

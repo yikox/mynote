@@ -35,6 +35,27 @@ Status: implemented
 
 - 模型发起 tool_call → AI Agent 取对应执行器 → 写工具先过守卫（path 非空校验）→ 写操作按策略弹 `ConfirmToolDialog` → service → Rust 命令 → 成功生成 Diff 回执回灌。
 
+## 运行流程图
+
+```mermaid
+flowchart TB
+    toolCall["模型 tool_call"] --> registry["TOOL_REGISTRY 查找执行器"]
+    registry --> isWrite{"是否写工具"}
+    isWrite -->|否| readExec["直接调用 service"]
+    isWrite -->|是| guard["校验 path 非空 + .md"]
+    guard --> policy{"执行策略"}
+    policy -->|需要确认| confirm["ConfirmToolDialog"]
+    policy -->|自动允许| writeExec["调用写 service"]
+    confirm --> writeExec
+    readExec --> rustCommand["Tauri 命令 / Rust core"]
+    writeExec --> rustCommand
+    rustCommand --> result["工具结果"]
+    writeExec --> diff["生成 Diff 回执"]
+    result --> agent["回灌 AI Agent"]
+    diff --> agent
+```
+
+
 ## 依赖
 
 - AI Agent（调度与确认）。

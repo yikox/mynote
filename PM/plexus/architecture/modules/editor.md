@@ -1,6 +1,6 @@
 # 编辑器 Editor 模块设计
 
-Last updated: 2026-06-23
+Last updated: 2026-06-24
 
 Status: implemented
 
@@ -11,7 +11,7 @@ Status: implemented
 ## 职责
 
 - 渲染与编辑单篇笔记的草稿，管理撤销/重做、图片粘贴/拖入。
-- rich 模式：把文档切成多个预览块，仅活动块是 textarea（`ModuleMarkdownEditor`）；plain 模式整篇一个 textarea（`PlainTextEditor`）。
+- rich 模式：把文档切成多个预览块，仅活动块是 textarea（`ModuleMarkdownEditor`）；**列表块进一步下沉到「项级」——活动列表块仅光标所在列表项是 textarea、其余项保持列表渲染**（`ActiveListModule` + `subModules.ts` 的 `splitListItems`，活动态 `{index, subIndex}`；项间 ↑/↓ 导航、行首 Backspace 合并）。plain 模式整篇一个 textarea（`PlainTextEditor`）。
 - 查找（⌘F，`EditorFindBar` + `findMatches`/`stepIndex`）与全局检索/TOC 跳转的统一落点（`handleJump`）。
 - 跳转后对被检索词做词级渐隐高亮（Custom Highlight API，`findTextRange.ts`/`jumpFlash.ts`）。
 - 右键菜单（编辑 + 问 AI），复用通用 `ContextMenu`。
@@ -64,6 +64,27 @@ Status: implemented
 - 查找：⌘F 打开 `EditorFindBar` → `findMatches`（大小写不敏感、不重叠）→ `navigateToMatch` 按模式定位（plain 用 `setSelectionRange`、rich 复用 `handleJump`）。
 - 跳转高亮：`findNthTextRange` 在渲染文本里 occurrence-aware 重搜第 n 个出现 → 单例 `Highlight` `clear()+add()` 复用 → 滚到 `range.getBoundingClientRect()`、目标定位视口约 1/4 处 → ~10s 渐隐。
 
+## 运行流程图
+
+```mermaid
+flowchart TB
+    openNote["标签页打开 note"] --> loadDraft["useNoteDraft 加载草稿"]
+    loadDraft --> mode{"编辑模式"}
+    mode -->|rich| moduleEditor["ModuleMarkdownEditor<br/>块级预览 + 活动 textarea"]
+    mode -->|plain| plainEditor["PlainTextEditor<br/>整篇 textarea"]
+    moduleEditor --> edit["用户编辑"]
+    plainEditor --> edit
+    edit --> save["update_note service"]
+    save --> rustNotes["Rust core::notes 写盘"]
+    rustNotes --> watcher["watcher 文件事件"]
+    watcher --> clean{"前台草稿是否干净"}
+    clean -->|是| refresh["静默刷新并保留滚动"]
+    clean -->|否| conflict["提示冲突，不覆盖草稿"]
+    search["全局搜索 / TOC / 查找"] --> jump["handleJump 统一定位"]
+    jump --> highlight["词级渐隐高亮"]
+```
+
+
 ## 依赖
 
 - `src/components/Markdown/`（KaTeX/Mermaid 封装）。
@@ -76,7 +97,9 @@ Status: implemented
 
 | Date | Change | Status | Spec | Detail |
 | --- | --- | --- | --- | --- |
-| 2026-06-23 | 代码块语法高亮渲染 | 已批准待实现 | docs/superpowers/specs/2026-06-23-code-syntax-highlighting-design.md（分支 `feat/code-syntax-highlighting`） | 用 lowlight/highlight.js（`common` 语言集）高亮围栏代码块，github-light/dark 按 `data-theme` 切换。本模块改动：新增纯函数 `src/components/Editor/codeHighlight.ts`（`highlightCode(code,language)`，单例 lowlight + `highlightAuto` 兜底 + try/catch 退回纯文本）；`ModuleMarkdownEditor` codeBlock 预览 3 个返回点改调 `highlightCode`，mermaid 分支不变、点击落点映射不受影响。编辑态 textarea 不高亮。**跨模块**：同一 spec 同时给 AI 聊天 `MessageItem` 的 react-markdown 加 `rehypeHighlight`（次要影响）。新增样式 `src/styles/code-highlight.css`（scoped 两套主题）。|
+| — | （暂无尚未实现的设计变更） | — | — | — |
+
+> 已实现的本模块设计变更：代码块语法高亮渲染（lowlight/highlight.js，编辑器预览 + AI 聊天，merge 到 main）；块内子块渲染（仅 list 块，`subModules.ts` + `ActiveListModule`，活动态 `{index, subIndex}`，merge e08cd29，详见 `changes/2026-06-24-block-subblock-rendering.md`）。后续可沿同一子块模型扩展 blockquote / 多行 paragraph。
 
 ## 风险与开放问题
 

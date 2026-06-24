@@ -1,6 +1,6 @@
 # Plexus 项目管理
 
-Last updated: 2026-06-22
+Last updated: 2026-06-24
 
 ## 概述
 - Plexus：基于 Tauri 2 + React 的桌面 Markdown 笔记应用，笔记以本地文件存储并通过 git 同步，集成 AI 会话。
@@ -13,7 +13,7 @@ Last updated: 2026-06-22
 | 类型 | 路径 | 状态 | 备注 |
 | --- | --- | --- | --- |
 | 主设计文档 | architecture/main-design.md | implemented | 系统范围、模块地图、核心流程、共享约束、跨模块决策 |
-| 模块: 编辑器 Editor | architecture/modules/editor.md | implemented | 双模式 Markdown 编辑、查找、跳转高亮；含界面示意图；代码块高亮渲染已有 spec 待实现 |
+| 模块: 编辑器 Editor | architecture/modules/editor.md | implemented | 双模式 Markdown 编辑、查找、跳转高亮、代码块语法高亮（2026-06-23）；含界面示意图 |
 | 模块: AI Agent | architecture/modules/ai-agent.md | implemented | 会话编排、上下文预算/压缩、状态快照、预设 agent |
 | 模块: AI 工具 AI Tools | architecture/modules/ai-tools.md | implemented | 工具定义/注册、写守卫、Diff 回执 |
 | 模块: 笔记 Notes | architecture/modules/notes.md | implemented | 笔记 CRUD/检索/监听，落盘真相在 Rust |
@@ -29,7 +29,7 @@ Last updated: 2026-06-22
 - Current focus: 编辑器/AI 会话体验打磨。搜索三件套全部完成；跳转高亮已迭代到词级（v0.4.9）；内置 4 个预设 agent（v0.4.10）；上下文预算/压缩按模型真实窗口（v0.4.11）。
 
 ## 进行中任务
-- **代码块语法高亮**（2026-06-23 起，进行中）：给围栏代码块加 highlight.js/lowlight 高亮，覆盖笔记编辑器预览（ModuleMarkdownEditor codeBlock）+ AI 聊天（MessageItem react-markdown），现成 github-light/dark 主题按 data-theme 切换。spec 已写并 commit 到分支 `feat/code-syntax-highlighting`（`docs/superpowers/specs/2026-06-23-code-syntax-highlighting-design.md`）。下一步：用户评审 spec → writing-plans。
+- （无进行中任务）
 
 ## 里程碑
 - v0.1.0：首个可下载构建（Tauri 三平台 Release 流程就绪）。
@@ -50,7 +50,10 @@ Last updated: 2026-06-22
 
 ## 待办
 - [x] 内置几个 agent（v0.4.10 完成：通用/研究/笔记管家/写作 4 个预设）
-- [ ] 做代码格式的渲染，目前的代码就是简单的文本框显示，没有代码框那种对关键词高亮等渲染
+- [x] 做代码格式的渲染（2026-06-23 完成：highlight.js/lowlight 语法高亮，编辑器预览 + AI 聊天，已 merge 到 main、未发版）
+- [x] 编辑器块内子块渲染（2026-06-24 完成，仅 list 块）：列表块编辑态仅光标所在列表项为 textarea、其余项保持列表渲染；含项间 ↑/↓ 导航与行首 Backspace 合并。3 提交 + merge `e08cd29` 到 main、未发版；全套 603 测试通过。设计 architecture/modules/editor/changes/2026-06-24-block-subblock-rendering.md（已实现）。blockquote/paragraph 同模型后续可扩展。
+- [ ] 表格编辑体验：① 自动补全——Tab / 回车自动跳到下一单元格、行尾回车自动补一行（减少纯手敲）；② 文本编辑区表格按字符宽度自动匹配对齐（pad 管道符列对齐），拉高可视化。
+- [ ] 后续（可选）：代码高亮性能 fast-follow —— `MarkdownModulePreview` 未 memo，`highlightCode` 每次按键对非活动预览重跑（`highlightAuto` 扫 ~37 语言）；代码密集笔记若卡顿，用 `React.memo` 或按 `(text, language)` 缓存。
 - [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
 - [ ] 后续（可选）：若要任何人可下载，需将仓库改为 Public（发布前先确认历史无密钥）。
@@ -62,6 +65,8 @@ Last updated: 2026-06-22
 - 安装包未签名 → macOS 首次打开需在「隐私与安全性」放行；Windows 可能触发 SmartScreen。
 
 ## 最近更新
+- 2026-06-24 - **编辑器列表块块内子块渲染**（merge `--no-ff` `e08cd29` 到 main，未发版）：列表块进入编辑态时不再「整块一坨 textarea」，改为**仅光标所在列表项是 textarea、其余项保持列表渲染**（保留圆点/序号/缩进）。走 **pm-requirement-to-design→writing-plans→SDD（3 任务）**。用户澄清把范围收窄为**仅 list 块**（blockquote/paragraph 同模型留作后续，table 归独立的「表格编辑体验」需求），粒度=**单个列表项**（嵌套子项各自独立子块）。**核心设计**：活动态从块级 `{index}` 下沉到项级 `{index, subIndex}`，回写真相不变——单项编辑拼回顶层列表块仍走 `replaceMarkdownModule`。**Task 1**：纯函数 `subModules.ts`（`splitListItems` 按列表标记行切项、续行/吸收空行归并；`findListItemByOffset`）。**Task 2**：`renderListNodes` 加「活动项编辑槽」、新组件 `ActiveListModule`（整列表渲染 + 仅活动项嵌一个 `ModuleTextarea`，绝对偏移合成单项 module）、统一 `buildActive` 把块级光标换算成项级，活动渲染按 `module.type==='list'` 分流；**迁移 8 个旧「整块 list 源码」测试**到单项契约。**Task 3**：`handleCross` 列表内 ↑/↓ 先在项间移动（首/末项才跨块）、行首 Backspace 经活动项合成块合并上一项（`onBoundaryDelete` 签名加 `itemModule`，3 处同步）。**坑/教训**：① 单项 textarea 需 strip 尾随 `\n` 且 `endOffset-1`，使回写只替换项内容、保留项间换行（前向 Delete 删的恰是分隔 `\n` → 正确合并，终审一度误判为 bug，controller 复核算术证伪）；② 首次点击列表需把 `onActivateItem` 也接到**非活动预览**，否则 `clickCaretInSource` 对 list 返 null → 落到末项而非被点项；③ IME 安全靠活动项 textarea `key={startLine}`（同项输入不重挂载）。SDD 终审「Ready to merge: Yes」，无 Critical/Important。全套 **603/603**、tsc 绿。
+- 2026-06-23 - **代码块语法高亮**（merge `--no-ff` 到 main，未发版）：给围栏代码块加 highlight.js/lowlight 高亮，两条渲染路径。走 **brainstorm→spec→plan→SDD（3 任务）**。**决策**：范围=编辑器预览+AI 聊天；库=lowlight（同步、自动识别、common ~37 语言，契合模块编辑器频繁同步重渲染，不选异步的 Shiki）；配色=现成 github-light/dark，按 `data-theme` 切换。**Task 1**：新增依赖（`lowlight@^3`/`rehype-highlight@^7`/`hast-util-to-jsx-runtime@^2`）+ 纯函数 `codeHighlight.tsx`（`highlightCode(code,language)`：注册语言 `lowlight.highlight` 否则 `highlightAuto`，hast→React 经 `toJsxRuntime`，异常兜底原文）+ scoped 主题 CSS `code-highlight.css`（仅定义 token 前景色，底色复用 `--color-bg-code`，避开 `.hljs` 背景规则冲突；dark 规则在 `[data-theme='dark']` 下）。**Task 2**：`ModuleMarkdownEditor` codeBlock 预览两处 `<code>` 改 `highlightCode`，mermaid 分支不动；点击落点不受影响（codeBlock 本就回退块末尾）。**Task 3**：`MessageItem` 两处 react-markdown 加 `rehypeHighlight({ ignoreMissing:true, plainText:['mermaid'] })`，`MarkdownPre` 不改、mermaid 仍渲图。**坑/教训**：① highlightAuto 对纯文本返回**空 children** → `toJsxRuntime` 渲染为空、破坏既有缩进代码块测试，补 `if(!tree.children.length) return code;` 兜底；② rehype-highlight 把代码文本**切成 token span**，原 `普通代码块` 测试的 `getByText(/整串/)` 失效，改 `querySelector('pre code')`+`textContent`。无 XSS（toJsxRuntime 转义、无 dangerouslySetInnerHTML）。opus 终审「Ready to merge: Yes」，唯一非阻塞 Minor：`MarkdownModulePreview` 未 memo，highlightCode 每次按键对非活动预览重跑（highlightAuto 扫 ~37 语言），代码密集笔记可考虑 React.memo/按 (text,language) 缓存（已记为可选 fast-follow）。全套 592/592、tsc+build 绿。
 - 2026-06-22 - **v0.4.11 上下文预算窗口优先**（直接在 main 提交、patch 发版，本地 `Plexus_0.4.11_aarch64.dmg`（11M）已出；CI 仍账单阻断、未建 Release）：用户发现 AI 会话右下角分母「117K」恒定不变、自己从没设过——根因是显示分母直接取静态 `budgetCapTokens`（默认 120000），且 `formatK` 按 1K=1024 换算（120000÷1024≈117）才显示成 117K；更要命的是 `computeBudget` 用 `Math.min(budgetCapTokens, 窗口−预留)` **把真实窗口封顶到 12 万**，1M 窗口模型也只按 ~117K 预算 → 过早触发压缩。**改动**：① `contextBuilder.ts` 抽出 `contextBudgetTokens(limits, config)`，设了模型窗口就用「窗口−`maxOutputTokens`−`marginTokens`」、删掉默认上限封顶，仅无窗口时退回 `budgetCapTokens`；② 默认 `budgetCapTokens` 120000→`256*1024`（=262144，显示干净的 256K）；③ 老配置一次性迁移——新增播种 `version:2` 空批次把 `CURRENT_PRESET_SEED_VERSION` 抬到 2，在 mergeConfig 既有 seed 块里加「仍是旧 stock 值 `LEGACY_DEFAULT_BUDGET_CAP=120000` → 新默认」的 remap，自定义值与已迁移配置不动；④ `ChatPanel` 分母改为运行时取 `breakdown.budgetTokens`、空闲时按同一窗口优先逻辑算（不再恒为静态值）。**坑**：bump 版本时 Cargo.lock 有两处 `0.4.10`——line 2900 是 `plexus` crate（改）、line 963 是第三方 `erased-serde`（恰好同号，不能动），按行号精确 sed。新增 5 个用例（contextBuilder 窗口优先/无窗口退回 2 例 + migration 旧值升/自定义不动/已迁移不二次升 3 例），改 1 个旧断言（默认 120k→256K），全套 587/587、tsc 绿。
 - 2026-06-22 - **v0.4.10 内置预设 agent**（merge `--no-ff`，patch 发版，本地 `Plexus_0.4.10_aarch64.dmg` 已出；CI 仍账单阻断、未建 Release）：复用既有多 agent 模板基础设施（`agentTemplates[]`、全局 active、输入框下拉、配置弹框），内置 4 个预设。走 **brainstorm→spec→plan→SDD（3 任务）**，含一轮详尽用户评审修订。**Task 1**（store）：3 个预设常量（研究/笔记管家/写作）+ `presetTools(webSearch)` 助手；`default-agent` 改名「通用助手」（`LEGACY_DEFAULT_AGENT_NAME='Agent 对话'` 一次性改名、自定义名保留）；`presetSeedVersion` + `PRESET_SEED_BATCHES` **版本批次播种**（仅播 `batch.version>seedVersion`，故删除的预设不复活、未来新批次不复活早期被删项）。**Task 2**：`builtinTemplateDefaults(id)` + 5 个 section（含 LoopCard）「恢复默认」改用按 id 取各自出厂值——修复原 `restoreAllDefaults` 用 `defaultAgentTemplate()` 生成 4 个同 id（React key 重复）的 bug。**Task 3**：`buildSystemPrompt` 兼容式分层——`.plexus/system-prompt.md` 作工作区全局规则，**追加**到 systemPromptTemplate 非空的预设之后；`default-agent`（null prompt）行为零变化（仍以该文件为角色、不双重追加）。工具策略：四内置笔记读写全开、写操作 `perToolWriteAutoAllow` 全 false（手动确认而非关工具）；温度 研究 0.3/写作 0.8/通用·管家 null；web_search 研究·通用开、管家·写作关。终审 opus「Ready to merge: Yes」，仅 LoopCard 一处遗漏（已补 `6b26eaa`）。全套 582/582、tsc + build 绿。**评审教训**：内置预设会破坏现有「恢复默认」（硬编码单一默认）、需 `builtinTemplateDefaults(id)`；版本播种要按批次否则未来会复活用户删的旧预设；预设非空 prompt 会绕过工作区 system-prompt.md，需分层注入。
 - 2026-06-21 - **v0.4.9 词级跳转高亮**（merge `--no-ff`，patch 发版，本地 dmg 已出；**CI 账单阻断升级**：release run 在 `Validate tag` 即失败、Build 三平台未起无产物，`gh run download` 兜底失效，故仅本地 dmg、尚未建 GitHub Release）：v0.4.8 的整块渐隐高亮太大太淡，收窄为只高亮被检索的词。走 **subagent-driven-development**（首次选 SDD 而非内联）产出 3 任务：新增 `findTextRange.ts`（`findNthTextRange` 跨节点找第 n 个出现 + `highlightRange` Custom Highlight API）、`uiStore.locateRequest` 透传 `query`、`handleJump(pos, query?)` 算模块内出现序号高亮该词。**occurrence-aware 重搜渲染文本**而非源码→渲染字符映射（后者仅行内块可靠）。SDD 终审通过后用户实测连修 3 处（systematic-debugging）：① **跳下一个不清上一个**——根因 `new Highlight()+set()` 在 WebKit 不能可靠抹掉上次绘制；改注册一次的**单例 `Highlight`**，每次 `clear()+add()` 复用，天然单高亮 + 计时器只留最新。② **大模块里词看不见**——高亮成功时滚到 `range.getBoundingClientRect()` 匹配词而非模块顶部（块级兜底仍滚模块顶）。③ **顶贴生硬**——目标定位到视口约 1/4 处（`clientHeight*0.25`，rich/plain 一致，scrollTop 自动钳位故文末自然落底）。全套 572/572（+1 单高亮回归测试）、tsc + build 绿。

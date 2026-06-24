@@ -1,6 +1,6 @@
 # Plexus 主设计文档
 
-Last updated: 2026-06-23
+Last updated: 2026-06-24
 
 Status: implemented（现状梳理；个别条目标注 planned）
 
@@ -15,6 +15,18 @@ Plexus 是一款基于 **Tauri 2 + React 19** 的桌面 Markdown 笔记应用：
 - **范围内**：本地笔记的 CRUD 与全文检索、双模式 Markdown 编辑器、AI 会话与工具调用、上下文预算/压缩、git 远程同步与 GitHub OAuth 接入、会话/配置/密钥的本地持久化。
 - **范围外**：多人实时协作、服务端账户体系、云端笔记存储（同步完全依赖用户自有 git 远程）、移动端。
 - **运行形态**：单机桌面应用，前后端通过 Tauri `invoke` 命令 + 事件通道通信；AI 请求经 Rust 端代理流式转发到用户配置的 OpenAI 兼容 provider。
+
+## Mermaid 图表约定
+
+本目录的架构图采用内嵌 Mermaid 代码块，作为 Markdown 文档的一部分维护，不额外引入 `mmdc`、Kroki、Graphviz 等渲染依赖；渲染交给支持 Mermaid 的阅读器。图表只表达当前实现或已接受的 baseline，不承载计划队列。
+
+生成图表时遵循 `awesome-skills/mermaid-syntax-skill` 的轻量规则：
+
+- 使用 `flowchart` / `sequenceDiagram` 等稳定图类型，避免实验性复杂语法。
+- 节点 id 使用简单英文标识，避免 `end`、`default`、`style`、`class` 等保留词。
+- 含空格、中文、括号、斜杠或冒号的标签统一用双引号包裹。
+- 一张图只承担一个认知任务；图太密时拆成模块图或流程图。
+
 
 ## 界面区域总览
 
@@ -59,6 +71,27 @@ Plexus 是一款基于 **Tauri 2 + React 19** 的桌面 Markdown 笔记应用：
 
 > 跨模块的共享状态由 `src/stores/` 下的 zustand store 承载（见各模块「数据与状态」与下方共享约束）；前端→后端的所有调用经 `src/services/` 薄封装层包裹 Tauri `invoke`。
 
+## 系统模块关系图
+
+```mermaid
+flowchart LR
+    user["用户"] --> uiShell["UI Shell<br/>布局与导航"]
+    uiShell --> editor["Editor<br/>Markdown 编辑"]
+    uiShell --> aiAgent["AI Agent<br/>会话编排"]
+    uiShell --> notes["Notes<br/>文件模型"]
+    uiShell --> sync["Sync<br/>Git 同步"]
+    aiAgent --> aiTools["AI Tools<br/>工具注册与执行"]
+    aiTools --> notes
+    editor --> notes
+    notes --> rustCore["Rust Core<br/>Tauri 命令"]
+    sync --> rustCore
+    aiAgent --> aiProxy["Rust AI Proxy<br/>流式 provider 代理"]
+    rustCore --> workspace["本地工作区<br/>.md + .plexus"]
+    sync --> gitRemote["Git 远程 / GitHub"]
+    aiProxy --> provider["OpenAI 兼容 Provider"]
+```
+
+
 ## 核心流程
 
 - **编辑笔记**：UI Shell 打开标签页 → Editor 加载草稿 → 编辑落到 store/草稿 → service `update_note` → Rust `core::notes` 写盘 → 文件 watcher 通知前台标签页（干净则静默刷新、脏则提示冲突）。
@@ -66,6 +99,37 @@ Plexus 是一款基于 **Tauri 2 + React 19** 的桌面 Markdown 笔记应用：
 - **全文检索/跳转**：⌘⇧F 全局搜索经 service `search_notes`（Rust grep）→ 命中投递 `uiStore.locateRequest{path,line,query}` → 打开笔记并在 Editor 内定位、对被检索词做词级渐隐高亮。
 - **同步**：用户配置 git 远程或走 GitHub 设备流 OAuth 连接/创建仓库 → 写操作后由 Rust 端 pusher/sync 推送 → 前端 `gitRemoteStore` 反映同步状态。
 - **启动/迁移**：打开工作区 → 加载 workspace state、providers、AI 配置（含一次性配置迁移/预设播种）、会话列表 → 渲染 AppShell。
+
+### 核心链路图
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant Shell as UI Shell
+    participant Editor as Editor
+    participant Notes as Notes Service
+    participant Rust as Rust Core
+    participant AI as AI Agent
+    participant Tools as AI Tools
+    participant Provider as Provider
+    participant Git as Sync
+
+    User->>Shell: 打开笔记或 AI 会话
+    Shell->>Editor: 渲染活动 note 标签
+    Editor->>Notes: 保存草稿
+    Notes->>Rust: update_note
+    Rust-->>Shell: watcher 事件
+    User->>AI: 发送消息
+    AI->>Provider: ai_chat 流式请求
+    Provider-->>AI: 回复或 tool_call
+    AI->>Tools: 执行工具
+    Tools->>Notes: 读写/检索笔记
+    Notes->>Rust: Tauri 命令
+    Rust-->>Tools: 结果 / Diff
+    Tools-->>AI: 工具结果回灌
+    Rust->>Git: 写操作后同步状态 / 推送
+```
+
 
 ## 共享约束
 
@@ -92,7 +156,9 @@ Plexus 是一款基于 **Tauri 2 + React 19** 的桌面 Markdown 笔记应用：
 
 | 设计变更 | 主模块 | Spec | 状态 |
 | --- | --- | --- | --- |
-| 代码块语法高亮渲染 | 编辑器 Editor（兼及 AI 聊天 MessageItem） | docs/superpowers/specs/2026-06-23-code-syntax-highlighting-design.md（分支 `feat/code-syntax-highlighting`） | 已批准待实现 |
+| （暂无尚未实现的设计变更） | — | — | — |
+
+> 已实现：代码块语法高亮渲染（merge 到 main）、编辑器块内子块渲染（仅 list 块，merge e08cd29）——详见各自的变更设计文档与 PM `最近更新`。
 
 ## 开放问题
 

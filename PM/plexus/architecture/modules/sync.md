@@ -36,6 +36,33 @@ Status: implemented
 - 连接：用户走 GitHub 设备流 OAuth（start → 显示 code → poll）→ 列举/创建仓库 → connect → 写 git 远程配置。
 - 同步：本地写操作后由 pusher/sync 推送 → `get_sync_status` 反映状态 → 前端展示。
 
+## 运行流程图
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant Settings as Settings GitRemoteSection
+    participant Store as gitRemoteStore
+    participant Rust as Rust git/github modules
+    participant Secrets as secrets_store
+    participant GitHub as GitHub API
+    participant Remote as Git Remote
+
+    User->>Settings: 连接或创建仓库
+    Settings->>Rust: start_github_device_flow
+    Rust->>GitHub: 设备流请求
+    GitHub-->>Rust: user_code + verification_uri
+    Settings->>Rust: poll_github_device_flow
+    Rust->>GitHub: 轮询 token
+    Rust->>Secrets: 保存 token
+    Settings->>Rust: connect_github_repository
+    Rust->>Remote: 配置 git remote
+    Store->>Rust: get_sync_status / push_now
+    Rust->>Remote: git push / fetch status
+    Rust-->>Store: 同步状态
+```
+
+
 ## 依赖
 
 - Rust git2、reqwest（GitHub API）、`core::secrets_store`。
