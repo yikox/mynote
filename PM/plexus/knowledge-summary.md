@@ -1,6 +1,6 @@
 # Plexus Knowledge Summary
 
-Last updated: 2026-06-20（移除活动工作集，根除折叠占位串回写死循环；commit 0457456）
+Last updated: 2026-06-25（列表块编辑态经验：相对缩进层级/反缩进降到父项、块类型变化重挂光标、吸收空行陷阱、DOM 测量对齐）
 
 ## Verified Commands
 - 前端开发：`npm run dev`
@@ -65,6 +65,11 @@ gh release edit v0.2.0 --draft=false
 - 桌面应用：Tauri 2（Rust 后端在 `src-tauri/`，标识符 `com.plexus.app`）。
 - 前端：Vite + React 19 + TypeScript，状态用 zustand；编辑器为自研的双模式 Markdown 编辑器（`rich` 模块/块模式与 `plain` 纯文本，均基于 `<textarea>`），支持 KaTeX、Mermaid。
 - 编辑器右键菜单：通用组件 `src/components/common/ContextMenu.tsx`（NoteTree / SessionsList / 编辑器共用）；编辑器菜单逻辑在 `src/components/Editor/useEditorContextMenu.tsx`。模块编辑器把文档渲染成多个预览块、只有活动块是 textarea，复制/剪切由其 `onCopy/onCut`（跨块→markdown）接管，故菜单基于实时选区走原生 execCommand、按钮 `preventDefault(mousedown)` 保住选区。
+- 列表块编辑态（`ActiveListModule` / `ModuleMarkdownEditor`）经验：
+  - **列表层级是相对缩进，不是固定 2/4 空格**：`listTree.ts` 的 `parseListTree` 用 `indent < top.indent` 退栈判层，只比相对大小、不看绝对空格数。⇒ 反缩进不能固定删 1-2 空格（4 空格子项删 2 格仍比父项深、视觉层级不变 → 表现为「回车第一下没反应」），必须按整表算出**最近更浅前置项（父项）的缩进**、一次降到位（`dedentPrefix`）。
+  - **块类型变化会卸载重挂 textarea**：空行敲 `- ` 触发 `blank/paragraph→list`、渲染分支 `ModuleTextarea↔ActiveListModule` 切换，真实浏览器会在新 textarea 上重置光标；`handleModuleChange` 需在 `target.type!==module.type` 时强制重定位（递增 `caretNonce`），不能只靠一次性挂载 effect。
+  - **列表块吸收紧邻空行的陷阱**：顶层空项回车退出列表要插一个换行留**独立空行块**、光标落 `lineStart+1`，否则 `findModuleByDocumentOffset` 把光标映回被吸收空行所属的上一块（与表格退出同款，caret=lineStart 会回退一行）。
+  - **编辑文本与渲染对齐用 DOM 测量、别用 canvas**：编辑态展示原始 `  - 文本`（既被 `<ul>` 结构缩进又带字面缩进），按「缩进+标记」前缀渲染宽度左移 textarea 才能对齐；用隐藏 DOM span（继承同字体、`white-space:pre`、`getBoundingClientRect`）测量。`canvas + getComputedStyle().font` 在自定义/回退字体下量偏窄、补偿不足偏一格。jsdom 无布局/canvas → 测量返 0、不偏移，故像素对齐只能真机验证、单测只守功能。
 - 发布 CI：`.github/workflows/release.yml`，触发条件为 push `v*` tag 或 workflow_dispatch。
   - 三个 job：`prepare`（校验 tag/分支/版本号）→ `build`（matrix：macos/linux/windows，各自构建并按平台上传安装包 artifact）→ `release`（汇总下载后用 softprops 创建单个 draft release）。
 
