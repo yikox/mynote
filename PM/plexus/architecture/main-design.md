@@ -156,7 +156,7 @@ sequenceDiagram
 
 | 设计变更 | 主模块 | Spec | 状态 |
 | --- | --- | --- | --- |
-| （暂无尚未实现的设计变更） | — | — | — |
+| 表格编辑体验（单元格导航 + 源码对齐） | 编辑器 Editor | architecture/modules/editor/changes/2026-06-24-table-editing-experience.md | proposed（待评审，含交互开放问题） |
 
 > 已实现：代码块语法高亮渲染（merge 到 main）、编辑器块内子块渲染（仅 list 块，merge e08cd29）——详见各自的变更设计文档与 PM `最近更新`。
 

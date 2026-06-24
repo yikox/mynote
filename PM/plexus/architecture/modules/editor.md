@@ -97,7 +97,7 @@ flowchart TB
 
 | Date | Change | Status | Spec | Detail |
 | --- | --- | --- | --- | --- |
-| — | （暂无尚未实现的设计变更） | — | — | — |
+| 2026-06-24 | 表格编辑体验（单元格导航 + 源码对齐） | proposed（待评审） | architecture/modules/editor/changes/2026-06-24-table-editing-experience.md | 不改表格预览/不做单元格分块渲染，只增强整表 textarea 内编辑：① Tab/Shift+Tab/Enter 单元格导航 + 末格/末行自动补行、空末行 Enter 退出；② 源码按显示宽度（CJK=2）pad 对齐管道符列，导航/失焦时触发（非每键）。新增 offset-aware 纯函数 `src/components/Editor/tableEditing.ts`（`parseTableGrid`/`navigateTableCell`/`formatTable`/`displayWidth`/`cellAtOffset` + 光标 remap），`ModuleTextarea` 加 table 分支。回写仍走 `replaceMarkdownModule`。开放问题：对齐触发时机、Enter/Tab 越界语义、CJK 宽度。|
 
 > 已实现的本模块设计变更：代码块语法高亮渲染（lowlight/highlight.js，编辑器预览 + AI 聊天，merge 到 main）；块内子块渲染（仅 list 块，`subModules.ts` + `ActiveListModule`，活动态 `{index, subIndex}`，merge e08cd29，详见 `changes/2026-06-24-block-subblock-rendering.md`）。后续可沿同一子块模型扩展 blockquote / 多行 paragraph。
 

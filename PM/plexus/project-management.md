@@ -52,7 +52,7 @@ Last updated: 2026-06-24
 - [x] 内置几个 agent（v0.4.10 完成：通用/研究/笔记管家/写作 4 个预设）
 - [x] 做代码格式的渲染（2026-06-23 完成：highlight.js/lowlight 语法高亮，编辑器预览 + AI 聊天，已 merge 到 main、未发版）
 - [x] 编辑器块内子块渲染（2026-06-24 完成，仅 list 块）：列表块编辑态仅光标所在列表项为 textarea、其余项保持列表渲染；含项间 ↑/↓ 导航与行首 Backspace 合并。3 提交 + merge `e08cd29` 到 main、未发版；全套 603 测试通过。设计 architecture/modules/editor/changes/2026-06-24-block-subblock-rendering.md（已实现）。blockquote/paragraph 同模型后续可扩展。
-- [ ] 表格编辑体验：① 自动补全——Tab / 回车自动跳到下一单元格、行尾回车自动补一行（减少纯手敲）；② 文本编辑区表格按字符宽度自动匹配对齐（pad 管道符列对齐），拉高可视化。
+- [ ] 表格编辑体验：① 自动补全——Tab / 回车自动跳到下一单元格、行尾回车自动补一行（减少纯手敲）；② 文本编辑区表格按字符宽度自动匹配对齐（pad 管道符列对齐），拉高可视化。设计：architecture/modules/editor/changes/2026-06-24-table-editing-experience.md（proposed 待评审；保持整表一个 textarea，只增强 textarea 内编辑；开放问题：对齐触发时机 / Enter·Tab 越界语义 / CJK 宽度）。
 - [ ] 后续（可选）：代码高亮性能 fast-follow —— `MarkdownModulePreview` 未 memo，`highlightCode` 每次按键对非活动预览重跑（`highlightAuto` 扫 ~37 语言）；代码密集笔记若卡顿，用 `React.memo` 或按 `(text, language)` 缓存。
 - [ ] 后续（可选）：状态快照 fast-follow —— 给 agentLoop 加一条集成测试断言 `summarize` 按 `stateSnapshotEnabled` 注入/省略（当前仅 `makeSnapshotSummarizer` 单测覆盖该门控）。
 - [ ] 后续（可选）：macOS 公证 / Windows 代码签名，消除"未签名"告警。
