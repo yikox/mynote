@@ -2,7 +2,7 @@
 
 Last updated: 2026-06-24
 
-Status: proposed（待评审，含若干交互开放问题）
+Status: proposed（2026-06-24 用户确认 4 项交互决策，范围/语义已定，待实现）
 
 Module: editor
 
@@ -131,10 +131,7 @@ export function formatTable(source: string): { text: string; mapCaret: (oldOffse
 
 ## Open Questions
 
-1. **对齐触发时机**:推荐「Tab/Enter/Shift+Tab 导航 + 失焦」时对齐，**不**每次按键对齐。是否认可？（备选:进入表格即对齐一次 / 完全手动触发。）
-2. **Enter 语义**:推荐 Enter=移到下一行同列；末行非空 Enter=补一空行并进入；**空的末行 Enter=退出表格**（镜像列表空项退出）。是否认可？
-3. **Tab 末格**:推荐 Tab 在「最后一行最后一格」时补一新行并进入首格。是否认可？
-4. **CJK 宽度**:确认对齐按显示宽度（全角=2）计算（中文笔记必需，否则等宽字体下仍不齐）。
+- 已无阻塞性开放问题（4 项交互决策 2026-06-24 用户确认，见 Decision Log）。实现期细节：失焦对齐仅在内容真变化时 emit；ragged/非法表格容错降级。
 
 ## Decision Log
 
@@ -142,4 +139,7 @@ export function formatTable(source: string): { text: string; mapCaret: (oldOffse
 | --- | --- | --- |
 | 2026-06-24 | 保持整表一个 textarea（不做单元格分块渲染），只增强 textarea 内编辑（导航 + 源码对齐） | 贴合需求原文「文本编辑区…对齐」，避免与列表的子块模型混淆、范围可控 |
 | 2026-06-24 | 新增 offset-aware `tableEditing.ts`，不复用展示用的有损 `parseTableRows` | 导航/对齐需要精确偏移与原文，trim 解析不可逆 |
-| 2026-06-24 | 对齐按显示宽度（CJK=2），在导航/失焦触发 | 中文笔记对齐必需；避开每键对齐的光标抖动 |
+| 2026-06-24 | 对齐触发时机=Tab/Enter/Shift+Tab 导航 + 失焦，**不**每键对齐（用户确认） | 避免输入中途 pad 抖动光标 |
+| 2026-06-24 | Enter=下移同列；末行非空 Enter=补空行进入；**空末行 Enter=退出表格**（用户确认，镜像列表空项退出） | 既能连续补行又能自然离开表格 |
+| 2026-06-24 | Tab 在末行末格=补新行进首格；Shift+Tab 首格 = 停留/到上一行末格（用户确认 Tab 越界补行） | 一路 Tab 即可建表 |
+| 2026-06-24 | 对齐按显示宽度（CJK/全角=2）（用户确认） | 中文笔记等宽字体下管道符才真正对齐 |
