@@ -9,11 +9,5 @@
 a
 阿萨德
 
-- xas
-- asx
-- asc
-- cas
-- asx
-
 
 
