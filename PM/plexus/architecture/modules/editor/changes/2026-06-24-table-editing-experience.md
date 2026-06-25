@@ -1,12 +1,12 @@
 # 表格编辑体验 Design
 
-Last updated: 2026-06-24
+Last updated: 2026-06-25
 
-Status: proposed（2026-06-24 用户确认 4 项交互决策，范围/语义已定，待实现）
+Status: implemented（2026-06-25 已核验落地：提交 `f433e8c`/`f8331ca`/`0012885`/`cf271e7`，后续修复 `462a06f`；`npm test -- tableEditing ModuleMarkdownEditor` 68/68 与 `npm run build` 通过）
 
 Module: editor
 
-Related task: project-management.md → 待办「表格编辑体验」
+Related task: project-management.md → 待办「表格编辑体验」（2026-06-25 已完成）
 
 ## Background
 
@@ -18,7 +18,7 @@ rich 模式编辑器把表格块（`module.type === 'table'`）渲染为 `<table
 
 > 表格编辑体验：① 自动补全——Tab / 回车自动跳到下一单元格、行尾回车自动补一行（减少纯手敲）；② 文本编辑区表格按字符宽度自动匹配对齐（pad 管道符列对齐），拉高可视化。
 
-## Current State
+## Pre-Implementation State
 
 - 表格块编辑态 = 单个 `ModuleTextarea`（`module.type === 'table'`），`value` 为原始表格源码。
 - `ModuleTextarea.handleKeyDown` 目前仅对 `module.type === 'list'` 做 Enter 续项 / Tab 缩进；**table 无任何特化按键**——Tab 走浏览器默认（移焦/插 Tab 字符）、Enter 走 textarea 默认换行。
@@ -114,6 +114,12 @@ export function formatTable(source: string): { text: string; mapCaret: (oldOffse
 3. `ModuleTextarea` table 分支接入导航;组件测试（点表格→Tab 跳下一格、Enter 下一行、末行 Enter 补行/退出）。
 4. 失焦对齐接入;组件测试（编辑后失焦,源码列对齐、光标/回写正确）。
 5. 回归:既有两个表格测试（整表 textarea 契约、编辑回写完整 Markdown）仍通过;非 table 块不受影响。
+
+## Implementation Evidence
+
+| Date | Evidence |
+| --- | --- |
+| 2026-06-25 | 已在 main 落地：`src/components/Editor/tableEditing.ts` 实现 offset-aware 表格网格、CJK/全角宽度、源码对齐与单元格导航；`ModuleMarkdownEditor.tsx` 的 table textarea 接入 Tab/Shift+Tab/Enter 与失焦对齐；`ModuleMarkdownEditor.test.tsx` 与 `tableEditing.test.ts` 覆盖导航、补行、空末行退出、CJK 对齐。验证：`npm test -- tableEditing ModuleMarkdownEditor` 68/68，`npm run build` 通过。 |
 
 ## Testing and Validation
 
