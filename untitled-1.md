@@ -5,4 +5,3 @@
 |            | xascasc |
 |            | asx     |
 | xascascasc | as      |
-|            |         |
