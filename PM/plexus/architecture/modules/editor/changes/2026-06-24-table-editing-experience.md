@@ -2,7 +2,7 @@
 
 Last updated: 2026-06-25
 
-Status: implemented（2026-06-25 已核验落地：提交 `f433e8c`/`f8331ca`/`0012885`/`cf271e7`，后续修复 `462a06f`；`npm test -- tableEditing ModuleMarkdownEditor` 68/68 与 `npm run build` 通过）
+Status: implemented（2026-06-25 已核验落地：提交 `f433e8c`/`f8331ca`/`0012885`/`cf271e7`，后续修复 `462a06f`；`npm test -- tableEditing ModuleMarkdownEditor` 69/69 与 `npm run build` 通过；2026-06-25 补修 table textarea 等宽/禁连字/wrap=off，保证字符层横竖对齐）
 
 Module: editor
 
@@ -119,6 +119,7 @@ export function formatTable(source: string): { text: string; mapCaret: (oldOffse
 
 | Date | Evidence |
 | --- | --- |
+| 2026-06-25 | 视觉对齐补修：格式化输出已保证各行管道符字符索引一致，但 table textarea 原先继承 sans 字体，空格补齐在像素上仍无法竖直对齐；新增 `module-markdown-editor__source--table`，使用等宽字体、禁用连字、关闭软换行，并补截图同类场景回归测试。验证：`npm test -- tableEditing ModuleMarkdownEditor` 69/69，`npm run build` 通过。 |
 | 2026-06-25 | 已在 main 落地：`src/components/Editor/tableEditing.ts` 实现 offset-aware 表格网格、CJK/全角宽度、源码对齐与单元格导航；`ModuleMarkdownEditor.tsx` 的 table textarea 接入 Tab/Shift+Tab/Enter 与失焦对齐；`ModuleMarkdownEditor.test.tsx` 与 `tableEditing.test.ts` 覆盖导航、补行、空末行退出、CJK 对齐。验证：`npm test -- tableEditing ModuleMarkdownEditor` 68/68，`npm run build` 通过。 |
 
 ## Testing and Validation
