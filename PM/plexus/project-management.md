@@ -10,16 +10,16 @@ Last updated: 2026-06-25
 
 ## 设计文档
 
-| 类型 | 路径 | 状态 | 备注 |
-| --- | --- | --- | --- |
-| 主设计文档 | architecture/main-design.md | implemented | 系统范围、模块地图、核心流程、共享约束、跨模块决策 |
-| 模块: 编辑器 Editor | architecture/modules/editor.md | implemented | 双模式 Markdown 编辑、查找、跳转高亮、代码块语法高亮（2026-06-23）；含界面示意图 |
+| 类型                   | 路径                                                                       | 状态        | 备注                                                                                                                                                                                                                      |
+| ---------------------- | -------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 主设计文档             | architecture/main-design.md                                                | implemented | 系统范围、模块地图、核心流程、共享约束、跨模块决策                                                                                                                                                                        |
+| 模块: 编辑器 Editor    | architecture/modules/editor.md                                             | implemented | 双模式 Markdown 编辑、查找、跳转高亮、代码块语法高亮（2026-06-23）；含界面示意图                                                                                                                                          |
 | 变更设计: 表格编辑体验 | architecture/modules/editor/changes/2026-06-24-table-editing-experience.md | implemented | 2026-06-25 已落地：整表 textarea 内 Tab/Shift+Tab/Enter 导航、自动补行/退出、CJK 宽度源码对齐；2026-06-25 补修 table textarea 等宽/禁连字/wrap=off 字符网格；验证 tableEditing/ModuleMarkdownEditor 69/69 + npm run build |
-| 模块: AI Agent | architecture/modules/ai-agent.md | implemented | 会话编排、上下文预算/压缩、状态快照、预设 agent |
-| 模块: AI 工具 AI Tools | architecture/modules/ai-tools.md | implemented | 工具定义/注册、写守卫、Diff 回执 |
-| 模块: 笔记 Notes | architecture/modules/notes.md | implemented | 笔记 CRUD/检索/监听，落盘真相在 Rust |
-| 模块: UI 外壳 UI Shell | architecture/modules/ui-shell.md | implemented | 布局、导航、弹框、全局快捷键、引导页 |
-| 模块: 同步 Sync | architecture/modules/sync.md | implemented | git 远程同步、GitHub OAuth 与仓库管理 |
+| 模块: AI Agent         | architecture/modules/ai-agent.md                                           | implemented | 会话编排、上下文预算/压缩、状态快照、预设 agent                                                                                                                                                                           |
+| 模块: AI 工具 AI Tools | architecture/modules/ai-tools.md                                           | implemented | 工具定义/注册、写守卫、Diff 回执                                                                                                                                                                                          |
+| 模块: 笔记 Notes       | architecture/modules/notes.md                                              | implemented | 笔记 CRUD/检索/监听，落盘真相在 Rust                                                                                                                                                                                      |
+| 模块: UI 外壳 UI Shell | architecture/modules/ui-shell.md                                           | implemented | 布局、导航、弹框、全局快捷键、引导页                                                                                                                                                                                      |
+| 模块: 同步 Sync        | architecture/modules/sync.md                                               | implemented | git 远程同步、GitHub OAuth 与仓库管理                                                                                                                                                                                     |
 
 ## 当前状态
 - Version: 0.4.11（5 个版本文件一致；Cargo.lock 仅 bump `plexus` crate，第三方 `erased-serde` 恰为 0.4.10 不动）；tag `v0.4.11` 已推送。本地 `Plexus_0.4.11_aarch64.dmg`（11M）已出（路径 `src-tauri/target/release/bundle/dmg/`）。**CI 账单限额仍阻断**：v0.4.11 release run 同样在 `Validate tag` 即被账单门阻断（3s 失败，run 27912776834），Build 三平台未起、无产物 → `gh run download` 兜底失效。故 v0.4.11 **尚未建 GitHub Release**，仅本地 dmg。
