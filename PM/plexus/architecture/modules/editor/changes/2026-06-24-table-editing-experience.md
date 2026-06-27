@@ -1,12 +1,28 @@
 # 表格编辑体验 Design
 
-Last updated: 2026-06-25
+Last updated: 2026-06-27
 
-Status: implemented（2026-06-25 已核验落地：提交 `f433e8c`/`f8331ca`/`0012885`/`cf271e7`，后续修复 `462a06f`；`npm test -- tableEditing ModuleMarkdownEditor` 69/69 与 `npm run build` 通过；2026-06-25 补修 table textarea 等宽/禁连字/wrap=off，保证字符层横竖对齐）
+Status: implemented
 
 Module: editor
 
-Related task: project-management.md → 待办「表格编辑体验」（2026-06-25 已完成）
+Requirement ID: LEGACY-EDITOR-TABLE-EDITING-2026-06-24
+
+Related task: project-management.md → 任务归档「表格编辑体验」（2026-06-25 已完成）
+
+Design status: implemented
+
+Review status: reviewed（2026-06-27 PM 审计补齐；无阻塞问题）
+
+Accepted by: 用户于 2026-06-24 确认关键交互决策
+
+Accepted date: 2026-06-24
+
+Implementation status: implemented
+
+Implementation evidence:
+- 2026-06-25 已在 main 落地：提交 `f433e8c`/`f8331ca`/`0012885`/`cf271e7`，后续修复 `462a06f`。
+- 验证：`npm test -- tableEditing ModuleMarkdownEditor` 69/69 与 `npm run build` 通过；2026-06-25 补修 table textarea 等宽/禁连字/wrap=off。
 
 ## Background
 

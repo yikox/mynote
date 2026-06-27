@@ -1,6 +1,6 @@
 # Plexus 主设计文档
 
-Last updated: 2026-06-24
+Last updated: 2026-06-27
 
 Status: implemented（现状梳理；个别条目标注 planned）
 
@@ -62,7 +62,7 @@ Plexus 是一款基于 **Tauri 2 + React 19** 的桌面 Markdown 笔记应用：
 
 | 模块 | 职责 | 设计文档 | 状态 | 备注 |
 | --- | --- | --- | --- | --- |
-| 编辑器 Editor | 双模式（rich 块 / plain 文本）Markdown 编辑、查找、跳转高亮、TOC、KaTeX/Mermaid 渲染 | architecture/modules/editor.md | implemented | 纯前端，基于 `<textarea>` |
+| 编辑器 Editor | 双模式（rich 块 / plain 文本）Markdown 编辑、查找、跳转高亮、TOC、KaTeX/Mermaid 渲染、表格编辑与智能预览 | architecture/modules/editor.md | implemented | 纯前端，基于 `<textarea>` |
 | AI Agent | AI 会话编排：agent loop、上下文构建/预算、状态快照、压缩、系统提示分层、模型限额 | architecture/modules/ai-agent.md | implemented | 前端编排 + Rust `ai_proxy` 流式 |
 | AI 工具 AI Tools | 供 agent 调用的工具定义与注册表（笔记读写、检索、联网搜索）+ 写操作确认/Diff 回执 | architecture/modules/ai-tools.md | implemented | 工具经 services 落到 Rust 命令 |
 | 笔记 Notes | 笔记文件模型：树、CRUD、全文 grep、快速打开、资源/图片，跨前端 service 与 Rust `core::notes` | architecture/modules/notes.md | implemented | 落盘真相在 Rust 端 |
@@ -150,15 +150,14 @@ sequenceDiagram
 | 2026-06-22 | 上下文预算改为「模型窗口优先」，不再被默认上限封顶；默认上限 256K（1K=1024） | ai-agent | v0.4.11 |
 | 2026-06-22 | 内置 4 个预设 agent（通用/研究/笔记管家/写作），按版本批次播种、按 id 恢复默认、system-prompt 分层注入 | ai-agent | v0.4.10 |
 
-## 待实现设计（已有 spec）
+## 已实现设计变更
 
-> 设计文档只记录**已写 spec、尚未实现**的变更；无 spec 的想法/待办不入设计文档，留在 PM 的 `待办`/`进行中任务`。
+> 当前无已写 spec、尚未实现的变更；新需求进入 `project-management.md` 的 `需求待办`。
 
-| 设计变更 | 主模块 | Spec | 状态 |
-| --- | --- | --- | --- |
-| 表格编辑体验（单元格导航 + 源码对齐） | 编辑器 Editor | architecture/modules/editor/changes/2026-06-24-table-editing-experience.md | proposed（待评审，含交互开放问题） |
-
-> 已实现：代码块语法高亮渲染（merge 到 main）、编辑器块内子块渲染（仅 list 块，merge e08cd29）——详见各自的变更设计文档与 PM `最近更新`。
+- 代码块语法高亮渲染：merge 到 main，详见 PM 历史记录。
+- 编辑器块内子块渲染：仅 list 块，merge `e08cd29`，详见 `architecture/modules/editor/changes/2026-06-24-block-subblock-rendering.md`。
+- 表格编辑体验：单元格导航 + 源码对齐，详见 `architecture/modules/editor/changes/2026-06-24-table-editing-experience.md`。
+- Markdown 表格智能渲染：容器测量、列类型识别、贪心列宽压缩与简单 inline Markdown，详见 `architecture/modules/editor/changes/2026-06-27-smart-table-rendering.md`.
 
 ## 开放问题
 

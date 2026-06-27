@@ -1,18 +1,18 @@
 # 编辑器 Editor 模块设计
 
-Last updated: 2026-06-25
+Last updated: 2026-06-27
 
 Status: implemented
 
 ## 目的
 
-提供 Plexus 的 Markdown 编辑体验：自研的双模式编辑器（rich 块模式 / plain 纯文本），均基于 `<textarea>`，支持 KaTeX、Mermaid、TOC、查找与跳转高亮。
+提供 Plexus 的 Markdown 编辑体验：自研的双模式编辑器（rich 块模式 / plain 纯文本），均基于 `<textarea>`，支持 KaTeX、Mermaid、TOC、查找、跳转高亮与智能表格预览。
 
 ## 职责
 
 - 渲染与编辑单篇笔记的草稿，管理撤销/重做、图片粘贴/拖入。
 - rich 模式：把文档切成多个预览块，仅活动块是 textarea（`ModuleMarkdownEditor`）；**列表块进一步下沉到「项级」——活动列表块仅光标所在列表项是 textarea、其余项保持列表渲染**（`ActiveListModule` + `subModules.ts` 的 `splitListItems`，活动态 `{index, subIndex}`；项间 ↑/↓ 导航、行首 Backspace 合并）。plain 模式整篇一个 textarea（`PlainTextEditor`）。
-- 表格块编辑态保持整表一个 textarea，增强 table textarea 内的 Tab/Shift+Tab/Enter 单元格导航、末格/末行自动补行、空末行退出，以及导航/失焦触发的源码管道符按显示宽度对齐（CJK/全角=2，`tableEditing.ts`）。
+- 表格预览使用 `SmartTablePreview` + `smartTableLayout.ts`：按容器宽度和列内容识别 `status/path/short/text`，状态列不拆英文，路径/URL 自然断点，超宽时贪心压缩可换行列并保留横向滚动；单元格支持简单 inline Markdown。表格编辑态保持整表一个 textarea，并由 `tableEditing.ts` 提供 Tab/Shift+Tab/Enter 单元格导航、自动补行/退出、CJK 宽度源码对齐。
 - 查找（⌘F，`EditorFindBar` + `findMatches`/`stepIndex`）与全局检索/TOC 跳转的统一落点（`handleJump`）。
 - 跳转后对被检索词做词级渐隐高亮（Custom Highlight API，`findTextRange.ts`/`jumpFlash.ts`）。
 - 右键菜单（编辑 + 问 AI），复用通用 `ContextMenu`。
@@ -92,11 +92,14 @@ flowchart TB
 - `uiStore`（查找/定位请求）、Notes 草稿。
 - 通用 `ContextMenu`（`useEditorContextMenu`）。
 
-## Planned Changes
+## 已实现设计变更
 
-> 仅列已写 spec、尚未实现的设计变更。当前无本模块计划中变更。
+- 代码块语法高亮渲染：lowlight/highlight.js 覆盖编辑器预览 + AI 聊天，merge 到 main。
+- 块内子块渲染：仅 list 块，`subModules.ts` + `ActiveListModule`，活动态 `{index, subIndex}`，merge `e08cd29`，详见 `changes/2026-06-24-block-subblock-rendering.md`。
+- 表格编辑体验：整表 textarea 内单元格导航、自动补行/退出、按 CJK/全角宽度源码对齐，详见 `changes/2026-06-24-table-editing-experience.md`。
+- Markdown 表格智能渲染：容器测量、列类型识别、贪心列宽压缩、路径自然断点和简单 inline Markdown，详见 `changes/2026-06-27-smart-table-rendering.md`。
 
-> 已实现的本模块设计变更：代码块语法高亮渲染（lowlight/highlight.js，编辑器预览 + AI 聊天，merge 到 main）；块内子块渲染（仅 list 块，`subModules.ts` + `ActiveListModule`，活动态 `{index, subIndex}`，merge e08cd29，详见 `changes/2026-06-24-block-subblock-rendering.md`）；表格编辑体验（整表 textarea 内单元格导航、自动补行/退出、按 CJK/全角宽度源码对齐，详见 `changes/2026-06-24-table-editing-experience.md`）。后续可沿同一子块模型扩展 blockquote / 多行 paragraph。
+后续可沿同一子块模型扩展 blockquote / 多行 paragraph。
 
 ## 风险与开放问题
 

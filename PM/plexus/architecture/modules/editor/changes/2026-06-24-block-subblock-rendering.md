@@ -1,12 +1,28 @@
 # 编辑器块内子块渲染 Design
 
-Last updated: 2026-06-24
+Last updated: 2026-06-27
 
-Status: implemented（2026-06-24 merge e08cd29 到 main，仅 list 块；blockquote/paragraph 同模型后续可扩展）
+Status: implemented
 
 Module: editor
 
-Related task: project-management.md → 待办「编辑器块内子块渲染」
+Requirement ID: LEGACY-EDITOR-BLOCK-SUBBLOCK-2026-06-24
+
+Related task: project-management.md → 任务归档「编辑器块内子块渲染」
+
+Design status: implemented
+
+Review status: reviewed（2026-06-27 PM 审计补齐；无阻塞问题）
+
+Accepted by: 用户于 2026-06-24 澄清并确认范围
+
+Accepted date: 2026-06-24
+
+Implementation status: implemented
+
+Implementation evidence:
+- 2026-06-24 merge `e08cd29` 到 main，仅 list 块落地；全套 603 测试通过。
+- 2026-06-25 后续提交 `e4b39be` 修复 4 项列表块编辑态真机体验问题；全套 629 测试通过。
 
 ## Background
 

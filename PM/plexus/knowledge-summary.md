@@ -1,6 +1,6 @@
 # Plexus Knowledge Summary
 
-Last updated: 2026-06-25（列表块编辑态经验：相对缩进层级/反缩进降到父项、块类型变化重挂光标、吸收空行陷阱、DOM 测量对齐）
+Last updated: 2026-06-27（Markdown 表格智能渲染经验：容器预算/列类型识别/贪心收缩/自然断点/真实笔记样本预览）
 
 ## Verified Commands
 - 前端开发：`npm run dev`
@@ -65,6 +65,12 @@ gh release edit v0.2.0 --draft=false
 - 桌面应用：Tauri 2（Rust 后端在 `src-tauri/`，标识符 `com.plexus.app`）。
 - 前端：Vite + React 19 + TypeScript，状态用 zustand；编辑器为自研的双模式 Markdown 编辑器（`rich` 模块/块模式与 `plain` 纯文本，均基于 `<textarea>`），支持 KaTeX、Mermaid。
 - 编辑器右键菜单：通用组件 `src/components/common/ContextMenu.tsx`（NoteTree / SessionsList / 编辑器共用）；编辑器菜单逻辑在 `src/components/Editor/useEditorContextMenu.tsx`。模块编辑器把文档渲染成多个预览块、只有活动块是 textarea，复制/剪切由其 `onCopy/onCut`（跨块→markdown）接管，故菜单基于实时选区走原生 execCommand、按钮 `preventDefault(mousedown)` 保住选区。
+- Markdown 表格智能渲染经验（`SmartTablePreview` / `smartTableLayout.ts`）：
+  - **先按列内容分类再分配宽度**：表头和列值共同判断 `status/path/short/text`，状态列 nowrap，路径列按自然断点换行，普通长文本列可贪心压缩。
+  - **最小宽度取最长不可拆 token**：英文状态、代码片段、长单词不能为了塞进页面被逐字母拆开；CJK/全角宽度沿用 `displayWidth`。
+  - **超宽时缩可换行列，不强行撑满小表**：`applyTableBudget` 只在总宽超过目标 `ch` 时收缩，优先 text/path，保留横向滚动兜底；总宽不足页面时按内容宽度展示。
+  - **路径/URL 用 `<wbr>` 断点**：`pathBreakText` 在 `/`、`\`、`.`、`-`、`_` 和 `://` 后给浏览器可断点，避免 `overflow-wrap:anywhere` 把路径拆得不可读。
+  - **真实笔记样本回归**：`node scripts/collect-notes-tables.mjs /Users/zyc/notes /private/tmp/plexus-notes-tables.md /private/tmp/plexus-notes-tables.json` 汇总笔记表格；`node scripts/render-smart-table-preview.mjs /private/tmp/plexus-notes-tables.json /private/tmp/plexus-smart-table-preview.html` 生成静态预览页。
 - 列表块编辑态（`ActiveListModule` / `ModuleMarkdownEditor`）经验：
   - **列表层级是相对缩进，不是固定 2/4 空格**：`listTree.ts` 的 `parseListTree` 用 `indent < top.indent` 退栈判层，只比相对大小、不看绝对空格数。⇒ 反缩进不能固定删 1-2 空格（4 空格子项删 2 格仍比父项深、视觉层级不变 → 表现为「回车第一下没反应」），必须按整表算出**最近更浅前置项（父项）的缩进**、一次降到位（`dedentPrefix`）。
   - **块类型变化会卸载重挂 textarea**：空行敲 `- ` 触发 `blank/paragraph→list`、渲染分支 `ModuleTextarea↔ActiveListModule` 切换，真实浏览器会在新 textarea 上重置光标；`handleModuleChange` 需在 `target.type!==module.type` 时强制重定位（递增 `caretNonce`），不能只靠一次性挂载 effect。
