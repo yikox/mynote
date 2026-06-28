@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">桌面工作台布局</title>
+  <desc id="desc">股票智能分析 v1 桌面工作台的区域示意图，包含顶部命令栏、左侧导航、中央工作区、右侧检查器和底部状态条。</desc>
+  <rect x="0" y="0" width="1200" height="760" fill="#f7f8fa"/>
+  <rect id="top-bar" x="24" y="20" width="1152" height="64" rx="6" fill="#1f2937"/>
+  <text x="48" y="58" font-size="18" fill="#ffffff" font-family="Arial, sans-serif">顶部命令栏：搜索标的 / 创建研究任务 / 刷新 / 设置 / 数据状态</text>
+
+  <rect id="sidebar" x="24" y="104" width="190" height="590" rx="6" fill="#ffffff" stroke="#d0d7de"/>
+  <text x="48" y="140" font-size="16" fill="#111827" font-family="Arial, sans-serif">左侧导航</text>
+  <text x="48" y="178" font-size="14" fill="#374151" font-family="Arial, sans-serif">工作台</text>
+  <text x="48" y="214" font-size="14" fill="#374151" font-family="Arial, sans-serif">自选</text>
+  <text x="48" y="250" font-size="14" fill="#374151" font-family="Arial, sans-serif">持仓</text>
+  <text x="48" y="286" font-size="14" fill="#374151" font-family="Arial, sans-serif">任务</text>
+  <text x="48" y="322" font-size="14" fill="#374151" font-family="Arial, sans-serif">报告</text>
+  <text x="48" y="358" font-size="14" fill="#374151" font-family="Arial, sans-serif">信号</text>
+  <text x="48" y="394" font-size="14" fill="#374151" font-family="Arial, sans-serif">投资假设</text>
+  <text x="48" y="430" font-size="14" fill="#374151" font-family="Arial, sans-serif">监控</text>
+  <text x="48" y="466" font-size="14" fill="#374151" font-family="Arial, sans-serif">插件</text>
+
+  <rect id="main-area" x="234" y="104" width="668" height="590" rx="6" fill="#ffffff" stroke="#d0d7de"/>
+  <text x="260" y="140" font-size="16" fill="#111827" font-family="Arial, sans-serif">中央工作区</text>
+  <rect x="260" y="166" width="290" height="146" rx="6" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="284" y="204" font-size="15" fill="#1e3a8a" font-family="Arial, sans-serif">组合与持仓概览</text>
+  <text x="284" y="236" font-size="13" fill="#1f2937" font-family="Arial, sans-serif">仓位 / 收益 / 风险暴露</text>
+
+  <rect x="578" y="166" width="298" height="146" rx="6" fill="#ecfdf5" stroke="#86efac"/>
+  <text x="602" y="204" font-size="15" fill="#14532d" font-family="Arial, sans-serif">自选与异常</text>
+  <text x="602" y="236" font-size="13" fill="#1f2937" font-family="Arial, sans-serif">价格 / 新闻 / 红线触发</text>
+
+  <rect x="260" y="338" width="616" height="142" rx="6" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="284" y="376" font-size="15" fill="#7c2d12" font-family="Arial, sans-serif">研究任务队列</text>
+  <text x="284" y="408" font-size="13" fill="#1f2937" font-family="Arial, sans-serif">主动研究 / 定时监控 / 组合复盘 / 插件任务</text>
+
+  <rect x="260" y="506" width="616" height="146" rx="6" fill="#f5f3ff" stroke="#c4b5fd"/>
+  <text x="284" y="544" font-size="15" fill="#4c1d95" font-family="Arial, sans-serif">报告、信号与假设</text>
+  <text x="284" y="576" font-size="13" fill="#1f2937" font-family="Arial, sans-serif">报告准出 / 决策信号 / 长期投资假设</text>
+
+  <rect id="inspector" x="922" y="104" width="254" height="590" rx="6" fill="#ffffff" stroke="#d0d7de"/>
+  <text x="948" y="140" font-size="16" fill="#111827" font-family="Arial, sans-serif">右侧检查器</text>
+  <rect x="948" y="166" width="202" height="96" rx="6" fill="#f9fafb" stroke="#e5e7eb"/>
+  <text x="968" y="204" font-size="14" fill="#374151" font-family="Arial, sans-serif">标的摘要</text>
+  <text x="968" y="232" font-size="12" fill="#4b5563" font-family="Arial, sans-serif">Instrument 概览</text>
+
+  <rect x="948" y="286" width="202" height="126" rx="6" fill="#f9fafb" stroke="#e5e7eb"/>
+  <text x="968" y="324" font-size="14" fill="#374151" font-family="Arial, sans-serif">投资假设与红线</text>
+  <text x="968" y="352" font-size="12" fill="#4b5563" font-family="Arial, sans-serif">Thesis / Review</text>
+
+  <rect x="948" y="436" width="202" height="126" rx="6" fill="#f9fafb" stroke="#e5e7eb"/>
+  <text x="968" y="474" font-size="14" fill="#374151" font-family="Arial, sans-serif">最近报告与信号</text>
+  <text x="968" y="502" font-size="12" fill="#4b5563" font-family="Arial, sans-serif">Report / Signal</text>
+
+  <rect x="948" y="586" width="202" height="66" rx="6" fill="#f9fafb" stroke="#e5e7eb"/>
+  <text x="968" y="626" font-size="14" fill="#374151" font-family="Arial, sans-serif">Agent 对话</text>
+
+  <rect id="status-bar" x="24" y="714" width="1152" height="30" rx="4" fill="#e5e7eb"/>
+  <text x="48" y="735" font-size="13" fill="#374151" font-family="Arial, sans-serif">底部状态条：本地服务 / 任务运行 / 数据源 / 通知 / 最近同步</text>
+</svg>
