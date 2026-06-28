@@ -2,7 +2,7 @@
 
 最后更新：2026-06-28
 
-状态：proposed（建议稿，待人工确认）
+状态：accepted（已接受，用户已确认）
 
 ## 概览
 
@@ -60,23 +60,23 @@
 
 | 模块 | 职责 | 状态 | 备注 |
 | --- | --- | --- | --- |
-| [Desktop Workbench](modules/desktop-workbench.md) | Tauri（桌面应用封装框架）优先的个人工作台 | proposed | |
-| [Command API](modules/command-api.md) | Local API（本地接口）与命令入口 | proposed | |
-| [Instrument](modules/instrument.md) | 全局标的中心 | proposed | |
-| [Watchlist](modules/watchlist.md) | 自选与观察入口 | proposed | |
-| [Data Hub](modules/data-hub.md) | 行情、财务、市场数据入口 | proposed | |
-| [Evidence Hub](modules/evidence-hub.md) | 新闻、公告、财报、事件证据层 | proposed | |
-| [Research Task Engine](modules/research-task-engine.md) | 研究任务编排层 | proposed | |
-| [Agent Layer](modules/agent-layer.md) | AI Agent（人工智能代理）研究推理层 | proposed | |
-| [Deterministic Tools](modules/deterministic-tools.md) | 确定性计算和校验工具 | proposed | |
-| [Report Audit](modules/report-audit.md) | 报告产物和质量准出 | proposed | |
-| [Decision Signal](modules/decision-signal.md) | 可跟踪决策信号 | proposed | |
-| [Investment Thesis](modules/investment-thesis.md) | 中长期投资假设记忆 | proposed | |
-| [Portfolio](modules/portfolio.md) | 投资组合、持仓、风险 | proposed | |
-| [Monitor](modules/monitor.md) | 调度、告警、通知 | proposed | |
-| [Evaluation](modules/evaluation.md) | 回测和信号复盘 | proposed | |
-| [Plugins](modules/plugins.md) | AlphaSift、图片识别和扩展通知 | proposed | |
-| [Legacy Boundaries](modules/legacy-boundaries.md) | Electron、SaaS Auth、复杂 Web 后台的弱化边界 | proposed | |
+| [Desktop Workbench](modules/desktop-workbench.md) | Tauri（桌面应用封装框架）优先的个人工作台 | accepted | |
+| [Command API](modules/command-api.md) | Local API（本地接口）与命令入口 | accepted | |
+| [Instrument](modules/instrument.md) | 全局标的中心 | accepted | |
+| [Watchlist](modules/watchlist.md) | 自选与观察入口 | accepted | |
+| [Data Hub](modules/data-hub.md) | 行情、财务、市场数据入口 | accepted | |
+| [Evidence Hub](modules/evidence-hub.md) | 新闻、公告、财报、事件证据层 | accepted | |
+| [Research Task Engine](modules/research-task-engine.md) | 研究任务编排层 | accepted | |
+| [Agent Layer](modules/agent-layer.md) | AI Agent（人工智能代理）研究推理层 | accepted | |
+| [Deterministic Tools](modules/deterministic-tools.md) | 确定性计算和校验工具 | accepted | |
+| [Report Audit](modules/report-audit.md) | 报告产物和质量准出 | accepted | |
+| [Decision Signal](modules/decision-signal.md) | 可跟踪决策信号 | accepted | |
+| [Investment Thesis](modules/investment-thesis.md) | 中长期投资假设记忆 | accepted | |
+| [Portfolio](modules/portfolio.md) | 投资组合、持仓、风险 | accepted | |
+| [Monitor](modules/monitor.md) | 调度、告警、通知 | accepted | |
+| [Evaluation](modules/evaluation.md) | 回测和信号复盘 | accepted | |
+| [Plugins](modules/plugins.md) | AlphaSift、图片识别和扩展通知 | accepted | |
+| [Legacy Boundaries](modules/legacy-boundaries.md) | Electron、SaaS Auth、复杂 Web 后台的弱化边界 | accepted | |
 
 ## 全局架构图
 
@@ -305,5 +305,5 @@ flowchart TB
 
 | 日期 | 类型 | 结果 | 备注 |
 | --- | --- | --- | --- |
-| 2026-06-28 | 自动审查 | reviewed（已审查） | 模块索引路径存在，主图和 SVG 引用基础校验通过；当前状态保持 proposed（建议稿），等待人工确认是否 accepted（已接受） |
+| 2026-06-28 | 自动审查 | reviewed（已审查） | 模块索引路径存在，主图和 SVG 引用基础校验通过；用户已确认，当前状态更新为 accepted（已接受） |
 
