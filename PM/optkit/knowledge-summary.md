@@ -1,6 +1,6 @@
 # optkit 知识总结
 
-Last updated: 2026-06-15
+Last updated: 2026-06-30
 
 ## 验证过的命令
 
@@ -83,6 +83,8 @@ Last updated: 2026-06-15
 - **稳态零重编有效**：开 compile 项 warmup 内有重编（fp8 权重类型 guard + cfg cond/uncond 两种序列长），run2~4 稳态零重编；4 跑丢首跑取后 3 均值方案有效。
 - **t2i 类任务 SSIM 对基线仅弱参考**：无参考图锚定，fp8/sage 数值微差经多步纯生成放大为构图漂移（qwen t2i sfc 0.51 但出图干净）；质量结论必须看图 + 对 sfc 算 SSIM。
 - **跨次跑基线自漂移 ~0.97**：SSIM 对比须同次跑内看。
+- **dicache 不标定、magcache 才标定**：magcache 的 `mag_ratios` 是离线逐步幅值表，表长须 == `num_steps`，故其 cell 步数钉到标定步数（改不得）；dicache 是 `rel_l1_thresh` 阈值自适应，任意步数可跑，应跟随 group 步数。已修正（commit 50c84ae，v1+v2 对称）：dicache 不再钉步数、配置不写 `num_steps`（回落 28 默认 + 运行时注入），magcache/regione 仍钉。踩坑点：旧 `flux2_klein/dicache` 曾写死 50，被当校准钉到 50 步。
+- **auto_test 配置归一**：v1/v2 各持一份同构单文件 —— `auto_test/config/optcfgs_v1.yaml`（v1 扁平 flag）/ `optcfgs_v2.yaml`（v2 spec 片段），结构均为 `atoms:` 共享 + `models:` 每模型片段，按 `models.<model>.<atom>` 覆盖 `atoms.<atom>` 合并（commit 56bce5c，废弃旧散落 JSON 目录）。magcache 标定数据由 `calibrate` 产到 `config/calibration/` 暂存后人工并入两份 yaml。
 
 ## 决策（ADR 摘要）
 
