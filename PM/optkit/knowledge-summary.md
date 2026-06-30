@@ -85,6 +85,7 @@ Last updated: 2026-06-30
 - **跨次跑基线自漂移 ~0.97**：SSIM 对比须同次跑内看。
 - **dicache 不标定、magcache 才标定**：magcache 的 `mag_ratios` 是离线逐步幅值表，表长须 == `num_steps`，故其 cell 步数钉到标定步数（改不得）；dicache 是 `rel_l1_thresh` 阈值自适应，任意步数可跑，应跟随 group 步数。已修正（commit 50c84ae，v1+v2 对称）：dicache 不再钉步数、配置不写 `num_steps`（回落 28 默认 + 运行时注入），magcache/regione 仍钉。踩坑点：旧 `flux2_klein/dicache` 曾写死 50，被当校准钉到 50 步。
 - **auto_test 配置归一**：v1/v2 各持一份同构单文件 —— `auto_test/config/optcfgs_v1.yaml`（v1 扁平 flag）/ `optcfgs_v2.yaml`（v2 spec 片段），结构均为 `atoms:` 共享 + `models:` 每模型片段，按 `models.<model>.<atom>` 覆盖 `atoms.<atom>` 合并（commit 56bce5c，废弃旧散落 JSON 目录）。magcache 标定数据由 `calibrate` 产到 `config/calibration/` 暂存后人工并入两份 yaml。
+- **v1 测试真机验证通过（4 模型 @5090 32G）**：归一 `optcfgs_v1.yaml` 加载、dicache 步数跟随、**noopt 退 fp8wo 兜底**（纯 bf16 在 32G 会 OOM，故 v1 noopt 也镜像 v2 退 fp8-weight-only，commit af3eaf4）均生效；noopt 峰值 flux_kontext 22.7 / flux2_klein 26.3 / qwen 21.2 / step1x 22.9 G，dicache 加速 qwen 2.48× / flux2_klein 1.60×。调度器默认用满全部卡 + 每 job 独立 log（`_logs_<run_id>/`，commit 6788e3c）。**v1-on-32G 限制**：v1 引擎无 Option B（v2 step1x 在「降噪+vae decode」期临时 offload te 的机制），故 v1 step1x **dicache** 在 decode 峰值点叠 cache 大概率 OOM —— v1 step1x 在 32G 仅 noopt/headline 稳妥，cache 项需更大显存或等 v1 引入等效 offload。
 
 ## 决策（ADR 摘要）
 
