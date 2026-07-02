@@ -16,4 +16,4 @@
 -第一步筛选
 - aimaster 项目地址 
 - 自动开机器
-- 跑 mtpipe skill cai
+- 跑 mtpipe skill 拆节点 并测试吞吐
