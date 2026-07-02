@@ -17,4 +17,4 @@
 - aimaster 项目地址 
 - 自动开机器
 - 跑 mtpipe skill 拆节点 并测试吞吐 输出 性能数据（QPS 和 单次耗时） diff  
-- 如果 
+- 如果 效果 ok 
