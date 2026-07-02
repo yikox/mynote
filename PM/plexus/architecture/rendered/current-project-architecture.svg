@@ -1,0 +1,655 @@
+<svg class="diagram" style="min-width: 2520px;" viewBox="-146 -68 2520 1087" role="img" aria-labelledby="diagram-title diagram-desc">
+  <title id="diagram-title">Plexus 当前项目模块架构图</title>
+  <desc id="diagram-desc">React/Tauri 桌面笔记 App 的 Shell、笔记编辑、AI agent、后端工作区、Git 同步与配置模块关系</desc>
+  <defs>
+    <style>
+      .node-shape { stroke-width: 1.6; }
+      .node-link,
+      .group-link {
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .node-link:hover .node-shape,
+      .node-link:focus .node-shape,
+      .group-link:hover .group-shape,
+      .group-link:focus .group-shape {
+        stroke-width: 2.6;
+      }
+      .node-line {
+        fill: none;
+        stroke-width: 1.6;
+      }
+      .group-shape {
+        fill: #eef2ff;
+        stroke: #4f46e5;
+        stroke-width: 1.8;
+        stroke-dasharray: 10 7;
+      }
+      .group-title {
+        fill: #312e81;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .group-description {
+        fill: #4338ca;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .node-title {
+        fill: #1e293b;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .node-description {
+        fill: #64748b;
+        font-size: 12px;
+      }
+      .relation-line {
+        fill: none;
+        stroke: #111827;
+        stroke-width: 2.8;
+      }
+      .relation-line-inner {
+        stroke-width: 1.5;
+      }
+      .relation-line-outer {
+        stroke-width: 3.4;
+      }
+      .relation-hitbox {
+        fill: none;
+        stroke: transparent;
+        stroke-width: 18;
+        pointer-events: stroke;
+        cursor: help;
+      }
+      .relation-hover-line {
+        fill: none;
+        stroke: #111827;
+        stroke-width: 4.4;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .relation-hover-line-inner {
+        stroke-width: 2.2;
+      }
+      .relation-hover-line-outer {
+        stroke-width: 5.2;
+      }
+      .relation-hover:hover .relation-hover-line {
+        opacity: 0.75;
+      }
+      .relation-bubble {
+        opacity: 0;
+        transition: opacity 120ms ease;
+        pointer-events: none;
+      }
+      .relation-hover:hover .relation-bubble {
+        opacity: 1;
+      }
+      .relation-bubble-box {
+        fill: #ffffff;
+        stroke: #94a3b8;
+        stroke-width: 1;
+      }
+      .relation-bubble-text {
+        fill: #0f172a;
+        font-size: 12px;
+        font-weight: 650;
+        pointer-events: none;
+      }
+      .arrow { fill: #111827; }
+    </style>
+    <marker id="arrow-inner" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="arrow" />
+    </marker>
+    <marker id="arrow-outer" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="arrow" />
+    </marker>
+  </defs>
+  <a class="group-link" href="../modules/frontend-shell-state.md" target="_blank">
+<g class="group" data-id="frontend-shell-state">
+<title>frontend-shell-state - /Users/zyc/notes/PM/plexus/architecture/modules/frontend-shell-state.md</title>
+<rect x="36.0" y="63.0" width="988.0" height="208.0" rx="10" class="group-shape" />
+<text x="54.0" y="91.0" class="group-title" text-anchor="start">前端 Shell 与状态组合</text>
+<text x="54.0" y="111.0" class="group-description" text-anchor="start">组织应用框架、全局状态恢复和 Tauri 前端适配的组合模块</text>
+</g>
+</a>
+<a class="group-link" href="../modules/note-authoring-module.md" target="_blank">
+<g class="group" data-id="note-authoring-module">
+<title>note-authoring-module - /Users/zyc/notes/PM/plexus/architecture/modules/note-authoring-module.md</title>
+<rect x="36.0" y="303.0" width="988.0" height="208.0" rx="10" class="group-shape" />
+<text x="54.0" y="331.0" class="group-title" text-anchor="start">笔记作者体验组合</text>
+<text x="54.0" y="351.0" class="group-description" text-anchor="start">覆盖笔记树、搜索、自动保存草稿和模块化 Markdown 编辑体验</text>
+</g>
+</a>
+<a class="group-link" href="../modules/ai-agent-workbench.md" target="_blank">
+<g class="group" data-id="ai-agent-workbench">
+<title>ai-agent-workbench - /Users/zyc/notes/PM/plexus/architecture/modules/ai-agent-workbench.md</title>
+<rect x="36.0" y="543.0" width="1328.0" height="208.0" rx="10" class="group-shape" />
+<text x="54.0" y="571.0" class="group-title" text-anchor="start">AI Agent 工作台组合</text>
+<text x="54.0" y="591.0" class="group-description" text-anchor="start">组织聊天界面、上下文预算、工具执行、provider 配置和流式代理</text>
+</g>
+</a>
+<a class="group-link" href="../modules/backend-workspace-runtime.md" target="_blank">
+<g class="group" data-id="backend-workspace-runtime">
+<title>backend-workspace-runtime - /Users/zyc/notes/PM/plexus/architecture/modules/backend-workspace-runtime.md</title>
+<rect x="1056.0" y="63.0" width="988.0" height="688.0" rx="10" class="group-shape" />
+<text x="1074.0" y="91.0" class="group-title" text-anchor="start">后端工作区运行时组合</text>
+<text x="1074.0" y="111.0" class="group-description" text-anchor="start">管理 Tauri 命令、工作区打开、文件仓储、图片资产和会话资源</text>
+</g>
+</a>
+<a class="group-link" href="../modules/sync-config-runtime.md" target="_blank">
+<g class="group" data-id="sync-config-runtime">
+<title>sync-config-runtime - /Users/zyc/notes/PM/plexus/architecture/modules/sync-config-runtime.md</title>
+<rect x="1056.0" y="303.0" width="988.0" height="448.0" rx="10" class="group-shape" />
+<text x="1074.0" y="331.0" class="group-title" text-anchor="start">同步与配置运行时组合</text>
+<text x="1074.0" y="351.0" class="group-description" text-anchor="start">覆盖本地 Git、远端同步调度、事件桥和应用配置规则</text>
+</g>
+</a>
+  <g class="relation relation-line-layer">
+<path d="M 305.0 180.0 L 415.0 180.0" class="relation-line relation-line-inner" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 75.0 180.0 L -20.0 180.0 L -20.0 420.0 L 75.0 420.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 75.0 180.0 L 31.0 180.0 L 31.0 660.0 L 75.0 660.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 645.0 180.0 L 755.0 180.0" class="relation-line relation-line-inner" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 985.0 180.0 L 1095.0 180.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 870.0 235.0 L 870.0 258.0 L 1550.0 258.0 L 1550.0 235.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 985.0 180.0 L 1026.0 180.0 L 1026.0 527.0 L 1550.0 527.0 L 1550.0 605.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 190.0 475.0 L 190.0 511.0 L 1054.0 511.0 L 1054.0 271.0 L 1550.0 271.0 L 1550.0 235.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 755.0 420.0 L 645.0 420.0" class="relation-line relation-line-inner" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 530.0 475.0 L 530.0 527.0 L 1054.0 527.0 L 1054.0 287.0 L 1550.0 287.0 L 1550.0 235.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 985.0 420.0 L 1007.0 420.0 L 1007.0 511.0 L 2049.0 511.0 L 2049.0 180.0 L 2005.0 180.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 305.0 660.0 L 415.0 660.0" class="relation-line relation-line-inner" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 190.0 715.0 L 190.0 738.0 L 1550.0 738.0 L 1550.0 715.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 645.0 660.0 L 755.0 660.0" class="relation-line relation-line-inner" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 985.0 660.0 L 1007.0 660.0 L 1007.0 759.0 L 2074.0 759.0 L 2074.0 279.0 L 1687.0 279.0 L 1687.0 180.0 L 1665.0 180.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 530.0 715.0 L 530.0 786.0 L 1210.0 786.0 L 1210.0 715.0" class="relation-line relation-line-inner" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1325.0 660.0 L 1369.0 660.0 L 1369.0 561.0 L 1890.0 561.0 L 1890.0 475.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1210.0 715.0 L 1210.0 797.0 L 1890.0 797.0 L 1890.0 715.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1325.0 180.0 L 1347.0 180.0 L 1347.0 237.0 L 1029.0 237.0 L 1029.0 420.0 L 1095.0 420.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1210.0 235.0 L 1210.0 257.0 L 1347.0 257.0 L 1347.0 169.0 L 1054.0 169.0 L 1054.0 47.0 L 2108.0 47.0 L 2108.0 497.0 L 1890.0 497.0 L 1890.0 475.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1435.0 180.0 L 1380.0 180.0 L 1380.0 420.0 L 1325.0 420.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1775.0 180.0 L 1665.0 180.0" class="relation-line relation-line-inner" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1325.0 420.0 L 1435.0 420.0" class="relation-line relation-line-inner" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1550.0 235.0 L 1550.0 365.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1665.0 420.0 L 1720.0 420.0 L 1720.0 660.0 L 1775.0 660.0" class="relation-line relation-line-inner" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1665.0 420.0 L 1775.0 420.0" class="relation-line relation-line-inner" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 2005.0 420.0 L 2136.0 420.0 L 2136.0 31.0 L -56.0 31.0 L -56.0 271.0 L 667.0 271.0 L 667.0 180.0 L 645.0 180.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1890.0 715.0 L 1890.0 821.0 L 6.0 821.0 L 6.0 287.0 L 530.0 287.0 L 530.0 235.0" class="relation-line relation-line-outer" stroke-dasharray="8 7" marker-end="url(#arrow-outer)" />
+</g>
+  <a class="node-link" href="../modules/app-shell-layout.md" target="_blank">
+<g class="node" data-id="app-shell-layout">
+<title>app-shell-layout - /Users/zyc/notes/PM/plexus/architecture/modules/app-shell-layout.md</title>
+<rect x="75.0" y="125.0" width="230.0" height="110.0" rx="8" class="node-shape" style="fill: #eff6ff; stroke: #2563eb;" />
+<line x1="75.0" y1="149.0" x2="305.0" y2="149.0" class="node-line" style="stroke: #2563eb;" />
+<text x="190.0" y="160.0" class="node-title" text-anchor="middle">应用 Shell 布局</text>
+<text x="190.0" y="181.0" class="node-description" text-anchor="middle">组合顶栏、活动栏、侧栏、标签栏</text>
+<text x="190.0" y="199.0" class="node-description" text-anchor="middle">、主区域、状态栏和全局弹窗</text>
+</g>
+</a>
+<a class="node-link" href="../modules/ui-state-stores.md" target="_blank">
+<g class="node" data-id="ui-state-stores">
+<title>ui-state-stores - /Users/zyc/notes/PM/plexus/architecture/modules/ui-state-stores.md</title>
+<rect x="415.0" y="137.0" width="230.0" height="86.0" class="node-shape" style="fill: #fffbeb; stroke: #d97706;" />
+<ellipse cx="530.0" cy="137.0" rx="115.0" ry="16" class="node-shape" style="fill: #fffbeb; stroke: #d97706;" />
+<path d="M 415.0 223.0 C 415.0 245.0, 645.0 245.0, 645.0 223.0" class="node-line" style="stroke: #d97706;" />
+<text x="530.0" y="160.0" class="node-title" text-anchor="middle">前端状态 stores</text>
+<text x="530.0" y="181.0" class="node-description" text-anchor="middle">用 Zustand 管理</text>
+<text x="530.0" y="199.0" class="node-description" text-anchor="middle">workspace、tabs、settings、...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/tauri-service-adapters.md" target="_blank">
+<g class="node" data-id="tauri-service-adapters">
+<title>tauri-service-adapters - /Users/zyc/notes/PM/plexus/architecture/modules/tauri-service-adapters.md</title>
+<rect x="755.0" y="125.0" width="230.0" height="110.0" rx="12" class="node-shape" style="fill: #ecfdf5; stroke: #059669;" />
+<text x="870.0" y="160.0" class="node-title" text-anchor="middle">Tauri 前端服务适配</text>
+<text x="870.0" y="181.0" class="node-description" text-anchor="middle">将前端调用封装为稳定的</text>
+<text x="870.0" y="199.0" class="node-description" text-anchor="middle">invoke/listen 服务对象</text>
+</g>
+</a>
+<a class="node-link" href="../modules/note-tree-search.md" target="_blank">
+<g class="node" data-id="note-tree-search">
+<title>note-tree-search - /Users/zyc/notes/PM/plexus/architecture/modules/note-tree-search.md</title>
+<polygon points="103.0,365.0 277.0,365.0 305.0,420.0 277.0,475.0 103.0,475.0 75.0,420.0" class="node-shape" style="fill: #f5f3ff; stroke: #7c3aed;" />
+<text x="190.0" y="400.0" class="node-title" text-anchor="middle">笔记树与搜索流</text>
+<text x="190.0" y="421.0" class="node-description" text-anchor="middle">加载目录树、缓存子目录、执行全</text>
+<text x="190.0" y="439.0" class="node-description" text-anchor="middle">文搜索并定位编辑器结果</text>
+</g>
+</a>
+<a class="node-link" href="../modules/editor-draft-lifecycle.md" target="_blank">
+<g class="node" data-id="editor-draft-lifecycle">
+<title>editor-draft-lifecycle - /Users/zyc/notes/PM/plexus/architecture/modules/editor-draft-lifecycle.md</title>
+<rect x="415.0" y="377.0" width="230.0" height="86.0" class="node-shape" style="fill: #fffbeb; stroke: #d97706;" />
+<ellipse cx="530.0" cy="377.0" rx="115.0" ry="16" class="node-shape" style="fill: #fffbeb; stroke: #d97706;" />
+<path d="M 415.0 463.0 C 415.0 485.0, 645.0 485.0, 645.0 463.0" class="node-line" style="stroke: #d97706;" />
+<text x="530.0" y="400.0" class="node-title" text-anchor="middle">编辑器草稿生命周期</text>
+<text x="530.0" y="421.0" class="node-description" text-anchor="middle">管理笔记加载、草稿变更、防抖保</text>
+<text x="530.0" y="439.0" class="node-description" text-anchor="middle">存、脏标记、外部变更和卸载...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/markdown-module-engine.md" target="_blank">
+<g class="node" data-id="markdown-module-engine">
+<title>markdown-module-engine - /Users/zyc/notes/PM/plexus/architecture/modules/markdown-module-engine.md</title>
+<polygon points="783.0,365.0 957.0,365.0 985.0,420.0 957.0,475.0 783.0,475.0 755.0,420.0" class="node-shape" style="fill: #f5f3ff; stroke: #7c3aed;" />
+<text x="870.0" y="400.0" class="node-title" text-anchor="middle">Markdown 模块编辑引擎</text>
+<text x="870.0" y="421.0" class="node-description" text-anchor="middle">将 Markdown</text>
+<text x="870.0" y="439.0" class="node-description" text-anchor="middle">解析为可编辑块并处理预览、...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/ai-chat-surface.md" target="_blank">
+<g class="node" data-id="ai-chat-surface">
+<title>ai-chat-surface - /Users/zyc/notes/PM/plexus/architecture/modules/ai-chat-surface.md</title>
+<rect x="75.0" y="605.0" width="230.0" height="110.0" rx="8" class="node-shape" style="fill: #eff6ff; stroke: #2563eb;" />
+<line x1="75.0" y1="629.0" x2="305.0" y2="629.0" class="node-line" style="stroke: #2563eb;" />
+<text x="190.0" y="640.0" class="node-title" text-anchor="middle">AI 聊天界面</text>
+<text x="190.0" y="661.0" class="node-description" text-anchor="middle">展示会话消息、输入、附件、上下</text>
+<text x="190.0" y="679.0" class="node-description" text-anchor="middle">文预算和 agent 状态窗口</text>
+</g>
+</a>
+<a class="node-link" href="../modules/ai-agent-loop.md" target="_blank">
+<g class="node" data-id="ai-agent-loop">
+<title>ai-agent-loop - /Users/zyc/notes/PM/plexus/architecture/modules/ai-agent-loop.md</title>
+<polygon points="443.0,605.0 617.0,605.0 645.0,660.0 617.0,715.0 443.0,715.0 415.0,660.0" class="node-shape" style="fill: #f5f3ff; stroke: #7c3aed;" />
+<text x="530.0" y="640.0" class="node-title" text-anchor="middle">AI Agent 循环</text>
+<text x="530.0" y="661.0" class="node-description" text-anchor="middle">构造模型请求、消费流式事件、聚</text>
+<text x="530.0" y="679.0" class="node-description" text-anchor="middle">合工具调用并执行多轮 agent...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/ai-context-tools.md" target="_blank">
+<g class="node" data-id="ai-context-tools">
+<title>ai-context-tools - /Users/zyc/notes/PM/plexus/architecture/modules/ai-context-tools.md</title>
+<path d="M 755.0 605.0 H 965.0 L 985.0 625.0 V 715.0 H 755.0 Z" class="node-shape" style="fill: #f8fafc; stroke: #475569;" />
+<path d="M 965.0 605.0 V 625.0 H 985.0" class="node-line" style="stroke: #475569;" />
+<text x="870.0" y="640.0" class="node-title" text-anchor="middle">上下文与工具注册</text>
+<text x="870.0" y="661.0" class="node-description" text-anchor="middle">管理 agent</text>
+<text x="870.0" y="679.0" class="node-description" text-anchor="middle">模板、上下文预算、状态快照...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/provider-config-proxy.md" target="_blank">
+<g class="node" data-id="provider-config-proxy">
+<title>provider-config-proxy - /Users/zyc/notes/PM/plexus/architecture/modules/provider-config-proxy.md</title>
+<polygon points="1113.0,605.0 1325.0,605.0 1307.0,715.0 1095.0,715.0" class="node-shape" style="fill: #fff7ed; stroke: #ea580c;" />
+<text x="1210.0" y="640.0" class="node-title" text-anchor="middle">Provider 配置与流式代理</text>
+<text x="1210.0" y="661.0" class="node-description" text-anchor="middle">连接前端 provider</text>
+<text x="1210.0" y="679.0" class="node-description" text-anchor="middle">元数据、后端密钥读取和外部...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/workspace-lifecycle.md" target="_blank">
+<g class="node" data-id="workspace-lifecycle">
+<title>workspace-lifecycle - /Users/zyc/notes/PM/plexus/architecture/modules/workspace-lifecycle.md</title>
+<rect x="1095.0" y="125.0" width="230.0" height="110.0" rx="12" class="node-shape" style="fill: #ecfdf5; stroke: #059669;" />
+<text x="1210.0" y="160.0" class="node-title" text-anchor="middle">工作区生命周期</text>
+<text x="1210.0" y="181.0" class="node-description" text-anchor="middle">打开工作区、确保 Git</text>
+<text x="1210.0" y="199.0" class="node-description" text-anchor="middle">与内部目录、恢复 active...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/note-file-repository.md" target="_blank">
+<g class="node" data-id="note-file-repository">
+<title>note-file-repository - /Users/zyc/notes/PM/plexus/architecture/modules/note-file-repository.md</title>
+<polygon points="1453.0,125.0 1665.0,125.0 1647.0,235.0 1435.0,235.0" class="node-shape" style="fill: #fff7ed; stroke: #ea580c;" />
+<text x="1550.0" y="160.0" class="node-title" text-anchor="middle">笔记文件仓储</text>
+<text x="1550.0" y="181.0" class="node-description" text-anchor="middle">以工作区安全相对路径读写、移动</text>
+<text x="1550.0" y="199.0" class="node-description" text-anchor="middle">、删除、列出和搜索 Markdown...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/asset-image-pipeline.md" target="_blank">
+<g class="node" data-id="asset-image-pipeline">
+<title>asset-image-pipeline - /Users/zyc/notes/PM/plexus/architecture/modules/asset-image-pipeline.md</title>
+<polygon points="1793.0,125.0 2005.0,125.0 1987.0,235.0 1775.0,235.0" class="node-shape" style="fill: #fff7ed; stroke: #ea580c;" />
+<text x="1890.0" y="160.0" class="node-title" text-anchor="middle">图片资产管线</text>
+<text x="1890.0" y="181.0" class="node-description" text-anchor="middle">处理编辑器和聊天图片的捕获、压</text>
+<text x="1890.0" y="199.0" class="node-description" text-anchor="middle">缩、解码、嗅探、写入和 data...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/session-artifact-store.md" target="_blank">
+<g class="node" data-id="session-artifact-store">
+<title>session-artifact-store - /Users/zyc/notes/PM/plexus/architecture/modules/session-artifact-store.md</title>
+<path d="M 1435.0 615.0 H 1507.0 L 1523.0 623.0 H 1665.0 V 715.0 H 1435.0 Z" class="node-shape" style="fill: #ecfeff; stroke: #0891b2;" />
+<text x="1550.0" y="640.0" class="node-title" text-anchor="middle">会话与内部资源存储</text>
+<text x="1550.0" y="661.0" class="node-description" text-anchor="middle">管理 workspace 内部 .plexus</text>
+<text x="1550.0" y="679.0" class="node-description" text-anchor="middle">会话、workspace 状态、chat...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/git-local-history.md" target="_blank">
+<g class="node" data-id="git-local-history">
+<title>git-local-history - /Users/zyc/notes/PM/plexus/architecture/modules/git-local-history.md</title>
+<polygon points="1113.0,365.0 1325.0,365.0 1307.0,475.0 1095.0,475.0" class="node-shape" style="fill: #fff7ed; stroke: #ea580c;" />
+<text x="1210.0" y="400.0" class="node-title" text-anchor="middle">本地 Git 历史</text>
+<text x="1210.0" y="421.0" class="node-description" text-anchor="middle">初始化工作区 Git</text>
+<text x="1210.0" y="439.0" class="node-description" text-anchor="middle">仓库、提交全部文件改动并计...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/git-remote-sync-pusher.md" target="_blank">
+<g class="node" data-id="git-remote-sync-pusher">
+<title>git-remote-sync-pusher - /Users/zyc/notes/PM/plexus/architecture/modules/git-remote-sync-pusher.md</title>
+<polygon points="1550.0,357.0 1673.0,420.0 1550.0,483.0 1427.0,420.0" class="node-shape" style="fill: #fef2f2; stroke: #dc2626;" />
+<text x="1550.0" y="400.0" class="node-title" text-anchor="middle">远端 Git 同步调度器</text>
+<text x="1550.0" y="421.0" class="node-description" text-anchor="middle">基于</text>
+<text x="1550.0" y="439.0" class="node-description" text-anchor="middle">commit/config/foreground/sy...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/event-bridge.md" target="_blank">
+<g class="node" data-id="event-bridge">
+<title>event-bridge - /Users/zyc/notes/PM/plexus/architecture/modules/event-bridge.md</title>
+<polygon points="1890.0,357.0 2013.0,420.0 1890.0,483.0 1767.0,420.0" class="node-shape" style="fill: #fef2f2; stroke: #dc2626;" />
+<text x="1890.0" y="400.0" class="node-title" text-anchor="middle">Tauri 事件桥</text>
+<text x="1890.0" y="421.0" class="node-description" text-anchor="middle">在 Rust 后端异步事件和前端</text>
+<text x="1890.0" y="439.0" class="node-description" text-anchor="middle">stores/components 之间传递...</text>
+</g>
+</a>
+<a class="node-link" href="../modules/app-config-rules.md" target="_blank">
+<g class="node" data-id="app-config-rules">
+<title>app-config-rules - /Users/zyc/notes/PM/plexus/architecture/modules/app-config-rules.md</title>
+<path d="M 1775.0 605.0 H 1985.0 L 2005.0 625.0 V 715.0 H 1775.0 Z" class="node-shape" style="fill: #f8fafc; stroke: #475569;" />
+<path d="M 1985.0 605.0 V 625.0 H 2005.0" class="node-line" style="stroke: #475569;" />
+<text x="1890.0" y="640.0" class="node-title" text-anchor="middle">应用配置规则</text>
+<text x="1890.0" y="661.0" class="node-description" text-anchor="middle">定义 localStorage、~/.plexus</text>
+<text x="1890.0" y="679.0" class="node-description" text-anchor="middle">和工作区 .plexus...</text>
+</g>
+</a>
+  <g class="relation relation-hover">
+<desc>读取布局和激活状态</desc>
+<path d="M 305.0 180.0 L 415.0 180.0" class="relation-hitbox" />
+<path d="M 305.0 180.0 L 415.0 180.0" class="relation-hover-line relation-hover-line-inner" />
+<g class="relation-bubble">
+<rect x="295.2" y="252.0" width="129.6" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="360.0" y="271.0" class="relation-bubble-text" text-anchor="middle">读取布局和激活状态</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>挂载笔记空间</desc>
+<path d="M 75.0 180.0 L -20.0 180.0 L -20.0 420.0 L 75.0 420.0" class="relation-hitbox" />
+<path d="M 75.0 180.0 L -20.0 180.0 L -20.0 420.0 L 75.0 420.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="-66.2" y="286.0" width="92.4" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="-20.0" y="305.0" class="relation-bubble-text" text-anchor="middle">挂载笔记空间</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>挂载 AI 空间</desc>
+<path d="M 75.0 180.0 L 31.0 180.0 L 31.0 660.0 L 75.0 660.0" class="relation-hitbox" />
+<path d="M 75.0 180.0 L 31.0 180.0 L 31.0 660.0 L 75.0 660.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="-49.2" y="406.0" width="92.4" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="-3.0" y="425.0" class="relation-bubble-text" text-anchor="middle">挂载 AI 空间</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>异步动作调用服务</desc>
+<path d="M 645.0 180.0 L 755.0 180.0" class="relation-hitbox" />
+<path d="M 645.0 180.0 L 755.0 180.0" class="relation-hover-line relation-hover-line-inner" />
+<g class="relation-bubble">
+<rect x="641.4" y="252.0" width="117.2" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="700.0" y="271.0" class="relation-bubble-text" text-anchor="middle">异步动作调用服务</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>invoke 工作区命令</desc>
+<path d="M 985.0 180.0 L 1095.0 180.0" class="relation-hitbox" />
+<path d="M 985.0 180.0 L 1095.0 180.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="978.3" y="252.0" width="123.4" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1040.0" y="271.0" class="relation-bubble-text" text-anchor="middle">invoke 工作区命令</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>invoke 笔记命令</desc>
+<path d="M 870.0 235.0 L 870.0 258.0 L 1550.0 258.0 L 1550.0 235.0" class="relation-hitbox" />
+<path d="M 870.0 235.0 L 870.0 258.0 L 1550.0 258.0 L 1550.0 235.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="1154.5" y="4.0" width="111.0" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1210.0" y="23.0" class="relation-bubble-text" text-anchor="middle">invoke 笔记命令</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>读写会话状态</desc>
+<path d="M 985.0 180.0 L 1026.0 180.0 L 1026.0 527.0 L 1550.0 527.0 L 1550.0 605.0" class="relation-hitbox" />
+<path d="M 985.0 180.0 L 1026.0 180.0 L 1026.0 527.0 L 1550.0 527.0 L 1550.0 605.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="1086.8" y="513.0" width="92.4" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1133.0" y="532.0" class="relation-bubble-text" text-anchor="middle">读写会话状态</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>list/search/reveal</desc>
+<path d="M 190.0 475.0 L 190.0 511.0 L 1054.0 511.0 L 1054.0 271.0 L 1550.0 271.0 L 1550.0 235.0" class="relation-hitbox" />
+<path d="M 190.0 475.0 L 190.0 511.0 L 1054.0 511.0 L 1054.0 271.0 L 1550.0 271.0 L 1550.0 235.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="925.2" y="497.0" width="129.6" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="990.0" y="516.0" class="relation-bubble-text" text-anchor="middle">list/search/reveal</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>提交 Markdown 变更</desc>
+<path d="M 755.0 420.0 L 645.0 420.0" class="relation-hitbox" />
+<path d="M 755.0 420.0 L 645.0 420.0" class="relation-hover-line relation-hover-line-inner" />
+<g class="relation-bubble">
+<rect x="635.2" y="492.0" width="129.6" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="700.0" y="511.0" class="relation-bubble-text" text-anchor="middle">提交 Markdown 变更</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>read/update 自动保存</desc>
+<path d="M 530.0 475.0 L 530.0 527.0 L 1054.0 527.0 L 1054.0 287.0 L 1550.0 287.0 L 1550.0 235.0" class="relation-hitbox" />
+<path d="M 530.0 475.0 L 530.0 527.0 L 1054.0 527.0 L 1054.0 287.0 L 1550.0 287.0 L 1550.0 235.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="1002.7" y="490.7" width="142.0" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1073.7" y="509.7" class="relation-bubble-text" text-anchor="middle">read/update 自动保存</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>渲染/插入图片</desc>
+<path d="M 985.0 420.0 L 1007.0 420.0 L 1007.0 511.0 L 2049.0 511.0 L 2049.0 180.0 L 2005.0 180.0" class="relation-hitbox" />
+<path d="M 985.0 420.0 L 1007.0 420.0 L 1007.0 511.0 L 2049.0 511.0 L 2049.0 180.0 L 2005.0 180.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="1609.7" y="497.0" width="98.6" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1659.0" y="516.0" class="relation-bubble-text" text-anchor="middle">渲染/插入图片</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>启动或中止 runAgent</desc>
+<path d="M 305.0 660.0 L 415.0 660.0" class="relation-hitbox" />
+<path d="M 305.0 660.0 L 415.0 660.0" class="relation-hover-line relation-hover-line-inner" />
+<g class="relation-bubble">
+<rect x="292.1" y="732.0" width="135.8" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="360.0" y="751.0" class="relation-bubble-text" text-anchor="middle">启动或中止 runAgent</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>加载保存会话</desc>
+<path d="M 190.0 715.0 L 190.0 738.0 L 1550.0 738.0 L 1550.0 715.0" class="relation-hitbox" />
+<path d="M 190.0 715.0 L 190.0 738.0 L 1550.0 738.0 L 1550.0 715.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="823.8" y="758.0" width="92.4" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="870.0" y="777.0" class="relation-bubble-text" text-anchor="middle">加载保存会话</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>构建上下文和工具</desc>
+<path d="M 645.0 660.0 L 755.0 660.0" class="relation-hitbox" />
+<path d="M 645.0 660.0 L 755.0 660.0" class="relation-hover-line relation-hover-line-inner" />
+<g class="relation-bubble">
+<rect x="641.4" y="732.0" width="117.2" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="700.0" y="751.0" class="relation-bubble-text" text-anchor="middle">构建上下文和工具</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>工具读写检索笔记</desc>
+<path d="M 985.0 660.0 L 1007.0 660.0 L 1007.0 759.0 L 2074.0 759.0 L 2074.0 279.0 L 1687.0 279.0 L 1687.0 180.0 L 1665.0 180.0" class="relation-hitbox" />
+<path d="M 985.0 660.0 L 1007.0 660.0 L 1007.0 759.0 L 2074.0 759.0 L 2074.0 279.0 L 1687.0 279.0 L 1687.0 180.0 L 1665.0 180.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="1915.4" y="745.0" width="117.2" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1974.0" y="764.0" class="relation-bubble-text" text-anchor="middle">工具读写检索笔记</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>请求流式模型</desc>
+<path d="M 530.0 715.0 L 530.0 786.0 L 1210.0 786.0 L 1210.0 715.0" class="relation-hitbox" />
+<path d="M 530.0 715.0 L 530.0 786.0 L 1210.0 786.0 L 1210.0 715.0" class="relation-hover-line relation-hover-line-inner" />
+<g class="relation-bubble">
+<rect x="823.8" y="772.0" width="92.4" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="870.0" y="791.0" class="relation-bubble-text" text-anchor="middle">请求流式模型</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>emit ai://stream</desc>
+<path d="M 1325.0 660.0 L 1369.0 660.0 L 1369.0 561.0 L 1890.0 561.0 L 1890.0 475.0" class="relation-hitbox" />
+<path d="M 1325.0 660.0 L 1369.0 660.0 L 1369.0 561.0 L 1890.0 561.0 L 1890.0 475.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="1542.4" y="547.0" width="117.2" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1601.0" y="566.0" class="relation-bubble-text" text-anchor="middle">emit ai://stream</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>读取 provider 和密钥</desc>
+<path d="M 1210.0 715.0 L 1210.0 797.0 L 1890.0 797.0 L 1890.0 715.0" class="relation-hitbox" />
+<path d="M 1210.0 715.0 L 1210.0 797.0 L 1890.0 797.0 L 1890.0 715.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="1479.0" y="783.0" width="142.0" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1550.0" y="802.0" class="relation-bubble-text" text-anchor="middle">读取 provider 和密钥</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>初始化仓库并提交</desc>
+<path d="M 1325.0 180.0 L 1347.0 180.0 L 1347.0 237.0 L 1029.0 237.0 L 1029.0 420.0 L 1095.0 420.0" class="relation-hitbox" />
+<path d="M 1325.0 180.0 L 1347.0 180.0 L 1347.0 237.0 L 1029.0 237.0 L 1029.0 420.0 L 1095.0 420.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="1068.9" y="246.5" width="117.2" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1127.5" y="265.5" class="relation-bubble-text" text-anchor="middle">初始化仓库并提交</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>启动 watcher</desc>
+<path d="M 1210.0 235.0 L 1210.0 257.0 L 1347.0 257.0 L 1347.0 169.0 L 1054.0 169.0 L 1054.0 47.0 L 2108.0 47.0 L 2108.0 497.0 L 1890.0 497.0 L 1890.0 475.0" class="relation-hitbox" />
+<path d="M 1210.0 235.0 L 1210.0 257.0 L 1347.0 257.0 L 1347.0 169.0 L 1054.0 169.0 L 1054.0 47.0 L 2108.0 47.0 L 2108.0 497.0 L 1890.0 497.0 L 1890.0 475.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="1548.8" y="33.0" width="92.4" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1595.0" y="52.0" class="relation-bubble-text" text-anchor="middle">启动 watcher</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>写操作后 commit</desc>
+<path d="M 1435.0 180.0 L 1380.0 180.0 L 1380.0 420.0 L 1325.0 420.0" class="relation-hitbox" />
+<path d="M 1435.0 180.0 L 1380.0 180.0 L 1380.0 420.0 L 1325.0 420.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="1293.6" y="271.8" width="111.0" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1349.1" y="290.8" class="relation-bubble-text" text-anchor="middle">写操作后 commit</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>复用安全路径</desc>
+<path d="M 1775.0 180.0 L 1665.0 180.0" class="relation-hitbox" />
+<path d="M 1775.0 180.0 L 1665.0 180.0" class="relation-hover-line relation-hover-line-inner" />
+<g class="relation-bubble">
+<rect x="1673.8" y="252.0" width="92.4" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1720.0" y="271.0" class="relation-bubble-text" text-anchor="middle">复用安全路径</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>提供 ahead/behind</desc>
+<path d="M 1325.0 420.0 L 1435.0 420.0" class="relation-hitbox" />
+<path d="M 1325.0 420.0 L 1435.0 420.0" class="relation-hover-line relation-hover-line-inner" />
+<g class="relation-bubble">
+<rect x="1318.3" y="492.0" width="123.4" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1380.0" y="511.0" class="relation-bubble-text" text-anchor="middle">提供 ahead/behind</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>发送 CommitMade</desc>
+<path d="M 1550.0 235.0 L 1550.0 365.0" class="relation-hitbox" />
+<path d="M 1550.0 235.0 L 1550.0 365.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="1494.5" y="265.2" width="111.0" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1550.0" y="284.2" class="relation-bubble-text" text-anchor="middle">发送 CommitMade</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>读取 git.json 和 secret</desc>
+<path d="M 1665.0 420.0 L 1720.0 420.0 L 1720.0 660.0 L 1775.0 660.0" class="relation-hitbox" />
+<path d="M 1665.0 420.0 L 1720.0 420.0 L 1720.0 660.0 L 1775.0 660.0" class="relation-hover-line relation-hover-line-inner" />
+<g class="relation-bubble">
+<rect x="1639.7" y="526.0" width="160.6" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1720.0" y="545.0" class="relation-bubble-text" text-anchor="middle">读取 git.json 和 secret</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>emit git-sync-status</desc>
+<path d="M 1665.0 420.0 L 1775.0 420.0" class="relation-hitbox" />
+<path d="M 1665.0 420.0 L 1775.0 420.0" class="relation-hover-line relation-hover-line-inner" />
+<g class="relation-bubble">
+<rect x="1649.0" y="492.0" width="142.0" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="1720.0" y="511.0" class="relation-bubble-text" text-anchor="middle">emit git-sync-status</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>事件更新前端状态</desc>
+<path d="M 2005.0 420.0 L 2136.0 420.0 L 2136.0 31.0 L -56.0 31.0 L -56.0 271.0 L 667.0 271.0 L 667.0 180.0 L 645.0 180.0" class="relation-hitbox" />
+<path d="M 2005.0 420.0 L 2136.0 420.0 L 2136.0 31.0 L -56.0 31.0 L -56.0 271.0 L 667.0 271.0 L 667.0 180.0 L 645.0 180.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="703.4" y="17.0" width="117.2" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="762.0" y="36.0" class="relation-bubble-text" text-anchor="middle">事件更新前端状态</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>hydrate UI 配置</desc>
+<path d="M 1890.0 715.0 L 1890.0 821.0 L 6.0 821.0 L 6.0 287.0 L 530.0 287.0 L 530.0 235.0" class="relation-hitbox" />
+<path d="M 1890.0 715.0 L 1890.0 821.0 L 6.0 821.0 L 6.0 287.0 L 530.0 287.0 L 530.0 235.0" class="relation-hover-line relation-hover-line-outer" stroke-dasharray="8 7" />
+<g class="relation-bubble">
+<rect x="390.5" y="807.0" width="111.0" height="31.0" rx="6" class="relation-bubble-box" />
+<text x="446.0" y="826.0" class="relation-bubble-text" text-anchor="middle">hydrate UI 配置</text>
+</g>
+</g>
+</svg>

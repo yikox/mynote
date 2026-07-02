@@ -1,0 +1,295 @@
+{
+  "format": "arch-graph/v0.1",
+  "id": "current-project",
+  "name": "Plexus 当前项目模块架构图",
+  "described": "React/Tauri 桌面笔记 App 的 Shell、笔记编辑、AI agent、后端工作区、Git 同步与配置模块关系",
+  "objects": [
+    {
+      "id": "app-shell-layout",
+      "ref": "../modules/app-shell-layout.md",
+      "at": [0, 0]
+    },
+    {
+      "id": "ui-state-stores",
+      "ref": "../modules/ui-state-stores.md",
+      "at": [1, 0]
+    },
+    {
+      "id": "tauri-service-adapters",
+      "ref": "../modules/tauri-service-adapters.md",
+      "at": [2, 0]
+    },
+    {
+      "id": "note-tree-search",
+      "ref": "../modules/note-tree-search.md",
+      "at": [0, 1]
+    },
+    {
+      "id": "editor-draft-lifecycle",
+      "ref": "../modules/editor-draft-lifecycle.md",
+      "at": [1, 1]
+    },
+    {
+      "id": "markdown-module-engine",
+      "ref": "../modules/markdown-module-engine.md",
+      "at": [2, 1]
+    },
+    {
+      "id": "ai-chat-surface",
+      "ref": "../modules/ai-chat-surface.md",
+      "at": [0, 2]
+    },
+    {
+      "id": "ai-agent-loop",
+      "ref": "../modules/ai-agent-loop.md",
+      "at": [1, 2]
+    },
+    {
+      "id": "ai-context-tools",
+      "ref": "../modules/ai-context-tools.md",
+      "at": [2, 2]
+    },
+    {
+      "id": "provider-config-proxy",
+      "ref": "../modules/provider-config-proxy.md",
+      "at": [3, 2]
+    },
+    {
+      "id": "workspace-lifecycle",
+      "ref": "../modules/workspace-lifecycle.md",
+      "at": [3, 0]
+    },
+    {
+      "id": "note-file-repository",
+      "ref": "../modules/note-file-repository.md",
+      "at": [4, 0]
+    },
+    {
+      "id": "asset-image-pipeline",
+      "ref": "../modules/asset-image-pipeline.md",
+      "at": [5, 0]
+    },
+    {
+      "id": "session-artifact-store",
+      "ref": "../modules/session-artifact-store.md",
+      "at": [4, 2]
+    },
+    {
+      "id": "git-local-history",
+      "ref": "../modules/git-local-history.md",
+      "at": [3, 1]
+    },
+    {
+      "id": "git-remote-sync-pusher",
+      "ref": "../modules/git-remote-sync-pusher.md",
+      "at": [4, 1]
+    },
+    {
+      "id": "event-bridge",
+      "ref": "../modules/event-bridge.md",
+      "at": [5, 1]
+    },
+    {
+      "id": "app-config-rules",
+      "ref": "../modules/app-config-rules.md",
+      "at": [5, 2]
+    }
+  ],
+  "groups": [
+    {
+      "id": "frontend-shell-state",
+      "ref": "../modules/frontend-shell-state.md",
+      "contains": ["app-shell-layout", "ui-state-stores", "tauri-service-adapters"]
+    },
+    {
+      "id": "note-authoring-module",
+      "ref": "../modules/note-authoring-module.md",
+      "contains": ["note-tree-search", "editor-draft-lifecycle", "markdown-module-engine"]
+    },
+    {
+      "id": "ai-agent-workbench",
+      "ref": "../modules/ai-agent-workbench.md",
+      "contains": ["ai-chat-surface", "ai-agent-loop", "ai-context-tools", "provider-config-proxy"]
+    },
+    {
+      "id": "backend-workspace-runtime",
+      "ref": "../modules/backend-workspace-runtime.md",
+      "contains": ["workspace-lifecycle", "note-file-repository", "asset-image-pipeline", "session-artifact-store"]
+    },
+    {
+      "id": "sync-config-runtime",
+      "ref": "../modules/sync-config-runtime.md",
+      "contains": ["git-local-history", "git-remote-sync-pusher", "event-bridge", "app-config-rules"]
+    }
+  ],
+  "relations": [
+    {
+      "from": "app-shell-layout",
+      "to": "ui-state-stores",
+      "described": "读取布局和激活状态",
+      "style": "solid"
+    },
+    {
+      "from": "app-shell-layout",
+      "to": "note-tree-search",
+      "described": "挂载笔记空间",
+      "style": "solid"
+    },
+    {
+      "from": "app-shell-layout",
+      "to": "ai-chat-surface",
+      "described": "挂载 AI 空间",
+      "style": "solid"
+    },
+    {
+      "from": "ui-state-stores",
+      "to": "tauri-service-adapters",
+      "described": "异步动作调用服务",
+      "style": "solid"
+    },
+    {
+      "from": "tauri-service-adapters",
+      "to": "workspace-lifecycle",
+      "described": "invoke 工作区命令",
+      "style": "solid"
+    },
+    {
+      "from": "tauri-service-adapters",
+      "to": "note-file-repository",
+      "described": "invoke 笔记命令",
+      "style": "solid"
+    },
+    {
+      "from": "tauri-service-adapters",
+      "to": "session-artifact-store",
+      "described": "读写会话状态",
+      "style": "solid"
+    },
+    {
+      "from": "note-tree-search",
+      "to": "note-file-repository",
+      "described": "list/search/reveal",
+      "style": "solid"
+    },
+    {
+      "from": "markdown-module-engine",
+      "to": "editor-draft-lifecycle",
+      "described": "提交 Markdown 变更",
+      "style": "solid"
+    },
+    {
+      "from": "editor-draft-lifecycle",
+      "to": "note-file-repository",
+      "described": "read/update 自动保存",
+      "style": "solid"
+    },
+    {
+      "from": "markdown-module-engine",
+      "to": "asset-image-pipeline",
+      "described": "渲染/插入图片",
+      "style": "solid"
+    },
+    {
+      "from": "ai-chat-surface",
+      "to": "ai-agent-loop",
+      "described": "启动或中止 runAgent",
+      "style": "solid"
+    },
+    {
+      "from": "ai-chat-surface",
+      "to": "session-artifact-store",
+      "described": "加载保存会话",
+      "style": "solid"
+    },
+    {
+      "from": "ai-agent-loop",
+      "to": "ai-context-tools",
+      "described": "构建上下文和工具",
+      "style": "solid"
+    },
+    {
+      "from": "ai-context-tools",
+      "to": "note-file-repository",
+      "described": "工具读写检索笔记",
+      "style": "solid"
+    },
+    {
+      "from": "ai-agent-loop",
+      "to": "provider-config-proxy",
+      "described": "请求流式模型",
+      "style": "solid"
+    },
+    {
+      "from": "provider-config-proxy",
+      "to": "event-bridge",
+      "described": "emit ai://stream",
+      "style": "solid"
+    },
+    {
+      "from": "provider-config-proxy",
+      "to": "app-config-rules",
+      "described": "读取 provider 和密钥",
+      "style": "solid"
+    },
+    {
+      "from": "workspace-lifecycle",
+      "to": "git-local-history",
+      "described": "初始化仓库并提交",
+      "style": "solid"
+    },
+    {
+      "from": "workspace-lifecycle",
+      "to": "event-bridge",
+      "described": "启动 watcher",
+      "style": "solid"
+    },
+    {
+      "from": "note-file-repository",
+      "to": "git-local-history",
+      "described": "写操作后 commit",
+      "style": "solid"
+    },
+    {
+      "from": "asset-image-pipeline",
+      "to": "note-file-repository",
+      "described": "复用安全路径",
+      "style": "solid"
+    },
+    {
+      "from": "git-local-history",
+      "to": "git-remote-sync-pusher",
+      "described": "提供 ahead/behind",
+      "style": "solid"
+    },
+    {
+      "from": "note-file-repository",
+      "to": "git-remote-sync-pusher",
+      "described": "发送 CommitMade",
+      "style": "solid"
+    },
+    {
+      "from": "git-remote-sync-pusher",
+      "to": "app-config-rules",
+      "described": "读取 git.json 和 secret",
+      "style": "solid"
+    },
+    {
+      "from": "git-remote-sync-pusher",
+      "to": "event-bridge",
+      "described": "emit git-sync-status",
+      "style": "solid"
+    },
+    {
+      "from": "event-bridge",
+      "to": "ui-state-stores",
+      "described": "事件更新前端状态",
+      "style": "solid"
+    },
+    {
+      "from": "app-config-rules",
+      "to": "ui-state-stores",
+      "described": "hydrate UI 配置",
+      "style": "dashed"
+    }
+  ]
+}

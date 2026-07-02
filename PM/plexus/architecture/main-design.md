@@ -1,164 +1,124 @@
-# Plexus 主设计文档
+# Plexus 模块架构主设计
 
-Last updated: 2026-06-27
+> 迁移时间：2026-07-02  
+> 来源：由当前代码与 `PMAD/architecture/graphs/current-project.arch.json` 迁移为模块化工作流基线。  
+> 状态：current baseline / migrated from legacy PM。
 
-Status: implemented（现状梳理；个别条目标注 planned）
+## 1. 架构总览
 
-## 概述
+Plexus 是一个 Tauri 2 + React 19 桌面笔记应用，核心形态是“本地 Markdown 知识库 + 可视化编辑 + 本地 Git 同步 + AI Agent 协作”。当前架构按模块化工作流拆分为 5 个复合主模块与 18 个原子模块。
 
-Plexus 是一款基于 **Tauri 2 + React 19** 的桌面 Markdown 笔记应用：笔记以本地 `.md` 文件存储、通过 git 同步，并深度集成可调用工具的 AI 会话。前端为 Vite + React + TypeScript（状态用 zustand），后端为 Rust（`src-tauri/`，bundle id `com.plexus.app`，crate `plexus`/`plexus_lib`）。数据目录 `~/.plexus`，工作区内元数据目录 `.plexus/`。
+| 复合模块 | 名称 | 边界摘要 |
+| --- | --- | --- |
+| `frontend-shell-state` | 前端 Shell 与状态组合 | 组织应用框架、全局状态恢复和 Tauri 前端适配的组合模块 |
+| `note-authoring-module` | 笔记作者体验组合 | 覆盖笔记树、搜索、自动保存草稿和模块化 Markdown 编辑体验 |
+| `ai-agent-workbench` | AI Agent 工作台组合 | 组织聊天界面、上下文预算、工具执行、provider 配置和流式代理 |
+| `backend-workspace-runtime` | 后端工作区运行时组合 | 管理 Tauri 命令、工作区打开、文件仓储、图片资产和会话资源 |
+| `sync-config-runtime` | 同步与配置运行时组合 | 覆盖本地 Git、远端同步调度、事件桥和应用配置规则 |
 
-详细的版本进度、里程碑、风险见 `project-management.md`；可复用的命令/排查/约定见 `knowledge-summary.md`。
+## 2. 当前模块基线
 
-## 系统范围
+### 2.1 复合主模块
 
-- **范围内**：本地笔记的 CRUD 与全文检索、双模式 Markdown 编辑器、AI 会话与工具调用、上下文预算/压缩、git 远程同步与 GitHub OAuth 接入、会话/配置/密钥的本地持久化。
-- **范围外**：多人实时协作、服务端账户体系、云端笔记存储（同步完全依赖用户自有 git 远程）、移动端。
-- **运行形态**：单机桌面应用，前后端通过 Tauri `invoke` 命令 + 事件通道通信；AI 请求经 Rust 端代理流式转发到用户配置的 OpenAI 兼容 provider。
-
-## Mermaid 图表约定
-
-本目录的架构图采用内嵌 Mermaid 代码块，作为 Markdown 文档的一部分维护，不额外引入 `mmdc`、Kroki、Graphviz 等渲染依赖；渲染交给支持 Mermaid 的阅读器。图表只表达当前实现或已接受的 baseline，不承载计划队列。
-
-生成图表时遵循 `awesome-skills/mermaid-syntax-skill` 的轻量规则：
-
-- 使用 `flowchart` / `sequenceDiagram` 等稳定图类型，避免实验性复杂语法。
-- 节点 id 使用简单英文标识，避免 `end`、`default`、`style`、`class` 等保留词。
-- 含空格、中文、括号、斜杠或冒号的标签统一用双引号包裹。
-- 一张图只承担一个认知任务；图太密时拆成模块图或流程图。
-
-
-## 界面区域总览
-
-应用主窗口的顶层区域划分如下（详细分区与各空间内容见 `architecture/modules/ui-shell.md`）：
-
-```
-┌──────────────────────────────────────────────────────────┐
-│ T  TopBar（标题/窗口控制）                                  │
-├────┬───────────────┬───────────────────────────────────────┤
-│    │               │ M1 TabBar（标签页）                    │
-│ A  │ S  Sidebar    ├───────────────────────────────────────┤
-│ 活 │ （随空间切换： │ M2 MainArea                            │
-│ 动 │  笔记树 /      │   · 笔记空间 → 编辑器 Editor           │
-│ 栏 │  会话列表）    │   · AI 空间  → 聊天 ChatPanel          │
-│    │               │   · 无标签页 → 引导页 Welcome          │
-├────┴───────────────┴───────────────────────────────────────┤
-│ B  StatusBar（状态栏）                                      │
-└──────────────────────────────────────────────────────────┘
-   （叠加层 O：设置/AI 配置/工具确认/快速打开/全局搜索等弹框）
-```
-
-| 代号 | 区域 | 作用 | 归属模块 |
-| --- | --- | --- | --- |
-| T | TopBar | 标题与窗口级操作 | UI Shell |
-| A | ActivityBar | 切换工作空间（笔记 / AI），即 `activeSpace` | UI Shell |
-| S | Sidebar | 随空间显示笔记树或 AI 会话列表（可折叠/调宽） | UI Shell + Notes / AIChat |
-| M1 | TabBar | 已打开标签页与活动标签页 | UI Shell |
-| M2 | MainArea | 按空间与活动标签分发编辑器/聊天/引导页 | UI Shell（分发）+ Editor / AIChat |
-| B | StatusBar | 全局状态展示 | UI Shell |
-| O | 叠加层 Overlays | 全屏/居中弹框（设置、AI 配置、工具确认、⌘P、⌘⇧F 等） | UI Shell |
-
-## 模块地图
-
-| 模块 | 职责 | 设计文档 | 状态 | 备注 |
+| ID | 名称 | 类型 | 描述 | 文档 |
 | --- | --- | --- | --- | --- |
-| 编辑器 Editor | 双模式（rich 块 / plain 文本）Markdown 编辑、查找、跳转高亮、TOC、KaTeX/Mermaid 渲染、表格编辑与智能预览 | architecture/modules/editor.md | implemented | 纯前端，基于 `<textarea>` |
-| AI Agent | AI 会话编排：agent loop、上下文构建/预算、状态快照、压缩、系统提示分层、模型限额 | architecture/modules/ai-agent.md | implemented | 前端编排 + Rust `ai_proxy` 流式 |
-| AI 工具 AI Tools | 供 agent 调用的工具定义与注册表（笔记读写、检索、联网搜索）+ 写操作确认/Diff 回执 | architecture/modules/ai-tools.md | implemented | 工具经 services 落到 Rust 命令 |
-| 笔记 Notes | 笔记文件模型：树、CRUD、全文 grep、快速打开、资源/图片，跨前端 service 与 Rust `core::notes` | architecture/modules/notes.md | implemented | 落盘真相在 Rust 端 |
-| UI 外壳 UI Shell | 应用布局、导航（活动栏/侧栏/标签页）、各类弹框、全局快捷键、空状态引导 | architecture/modules/ui-shell.md | implemented | 组合各模块 UI |
-| 同步 Sync | git 远程配置、推送/同步状态、GitHub 设备流 OAuth 与仓库创建/连接 | architecture/modules/sync.md | implemented | Rust `core::git*` + `github_oauth` |
+| `frontend-shell-state` | 前端 Shell 与状态组合 | composite / layout-style | 组织应用框架、全局状态恢复和 Tauri 前端适配的组合模块 | [frontend-shell-state](modules/frontend-shell-state.md) |
+| `note-authoring-module` | 笔记作者体验组合 | composite / function-flow | 覆盖笔记树、搜索、自动保存草稿和模块化 Markdown 编辑体验 | [note-authoring-module](modules/note-authoring-module.md) |
+| `ai-agent-workbench` | AI Agent 工作台组合 | composite / function-flow | 组织聊天界面、上下文预算、工具执行、provider 配置和流式代理 | [ai-agent-workbench](modules/ai-agent-workbench.md) |
+| `backend-workspace-runtime` | 后端工作区运行时组合 | composite / adapter-io | 管理 Tauri 命令、工作区打开、文件仓储、图片资产和会话资源 | [backend-workspace-runtime](modules/backend-workspace-runtime.md) |
+| `sync-config-runtime` | 同步与配置运行时组合 | composite / event-message | 覆盖本地 Git、远端同步调度、事件桥和应用配置规则 | [sync-config-runtime](modules/sync-config-runtime.md) |
 
-> 跨模块的共享状态由 `src/stores/` 下的 zustand store 承载（见各模块「数据与状态」与下方共享约束）；前端→后端的所有调用经 `src/services/` 薄封装层包裹 Tauri `invoke`。
+### 2.2 原子模块
 
-## 系统模块关系图
+| ID | 名称 | 类型 | 描述 | 文档 |
+| --- | --- | --- | --- | --- |
+| `app-shell-layout` | 应用 Shell 布局 | atomic / layout-style | 组合顶栏、活动栏、侧栏、标签栏、主区域、状态栏和全局弹窗 | [app-shell-layout](modules/app-shell-layout.md) |
+| `ui-state-stores` | 前端状态 stores | atomic / data-state | 用 Zustand 管理 workspace、tabs、settings、sessions、AI run 和同步状态 | [ui-state-stores](modules/ui-state-stores.md) |
+| `tauri-service-adapters` | Tauri 前端服务适配 | atomic / interface-object | 将前端调用封装为稳定的 invoke/listen 服务对象 | [tauri-service-adapters](modules/tauri-service-adapters.md) |
+| `note-tree-search` | 笔记树与搜索流 | atomic / function-flow | 加载目录树、缓存子目录、执行全文搜索并定位编辑器结果 | [note-tree-search](modules/note-tree-search.md) |
+| `editor-draft-lifecycle` | 编辑器草稿生命周期 | atomic / data-state | 管理笔记加载、草稿变更、防抖保存、脏标记、外部变更和卸载 flush | [editor-draft-lifecycle](modules/editor-draft-lifecycle.md) |
+| `markdown-module-engine` | Markdown 模块编辑引擎 | atomic / function-flow | 将 Markdown 解析为可编辑块并处理预览、列表、表格、数学、Mermaid 和图片 | [markdown-module-engine](modules/markdown-module-engine.md) |
+| `ai-chat-surface` | AI 聊天界面 | atomic / layout-style | 展示会话消息、输入、附件、上下文预算和 agent 状态窗口 | [ai-chat-surface](modules/ai-chat-surface.md) |
+| `ai-agent-loop` | AI Agent 循环 | atomic / function-flow | 构造模型请求、消费流式事件、聚合工具调用并执行多轮 agent loop | [ai-agent-loop](modules/ai-agent-loop.md) |
+| `ai-context-tools` | 上下文与工具注册 | atomic / config-rule | 管理 agent 模板、上下文预算、状态快照、工具 schema 和工具执行配置 | [ai-context-tools](modules/ai-context-tools.md) |
+| `provider-config-proxy` | Provider 配置与流式代理 | atomic / adapter-io | 连接前端 provider 元数据、后端密钥读取和外部 OpenAI/Anthropic 风格 API | [provider-config-proxy](modules/provider-config-proxy.md) |
+| `workspace-lifecycle` | 工作区生命周期 | atomic / interface-object | 打开工作区、确保 Git 与内部目录、恢复 active workspace 并启动 watcher/pusher | [workspace-lifecycle](modules/workspace-lifecycle.md) |
+| `note-file-repository` | 笔记文件仓储 | atomic / adapter-io | 以工作区安全相对路径读写、移动、删除、列出和搜索 Markdown 笔记 | [note-file-repository](modules/note-file-repository.md) |
+| `asset-image-pipeline` | 图片资产管线 | atomic / adapter-io | 处理编辑器和聊天图片的捕获、压缩、解码、嗅探、写入和 data URL 读取 | [asset-image-pipeline](modules/asset-image-pipeline.md) |
+| `session-artifact-store` | 会话与内部资源存储 | atomic / resource-file | 管理 workspace 内部 .plexus 会话、workspace 状态、chat assets 和历史清理 | [session-artifact-store](modules/session-artifact-store.md) |
+| `git-local-history` | 本地 Git 历史 | atomic / adapter-io | 初始化工作区 Git 仓库、提交全部文件改动并计算本地/远端差异 | [git-local-history](modules/git-local-history.md) |
+| `git-remote-sync-pusher` | 远端 Git 同步调度器 | atomic / event-message | 基于 commit/config/foreground/sync 信号调度 fetch/push 并发布同步状态 | [git-remote-sync-pusher](modules/git-remote-sync-pusher.md) |
+| `event-bridge` | Tauri 事件桥 | atomic / event-message | 在 Rust 后端异步事件和前端 stores/components 之间传递 watcher、AI stream、Git sync 与菜单事件 | [event-bridge](modules/event-bridge.md) |
+| `app-config-rules` | 应用配置规则 | atomic / config-rule | 定义 localStorage、~/.plexus 和工作区 .plexus 中配置的归属、默认值与迁移规则 | [app-config-rules](modules/app-config-rules.md) |
 
-```mermaid
-flowchart LR
-    user["用户"] --> uiShell["UI Shell<br/>布局与导航"]
-    uiShell --> editor["Editor<br/>Markdown 编辑"]
-    uiShell --> aiAgent["AI Agent<br/>会话编排"]
-    uiShell --> notes["Notes<br/>文件模型"]
-    uiShell --> sync["Sync<br/>Git 同步"]
-    aiAgent --> aiTools["AI Tools<br/>工具注册与执行"]
-    aiTools --> notes
-    editor --> notes
-    notes --> rustCore["Rust Core<br/>Tauri 命令"]
-    sync --> rustCore
-    aiAgent --> aiProxy["Rust AI Proxy<br/>流式 provider 代理"]
-    rustCore --> workspace["本地工作区<br/>.md + .plexus"]
-    sync --> gitRemote["Git 远程 / GitHub"]
-    aiProxy --> provider["OpenAI 兼容 Provider"]
-```
+### 2.3 复合模块包含关系
 
+- `frontend-shell-state`（前端 Shell 与状态组合）：`app-shell-layout`, `ui-state-stores`, `tauri-service-adapters`
+- `note-authoring-module`（笔记作者体验组合）：`note-tree-search`, `editor-draft-lifecycle`, `markdown-module-engine`
+- `ai-agent-workbench`（AI Agent 工作台组合）：`ai-chat-surface`, `ai-agent-loop`, `ai-context-tools`, `provider-config-proxy`
+- `backend-workspace-runtime`（后端工作区运行时组合）：`workspace-lifecycle`, `note-file-repository`, `asset-image-pipeline`, `session-artifact-store`
+- `sync-config-runtime`（同步与配置运行时组合）：`git-local-history`, `git-remote-sync-pusher`, `event-bridge`, `app-config-rules`
 
-## 核心流程
+## 3. 依赖边界
 
-- **编辑笔记**：UI Shell 打开标签页 → Editor 加载草稿 → 编辑落到 store/草稿 → service `update_note` → Rust `core::notes` 写盘 → 文件 watcher 通知前台标签页（干净则静默刷新、脏则提示冲突）。
-- **AI 会话一轮**：用户在 InputBox 发送（可带 `@` 引用笔记/图片）→ AI Agent 构建上下文（系统提示分层 + 历史 + 按模型窗口算预算，超阈值先注入状态快照再压缩）→ 经 service `ai_chat` 到 Rust `ai_proxy` 流式拉取 → 模型发起工具调用 → AI Tools 执行（写操作按策略弹确认、成功返回 Diff 回执）→ 结果回灌历史继续循环 → 落 `sessions` 持久化。
-- **全文检索/跳转**：⌘⇧F 全局搜索经 service `search_notes`（Rust grep）→ 命中投递 `uiStore.locateRequest{path,line,query}` → 打开笔记并在 Editor 内定位、对被检索词做词级渐隐高亮。
-- **同步**：用户配置 git 远程或走 GitHub 设备流 OAuth 连接/创建仓库 → 写操作后由 Rust 端 pusher/sync 推送 → 前端 `gitRemoteStore` 反映同步状态。
-- **启动/迁移**：打开工作区 → 加载 workspace state、providers、AI 配置（含一次性配置迁移/预设播种）、会话列表 → 渲染 AppShell。
+当前依赖图以 `graphs/current-project.arch.json` 为机器可校验来源，渲染文件位于 `rendered/current-project-architecture.html` 与 `rendered/current-project-architecture.svg`。
 
-### 核心链路图
+- `app-shell-layout` -> `ui-state-stores` (`solid`)：读取布局和激活状态
+- `app-shell-layout` -> `note-tree-search` (`solid`)：挂载笔记空间
+- `app-shell-layout` -> `ai-chat-surface` (`solid`)：挂载 AI 空间
+- `ui-state-stores` -> `tauri-service-adapters` (`solid`)：异步动作调用服务
+- `tauri-service-adapters` -> `workspace-lifecycle` (`solid`)：invoke 工作区命令
+- `tauri-service-adapters` -> `note-file-repository` (`solid`)：invoke 笔记命令
+- `tauri-service-adapters` -> `session-artifact-store` (`solid`)：读写会话状态
+- `note-tree-search` -> `note-file-repository` (`solid`)：list/search/reveal
+- `markdown-module-engine` -> `editor-draft-lifecycle` (`solid`)：提交 Markdown 变更
+- `editor-draft-lifecycle` -> `note-file-repository` (`solid`)：read/update 自动保存
+- `markdown-module-engine` -> `asset-image-pipeline` (`solid`)：渲染/插入图片
+- `ai-chat-surface` -> `ai-agent-loop` (`solid`)：启动或中止 runAgent
+- `ai-chat-surface` -> `session-artifact-store` (`solid`)：加载保存会话
+- `ai-agent-loop` -> `ai-context-tools` (`solid`)：构建上下文和工具
+- `ai-context-tools` -> `note-file-repository` (`solid`)：工具读写检索笔记
+- `ai-agent-loop` -> `provider-config-proxy` (`solid`)：请求流式模型
+- `provider-config-proxy` -> `event-bridge` (`solid`)：emit ai://stream
+- `provider-config-proxy` -> `app-config-rules` (`solid`)：读取 provider 和密钥
+- `workspace-lifecycle` -> `git-local-history` (`solid`)：初始化仓库并提交
+- `workspace-lifecycle` -> `event-bridge` (`solid`)：启动 watcher
+- `note-file-repository` -> `git-local-history` (`solid`)：写操作后 commit
+- `asset-image-pipeline` -> `note-file-repository` (`solid`)：复用安全路径
+- `git-local-history` -> `git-remote-sync-pusher` (`solid`)：提供 ahead/behind
+- `note-file-repository` -> `git-remote-sync-pusher` (`solid`)：发送 CommitMade
+- `git-remote-sync-pusher` -> `app-config-rules` (`solid`)：读取 git.json 和 secret
+- `git-remote-sync-pusher` -> `event-bridge` (`solid`)：emit git-sync-status
+- `event-bridge` -> `ui-state-stores` (`solid`)：事件更新前端状态
+- `app-config-rules` -> `ui-state-stores` (`dashed`)：hydrate UI 配置
 
-```mermaid
-sequenceDiagram
-    participant User as 用户
-    participant Shell as UI Shell
-    participant Editor as Editor
-    participant Notes as Notes Service
-    participant Rust as Rust Core
-    participant AI as AI Agent
-    participant Tools as AI Tools
-    participant Provider as Provider
-    participant Git as Sync
+## 4. 模块修改门禁
 
-    User->>Shell: 打开笔记或 AI 会话
-    Shell->>Editor: 渲染活动 note 标签
-    Editor->>Notes: 保存草稿
-    Notes->>Rust: update_note
-    Rust-->>Shell: watcher 事件
-    User->>AI: 发送消息
-    AI->>Provider: ai_chat 流式请求
-    Provider-->>AI: 回复或 tool_call
-    AI->>Tools: 执行工具
-    Tools->>Notes: 读写/检索笔记
-    Notes->>Rust: Tauri 命令
-    Rust-->>Tools: 结果 / Diff
-    Tools-->>AI: 工具结果回灌
-    Rust->>Git: 写操作后同步状态 / 推送
-```
+所有非平凡修改必须先完成模块门禁：
 
+| 字段 | 要求 |
+| --- | --- |
+| Primary module | 选择一个主模块作为入口；PM 只记录选择，不重新定义边界 |
+| Impacted modules | 列出跨模块影响与原因 |
+| Change level | L0/L1/L2/L3；L1+ 必须登记 PM 开始和完成记录 |
+| Expected artifact | 说明是否需要模块变更设计、架构变更、ADR 或仅 PM 记录 |
+| Validation | 记录构建、测试、架构图校验或人工验收证据 |
 
-## 共享约束
+## 5. 旧 PM 迁移说明
 
-- **前后端边界**：前端不直接碰文件系统/网络；一切经 `services/*` → Tauri 命令 → `core::*`。落盘与同步的「真相」在 Rust 端。
-- **zustand selector 纪律**：selector 绝不能内联 `?? []`/`?? {}` 返回新引用（zustand v5 + `useSyncExternalStore` 会判定快照恒变 → 无限重渲染 → 因无 ErrorBoundary 而整窗白屏）。返回模块级稳定常量或用 `useShallow`。
-- **上下文折叠纪律**：绝不把「会被回传、长得像正文/参数的占位串」放进模型自己的 tool_call 参数（模型会照抄回写覆盖笔记）；只折叠 *工具结果*（如重复读取去重）相对安全。
-- **路径安全**：任何接受相对路径的写命令先校验非空 —— 空相对路径在 `resolve(root,"")` 下塌缩到工作区根目录，是危险隐式目标。
-- **配置迁移**：AI 配置改动通过「版本批次播种 + remap 旧 stock 值」迁移，自定义值不动；改名/默认值变更须按 id/旧值精确判定。
-- **发布版本一致性**：5 个文件的版本号须与 tag 一致；`Cargo.lock` 改 `plexus` 时须避开同号第三方 crate（见 knowledge-summary）。
+本目录沿用原有外部 PM 根目录 `/Users/zyc/notes/PM/plexus/`。旧 PM 中的状态、命令、风险与历史已迁入 `project-management.md`、`knowledge-summary.md` 与本架构基线；旧文件快照保存在 `archives/`：
 
-## 跨模块决策
+- `archives/legacy-project-management-before-modular-2026-07-02.md`
+- `archives/legacy-knowledge-summary-before-modular-2026-07-02.md`
+- `archives/legacy-architecture-main-before-modular-2026-07-02.md`
+- `archives/legacy-module-doc-index-before-modular-2026-07-02.md`
 
-| Date | 决策 | 模块 | 备注 |
-| --- | --- | --- | --- |
-| 2026-06-13 | 仓库保持私有、产物不签名、发布为 draft、macOS 出 universal 包、产物用 softprops 上传（非 tauri-action） | sync/发布 | 见 knowledge-summary Decisions |
-| 2026-06-20 | 移除「活动工作集」上下文机制，笔记正文改由对话中 `read_note` 结果自然承载 | ai-agent / ai-tools | 根除占位串回写死循环 |
-| 2026-06-21 | zustand selector 禁止内联返回新引用（统一用稳定常量/useShallow） | state（跨模块） | 修整窗白屏 |
-| 2026-06-22 | 上下文预算改为「模型窗口优先」，不再被默认上限封顶；默认上限 256K（1K=1024） | ai-agent | v0.4.11 |
-| 2026-06-22 | 内置 4 个预设 agent（通用/研究/笔记管家/写作），按版本批次播种、按 id 恢复默认、system-prompt 分层注入 | ai-agent | v0.4.10 |
+旧版 6 个大模块文档仍保留用于追溯，但不再作为当前模块边界的来源。后续建议运行 `modular-audit`，确认旧文档是否需要归档、重命名或并入新模块文档。
 
-## 已实现设计变更
+## 6. 校验记录
 
-> 当前无已写 spec、尚未实现的变更；新需求进入 `project-management.md` 的 `需求待办`。
-
-- 代码块语法高亮渲染：merge 到 main，详见 PM 历史记录。
-- 编辑器块内子块渲染：仅 list 块，merge `e08cd29`，详见 `architecture/modules/editor/changes/2026-06-24-block-subblock-rendering.md`。
-- 表格编辑体验：单元格导航 + 源码对齐，详见 `architecture/modules/editor/changes/2026-06-24-table-editing-experience.md`。
-- Markdown 表格智能渲染：容器测量、列类型识别、贪心列宽压缩与简单 inline Markdown，详见 `architecture/modules/editor/changes/2026-06-27-smart-table-rendering.md`.
-
-## 开放问题
-
-- 无 ErrorBoundary：当前靠 zustand selector 纪律规避白屏，是否补一层全局 ErrorBoundary 兜底仍待定。
+- 图谱对象数：18 个原子模块、5 个复合模块、28 条依赖关系。
+- 每个图谱对象均有对应模块文档，模块文档均带 `review_status` 字段。
+- 复合模块文档包含禁止依赖边界，原子模块文档包含职责、文件范围、API/事件、风险与自检清单。
+- 渲染 HTML/SVG 由 `render_modular_graph.py` 从 JSON 图谱生成。
+- 新版渲染器提示 18 条跨复合模块原子依赖关系；该提醒不否定当前代码依赖事实，已作为 migration gap 记录在 `project-management.md`。

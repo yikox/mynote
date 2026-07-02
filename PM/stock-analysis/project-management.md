@@ -1,22 +1,22 @@
 # 股票智能分析项目管理
 
-最后更新：2026-06-28
+最后更新：2026-07-01
 
 ## 项目概览
 
-这是一个个人使用的股票智能分析与投研工作台项目。当前代码来自 `ZhuLinsen/daily_stock_analysis` demo（演示版本），已具备 FastAPI（Python Web 接口框架）服务、Web 前端、桌面端、数据源适配、AI 分析、投资组合、告警、决策信号等基础能力。v1 目标是把 demo 收敛为个人桌面端优先的 AI 投研工作台：AI Agent（人工智能代理）负责研究、推理、综合和交互，确定性程序模块负责数据获取、计算、核算、校验、调度和通知。
+这是一个个人使用的股票智能分析与投研工作台项目。当前仓库已清理为最新架构设计基线：旧 demo 实现、旧文档、旧配置、构建产物、本地运行产物和历史归档目录均不再保留在仓库工作区。后续实现将围绕个人桌面端优先、EvidencePack（证据包）驱动研究、受控 Agent（人工智能代理）、分级输出和本地优先运行边界重新建设。
 
 ## 当前状态
 
 | 项目 | 内容 |
 | --- | --- |
-| 当前版本 | v1 核心闭环实现阶段 |
-| 状态 | v1 核心模型、旧分析桥接、报告准出、投资假设复核和任务生命周期已落地；架构文档集为 accepted（已接受） |
-| 当前重点 | 建立 `Instrument`（标的）中心、任务编排、证据层、报告准出、信号和投资假设沉淀 |
+| 当前版本 | 重建设计基线阶段 |
+| 状态 | 2026-07-01 已清理仓库，只保留最新架构设计、模块设计、架构图渲染产物和协作治理文件 |
+| 当前重点 | 基于新版个人桌面投研工作台架构拆分首个实现切片 |
 | 主要仓库 | `/Users/zyc/work/2026/stock-analysis` |
 | 外部项目记忆 | `/Users/zyc/notes/PM/stock-analysis/` |
-| 主入口 | `main.py`、`server.py`、`api/app.py`、`api/v1/router.py` |
-| 桌面方向 | Tauri（桌面应用封装框架）作为主线，Electron（旧桌面封装）后续退场 |
+| 当前入口 | `architecture/main-design.md`、`architecture/modules/`、`architecture/graphs/current-project.arch.json`、`dist/current-project-architecture.html` |
+| 桌面方向 | Tauri（桌面应用封装框架）作为主线，旧 Electron（旧桌面封装）不作为仓库主线引用 |
 
 ## 进行中的任务
 
@@ -25,6 +25,7 @@
 | 2026-06-28 | 初始化当前仓库 Project Memory（项目记忆）并生成 v1 架构设计文档 | done | 已创建主设计和模块设计文档，用户已确认，架构基线已标记为 accepted（已接受） |
 | 2026-06-28 | 实现 v1 核心模型基座：Instrument、ResearchTask、Report、InvestmentThesis 最小闭环 | done | 已新增兼容式数据模型、服务层、API、旧 analysis_history 桥接、Watchlist 到 Instrument 同步、Report Audit、ThesisReview 和任务生命周期接口 |
 | 2026-06-28 | v1 核心闭环视觉验收：本地 Web/Tauri 页面检查、响应式布局和关键入口可视状态 | done | 已完成隔离 FastAPI + Vite dev + 生产静态页验收；桌面首页/设置、移动首页/设置/AI 建议/持仓无控制台错误、无水平溢出；Tauri 原生窗口未单独启动 |
+| 2026-06-30 | 重设计 App 总体模块架构，正式推翻兼容式演进并清理旧实现 | done | 仓库已只保留最新设计基线：`architecture/`、`dist/current-project-architecture.*`、`.gitignore`、`AGENTS.md`、`CLAUDE.md` |
 
 ## 需求待办
 
@@ -36,36 +37,24 @@
 
 | 类型 | 路径 | 状态 | 备注 |
 | --- | --- | --- | --- |
-| 主设计文档 | architecture/main-design.md | accepted | v1 全模块目标架构，待人工确认 |
-| 模块: Desktop Workbench | architecture/modules/desktop-workbench.md | accepted | Tauri（桌面应用封装框架）优先的个人工作台 |
-| 模块: Command API | architecture/modules/command-api.md | accepted | Local API（本地接口）与命令入口 |
-| 模块: Instrument | architecture/modules/instrument.md | accepted | 全局标的中心 |
-| 模块: Watchlist | architecture/modules/watchlist.md | accepted | 自选与观察入口 |
-| 模块: Data Hub | architecture/modules/data-hub.md | accepted | 行情、财务、市场数据入口 |
-| 模块: Evidence Hub | architecture/modules/evidence-hub.md | accepted | 新闻、公告、财报、事件证据层 |
-| 模块: Research Task Engine | architecture/modules/research-task-engine.md | accepted | 研究任务编排层 |
-| 模块: Agent Layer | architecture/modules/agent-layer.md | accepted | AI Agent（人工智能代理）研究推理层 |
-| 模块: Deterministic Tools | architecture/modules/deterministic-tools.md | accepted | 确定性计算和校验工具 |
-| 模块: Report Audit | architecture/modules/report-audit.md | accepted | 报告产物和质量准出 |
-| 模块: Decision Signal | architecture/modules/decision-signal.md | accepted | 可跟踪决策信号 |
-| 模块: Investment Thesis | architecture/modules/investment-thesis.md | accepted | 中长期投资假设记忆 |
-| 模块: Portfolio | architecture/modules/portfolio.md | accepted | 投资组合、持仓、风险 |
-| 模块: Monitor | architecture/modules/monitor.md | accepted | 调度、告警、通知 |
-| 模块: Evaluation | architecture/modules/evaluation.md | accepted | 回测和信号复盘 |
-| 模块: Plugins | architecture/modules/plugins.md | accepted | AlphaSift、图片识别和扩展通知 |
-| 模块: Legacy Boundaries | architecture/modules/legacy-boundaries.md | accepted | Electron、SaaS Auth、复杂 Web 后台的弱化边界 |
+| 主设计文档 | /Users/zyc/work/2026/stock-analysis/architecture/main-design.md | accepted | 新版个人桌面投研工作台总体架构；2026-07-01 仓库已清理为只保留最新设计基线 |
+| 架构图 JSON | /Users/zyc/work/2026/stock-analysis/architecture/graphs/current-project.arch.json | accepted | 当前架构图源文件，不含 archive-reference 模块 |
+| 架构图 HTML | /Users/zyc/work/2026/stock-analysis/dist/current-project-architecture.html | accepted | 已重新渲染 |
+| 架构图 SVG | /Users/zyc/work/2026/stock-analysis/dist/current-project-architecture.svg | accepted | 已重新渲染 |
+| 模块设计目录 | /Users/zyc/work/2026/stock-analysis/architecture/modules/ | accepted | 21 个模块设计文档，覆盖运行层、研究层、领域记忆和平台边界 |
 
 ## 里程碑
 
 | 里程碑 | 状态 | 备注 |
 | --- | --- | --- |
-| 本地服务和桌面封装验证 | done | 已完成本地部署和 Tauri 打包探索；具体代码产物在仓库工作区 |
-| v1 架构讨论 | done | 已确认个人使用、桌面端优先、v1 全模块覆盖、兼容式演进 |
-| v1 架构设计文档 | accepted | 当前文档集已生成，等待人工确认 |
-| v1 实现拆分 | in-progress | 核心模型和兼容桥接已完成首批落地，后续继续推进桌面 UI、Agent 编排和数据/证据层细化 |
+| 旧 demo 调研和早期验证 | historical | 作为设计背景保留在项目记忆中；当前仓库不再保留旧实现 |
+| 兼容式演进方案 | superseded | 2026-06-30 已正式推翻 |
+| 新架构设计文档 | accepted | 2026-07-01 已清理为只保留最新设计基线，并重新渲染架构图 |
+| 新实现拆分 | pending | 下一步按模块选择首个实现切片 |
 
 ## 测试与验证
 
+- 2026-07-01 已验证当前清理结果：根目录只剩 `.git`、`.gitignore`、`AGENTS.md`、`CLAUDE.md`、`architecture/`、`dist/`；架构 JSON 可解析，HTML/SVG 架构图已重新渲染。
 - 本轮主要是架构文档写作，未执行代码构建或单元测试。
 - 写作前已核对当前仓库的关键入口、API 路由、存储模型、任务队列、Agent 编排、投资组合、告警、情报和决策信号结构。
 - 已运行 `python scripts/check_ai_assets.py`，AI 协作资产检查通过。
@@ -93,11 +82,13 @@
 
 | 日期 | 决策 | 原因 |
 | --- | --- | --- |
+| 2026-07-01 | 仓库只保留最新设计基线，不再保留 archive 目录 | 用户明确要求清理仓库；旧实现不能继续影响新架构边界 |
 | 2026-06-28 | 采用 A 方案：兼容式演进，而不是干净重写 | 当前 demo 已有较多有价值能力，直接重写成本高且风险大 |
 | 2026-06-28 | `Instrument`（标的）作为全局中心实体 | 股票、ETF（交易型开放式指数基金）、指数、期货等都可统一挂接任务、报告、信号和组合 |
 | 2026-06-28 | v1 覆盖全部讨论模块，但按成熟度分层 | 满足完整闭环，同时避免每个模块一开始都做成同等复杂度 |
 | 2026-06-28 | Tauri（桌面应用封装框架）作为主桌面方向 | 个人桌面端优先，弱化复杂 Web 后台和 Electron 旧主线 |
 | 2026-06-28 | Agent 和确定性计算分层 | AI 适合综合研究，公式、核算、质量校验必须由程序承担 |
+| 2026-06-30 | 正式推翻兼容式演进，采用旧代码全量归档参考 + 新架构重建 | 用户明确确认；新版定位为个人桌面投研工作台，以今日驾驶舱、EvidencePack 驱动研究、受控 Agent 和分级输出为主线 |
 
 ## 最近更新
 
@@ -109,3 +100,6 @@
 - 2026-06-28 - 完成 v1 核心闭环实现：新增核心模型 API、旧分析历史到 v1 工作区桥接、Watchlist 到 Instrument 同步、ResearchTask 生命周期、Report Audit 和 ThesisReview 复核事件。
 
 - 2026-06-28 - 完成 v1 核心闭环视觉验收：Web dev 与生产静态服务均正常，桌面/移动关键页面无明显布局阻断问题；记录移动首页双菜单图标为后续体验优化点。
+- 2026-06-30 - 用户确认正式推翻上一版兼容式演进路线，采用旧代码全量归档为参考并重建 App 架构；仓库新增 `architecture/main-design.md`、模块文档和 `current-project` 架构图。
+- 2026-06-30 - 执行旧代码全量归档：除 `.git`、`.gitignore`、`AGENTS.md`、`CLAUDE.md`、`architecture/`、`archive/` 和架构图渲染产物外，旧项目根目录内容已移动到 `archive/legacy-2026-06-30/root/`。
+- 2026-07-01 - 按用户要求继续清理仓库：删除仓库内历史归档目录，移除 Archive Reference 模块，更新 `.gitignore`，重新渲染架构图；根目录只保留最新设计基线和协作治理文件。

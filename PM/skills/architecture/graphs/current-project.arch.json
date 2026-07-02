@@ -1,0 +1,167 @@
+{
+  "format": "arch-graph/v0.2",
+  "id": "skills-repo",
+  "name": "Modular Programming Skills 仓库架构",
+  "described": "skill 套件、共享规则/模板、图渲染器、示例与安装器之间的关系",
+  "objects": [
+    {
+      "id": "modular-init",
+      "name": "modular-init",
+      "described": "接入/修复工作流",
+      "at": [
+        0,
+        0
+      ],
+      "ref": "../../../../../work/skills/modular-programming/modular-init/SKILL.md"
+    },
+    {
+      "id": "modular-architecture",
+      "name": "modular-architecture",
+      "described": "模块地图与架构图",
+      "at": [
+        1,
+        0
+      ],
+      "ref": "../../../../../work/skills/modular-programming/modular-architecture/SKILL.md"
+    },
+    {
+      "id": "modular-change",
+      "name": "modular-change",
+      "described": "日常修改入口 L0-L3",
+      "at": [
+        2,
+        0
+      ],
+      "ref": "../../../../../work/skills/modular-programming/modular-change/SKILL.md"
+    },
+    {
+      "id": "modular-status",
+      "name": "modular-status",
+      "described": "PM 记录",
+      "at": [
+        3,
+        0
+      ],
+      "ref": "../../../../../work/skills/modular-programming/modular-status/SKILL.md"
+    },
+    {
+      "id": "modular-review",
+      "name": "modular-review",
+      "described": "自动评审",
+      "at": [
+        0,
+        1
+      ],
+      "ref": "../../../../../work/skills/modular-programming/modular-review/SKILL.md"
+    },
+    {
+      "id": "modular-audit",
+      "name": "modular-audit",
+      "described": "审计与迁移",
+      "at": [
+        1,
+        1
+      ],
+      "ref": "../../../../../work/skills/modular-programming/modular-audit/SKILL.md"
+    },
+    {
+      "id": "modular-knowledge",
+      "name": "modular-knowledge",
+      "described": "可复用知识",
+      "at": [
+        2,
+        1
+      ],
+      "ref": "../../../../../work/skills/modular-programming/modular-knowledge/SKILL.md"
+    },
+    {
+      "id": "installer",
+      "ref": "../modules/installer.md",
+      "at": [
+        5,
+        0
+      ]
+    },
+    {
+      "id": "shared-references",
+      "ref": "../modules/shared-references.md",
+      "at": [
+        0,
+        3
+      ]
+    },
+    {
+      "id": "shared-assets",
+      "ref": "../modules/shared-assets.md",
+      "at": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "graph-renderer",
+      "ref": "../modules/graph-renderer.md",
+      "at": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "examples",
+      "ref": "../modules/examples.md",
+      "at": [
+        3,
+        3
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "modular-skills",
+      "ref": "../modules/modular-skills.md",
+      "contains": [
+        "modular-init",
+        "modular-architecture",
+        "modular-change",
+        "modular-status",
+        "modular-review",
+        "modular-audit",
+        "modular-knowledge"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "modular-skills",
+      "to": "shared-references",
+      "described": "读取工作流/存储/评审/迁移/PM 维护等规则文档"
+    },
+    {
+      "from": "modular-skills",
+      "to": "shared-assets",
+      "described": "初始化和设计时使用模板"
+    },
+    {
+      "from": "modular-skills",
+      "to": "graph-renderer",
+      "described": "modular-architecture 调用渲染架构图"
+    },
+    {
+      "from": "graph-renderer",
+      "to": "examples",
+      "described": "以示例图作为回归验证夹具",
+      "style": "dashed"
+    },
+    {
+      "from": "shared-assets",
+      "to": "shared-references",
+      "described": "模板结构与 storage-schema 保持同步",
+      "style": "dashed"
+    },
+    {
+      "from": "installer",
+      "to": "modular-skills",
+      "described": "rsync 套件到 agent skills 目录并清理 legacy 名称"
+    }
+  ]
+}
