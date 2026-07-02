@@ -16,4 +16,4 @@
 -第一步筛选
 - aimaster 项目地址 
 - 自动开机器
-- 跑 mtpipe skill 
+- 跑 mtpipe skill cai
