@@ -2,4 +2,4 @@
 
 
 c
-chu
+chu'sh
