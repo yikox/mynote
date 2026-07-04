@@ -1,15 +1,10 @@
 # 推理协同优化
 
-
-
 ## 初始化优化 120s->60s  50% 全局
-
-
 
 ## 长尾的服务下线
 
 - 寻找长尾的算法，推动下线
-
 
 ## 并行框架 mtpipe
 
@@ -19,34 +14,54 @@
 - 跑 mtpipe skill 拆节点 并测试吞吐 输出 性能数据（QPS 和 单次耗时） diff  
 - 如果 效果 ok 输出给我们
 
-
-
 - sax
 - as
 - asc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 - asc
 
-
 | 西安市 | asx |
-| ------ | --- |
-| asc    | asc |
-|        | cas |
-|        |     |
-| as     | asd |
-|        | asc |
-|        | asc |
-|        | cas |
-|        |     |
-| asc    |     |
-| cas    |     |
-| cas    |     |
-| cas    |     |
-| cas    |     |
-| cas    |     |
-| cas    |     |
-| asc    |     |
-| cas    |     |
-| cas    |     |
-| ca     |     |
-| sss    |     |
-|        |     |
+| --- | --- |
+| asc | asc |
+|     | cas |
+|     |     |
+| as  | asd |
+|     | asc |
+|     | asc |
+|     | cas |
+|     |     |
+| asc |     |
+| cas |     |
+| cas |     |
+| cas |     |
+| cas |     |
+| cas |     |
+| cas |     |
+| asc |     |
+| cas |     |
+| cas |     |
+| ca  |     |
+| sss |     |
+|     |     |
