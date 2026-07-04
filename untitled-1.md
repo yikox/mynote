@@ -14,7 +14,7 @@
 - 跑 mtpipe skill 拆节点 并测试吞吐 输出 性能数据（QPS 和 单次耗时） diff  
 - 如果 效果 ok 输出给我们
 
-- sax
+-
 - as
 - asc
 
