@@ -134,34 +134,47 @@
     {
       "from": "modular-skills",
       "to": "shared-references",
-      "described": "读取工作流/存储/评审/迁移/PM 维护等规则文档"
+      "described": "读取工作流/存储/评审/迁移/PM 维护等规则文档",
+      "kind": "reads"
     },
     {
       "from": "modular-skills",
       "to": "shared-assets",
-      "described": "初始化和设计时使用模板"
+      "described": "初始化和设计时使用模板",
+      "kind": "uses"
     },
     {
       "from": "modular-skills",
       "to": "graph-renderer",
-      "described": "modular-architecture 调用渲染架构图"
+      "described": "modular-architecture 调用渲染架构图",
+      "kind": "uses"
     },
     {
       "from": "graph-renderer",
       "to": "examples",
       "described": "以示例图作为回归验证夹具",
-      "style": "dashed"
+      "style": "dashed",
+      "kind": "reads"
     },
     {
       "from": "shared-assets",
       "to": "shared-references",
       "described": "模板结构与 storage-schema 保持同步",
-      "style": "dashed"
+      "style": "dashed",
+      "kind": "uses"
     },
     {
       "from": "installer",
       "to": "modular-skills",
-      "described": "rsync 套件到 agent skills 目录并清理 legacy 名称"
+      "described": "rsync 套件到 agent skills 目录并清理 legacy 名称",
+      "kind": "distributes"
+    },
+    {
+      "from": "graph-renderer",
+      "to": "shared-references",
+      "described": "实现遵循图格式规范与 module_kind 分类体系",
+      "kind": "uses",
+      "style": "dashed"
     }
   ]
 }

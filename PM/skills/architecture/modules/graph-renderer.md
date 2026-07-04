@@ -4,6 +4,8 @@ described: 把 .arch.json 架构图渲染为交互式 HTML/SVG 的 Python 脚本
 module_form: atomic
 module_kind: function-flow
 main_subject: modular-programming/_shared/scripts/render_modular_graph.py
+code_paths:
+  - modular-programming/_shared/scripts/**
 status: implemented
 review_status: reviewed
 ---

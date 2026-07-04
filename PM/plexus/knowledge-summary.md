@@ -42,6 +42,9 @@
 | 空路径 `EISDIR` | 文件操作前确认 path 非空且指向文件 |
 | 会话 JSON 调试 | 用结构化日志和快照比肉眼看 UI 更稳定 |
 | 事件载荷兼容 | payload 需同时兼容直接对象与 `{ payload: ... }` 包裹形式 |
+| rich 编辑器 IME 光标被重置 | 根因是 `ModuleTextarea.handleKeyDown` 未判断合成态,中文拼音候选确认阶段的 Enter/Backspace 等键被列表/表格/边界结构逻辑当真实编辑拦截；修复:顶部加 `event.nativeEvent.isComposing \|\| event.nativeEvent.keyCode === 229` 守卫,命中即完全放行给浏览器原生处理(与 `src/components/AIChat/InputBox.tsx` 已有同类判断手法一致) |
+| block 编辑器"吸收尾随空行"是有意设计,不要当混乱来源删掉 | `parseMarkdownModules` 让每个块吸收其后一个空行,是为了"块末回车=块内加行,连敲两次才另起新块"(如表格块末尾回车只是想加一行,应仍属该块)；重构时应显式建模该语义(如 `contentEndOffset`/`moduleContent`),而不是取消 |
+| block 编辑器不宜做"输入期完全不重解析"的会话层 | 现有测试与产品行为依赖逐键重解析识别块类型有机转变(如空段落敲 `- ` 实时变列表,这条路径走普通 onChange,不经结构性按键分支);若跳过重解析会破坏该行为,且影响草稿/自动保存/TOC 的逐键同步；如需推进需先解决这一前置问题 |
 
 ## 5. Modular Workflow Notes
 

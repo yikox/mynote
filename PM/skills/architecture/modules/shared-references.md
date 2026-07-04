@@ -1,9 +1,11 @@
 ---
 name: Shared References
-described: 七份规则文档，模块化工作流的行为规范来源
+described: 八份规则文档，模块化工作流的行为规范来源
 module_form: atomic
 module_kind: config-rule
 main_subject: modular-programming/_shared/references/
+code_paths:
+  - modular-programming/_shared/references/**
 status: implemented
 review_status: reviewed
 ---
@@ -12,7 +14,7 @@ review_status: reviewed
 
 ## Responsibility
 
-存放所有 skill 共享的规则文档：`modular-workflow-rules.md`（核心流程、Session Entry、路由速查表、用户确认点、L0-L3 定义）、`storage-schema.md`（项目记忆目录布局、PM 章节、状态词表）、`review-rules.md`（评审检查清单）、`migration-rules.md`（老项目迁移与 legacy skill 名映射）、`pm-maintenance-rules.md`（PM 归档/压缩细则）、`architecture-graph-json-format.md`（arch.json 格式规范）、`module-kind-classification.md`（module_kind 分类体系）。
+存放所有 skill 共享的规则文档：`module-authoring-rules.md`（模块文档写作规范：粒度、各节边界、事实标注、更新触发器）、`modular-workflow-rules.md`（核心流程、Session Entry、路由速查表、用户确认点、Preference Profiles、L0-L3 定义）、`storage-schema.md`（项目记忆目录布局、PM 章节、状态词表）、`review-rules.md`（评审检查清单）、`migration-rules.md`（老项目迁移与 legacy skill 名映射）、`pm-maintenance-rules.md`（PM 归档/压缩细则）、`architecture-graph-json-format.md`（arch.json 格式规范）、`module-kind-classification.md`（module_kind 分类体系）。
 
 ## Public Contract
 

@@ -9,6 +9,7 @@ Last updated: 2026-07-02
 | `./install.sh` | 安装套件到 ~/.agents、~/.codex、~/.claude 的 skills 目录 | rsync -a --delete，会清理 legacy 名称 |
 | `./install.sh --dry-run <dir>` | 预览安装 | 应输出 Installed 7 skill(s) |
 | `python3 modular-programming/_shared/scripts/render_modular_graph.py <graph.arch.json> -o <out.html> [--svg-output <out.svg>]` | 渲染架构图 | warning 视为问题 |
+| `python3 modular-programming/modular-audit/scripts/check_modular_project.py /Users/zyc/notes/PM/skills --repo-root /Users/zyc/work/skills --exclude 'docs/**'` | 本项目确定性审计 | 有 error 退出码 1；--exclude 对应 main-design 无主例外 |
 
 ## Architecture Facts
 

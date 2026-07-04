@@ -36,6 +36,8 @@ review_status: reviewed
 
 ## Shared Constraints
 
+- 代码所有权：各模块 frontmatter `code_paths` 声明（单一所有权）。有意无主路径：`README.md`、`AGENTS.md`、`CLAUDE.md`、`docs/**`（开发过程产物）。
+- 关系语义：箭头=依赖方向，kind 五词封闭词表，solid=运行时/dashed=非运行时；图为关系权威来源。
 - Skill 正文英文 + description 含中文触发词；措辞 agent 中性。
 - legacy 名称（pm-*、architecture-design）只允许出现在 migration-rules 映射与 installer 清理数组。
 - 渲染器仅用 Python 3 标准库；warning 视为问题。

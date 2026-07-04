@@ -4,6 +4,8 @@ described: 把 skill 套件 rsync 到各 agent skills 目录并清理 legacy 名
 module_form: atomic
 module_kind: function-flow
 main_subject: install.sh
+code_paths:
+  - install.sh
 status: implemented
 review_status: reviewed
 ---
@@ -28,11 +30,7 @@ review_status: reviewed
 
 | Dependency | Direction | Reason |
 | --- | --- | --- |
-| modular-skills | out | 打包分发对象 |
-| shared-references | out | 随 _shared 分发 |
-| shared-assets | out | 随 _shared 分发 |
-| graph-renderer | out | 随 _shared 分发 |
-| examples | out | 随 _shared 分发 |
+| modular-skills | out | 打包分发对象（_shared 整体同步见 Public Contract） |
 
 ## Constraints
 

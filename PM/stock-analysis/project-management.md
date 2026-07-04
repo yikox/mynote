@@ -1,105 +1,115 @@
 # 股票智能分析项目管理
 
-最后更新：2026-07-01
+最后更新：2026-07-03
 
 ## 项目概览
 
-这是一个个人使用的股票智能分析与投研工作台项目。当前仓库已清理为最新架构设计基线：旧 demo 实现、旧文档、旧配置、构建产物、本地运行产物和历史归档目录均不再保留在仓库工作区。后续实现将围绕个人桌面端优先、EvidencePack（证据包）驱动研究、受控 Agent（人工智能代理）、分级输出和本地优先运行边界重新建设。
+本项目是一个个人本地优先的股票 / ETF / 指数投研工作台。当前仓库已从旧 demo 进入重建设计基线阶段：旧实现、旧配置、旧文档和历史归档目录均不再作为仓库主线依赖；后续实现以仓库内 `architecture/` 的新版模块架构为准。
+
+项目目标是建立一个证据先行、计算可复现、AI 受控推理、结论可追踪、持仓和长期观点可复盘的个人投研工具。系统主入口是桌面工作台和今日驾驶舱；外部系统仅作为数据源、证据源、LLM 或通知端点。
 
 ## 当前状态
 
 | 项目 | 内容 |
 | --- | --- |
-| 当前版本 | 重建设计基线阶段 |
-| 状态 | 2026-07-01 已清理仓库，只保留最新架构设计、模块设计、架构图渲染产物和协作治理文件 |
-| 当前重点 | 基于新版个人桌面投研工作台架构拆分首个实现切片 |
-| 主要仓库 | `/Users/zyc/work/2026/stock-analysis` |
+| 当前阶段 | 新架构全局实现 |
+| 当前状态 | 2026-07-02 已确认使用 modular programming workflow；文档语言和标题均使用中文；确认粒度为 standard |
+| 当前重点 | 对照仓库内架构设计逐模块实现新版 App；每个阶段先写测试、再实现、再记录验证证据 |
+| 仓库根目录 | `/Users/zyc/work/2026/stock-analysis` |
+| 架构真源 | `/Users/zyc/work/2026/stock-analysis/architecture/` |
 | 外部项目记忆 | `/Users/zyc/notes/PM/stock-analysis/` |
 | 当前入口 | `architecture/main-design.md`、`architecture/modules/`、`architecture/graphs/current-project.arch.json`、`dist/current-project-architecture.html` |
-| 桌面方向 | Tauri（桌面应用封装框架）作为主线，旧 Electron（旧桌面封装）不作为仓库主线引用 |
 
 ## 进行中的任务
 
-| 日期 | 任务 | 状态 | 下一步 / 备注 |
-| --- | --- | --- | --- |
-| 2026-06-28 | 初始化当前仓库 Project Memory（项目记忆）并生成 v1 架构设计文档 | done | 已创建主设计和模块设计文档，用户已确认，架构基线已标记为 accepted（已接受） |
-| 2026-06-28 | 实现 v1 核心模型基座：Instrument、ResearchTask、Report、InvestmentThesis 最小闭环 | done | 已新增兼容式数据模型、服务层、API、旧 analysis_history 桥接、Watchlist 到 Instrument 同步、Report Audit、ThesisReview 和任务生命周期接口 |
-| 2026-06-28 | v1 核心闭环视觉验收：本地 Web/Tauri 页面检查、响应式布局和关键入口可视状态 | done | 已完成隔离 FastAPI + Vite dev + 生产静态页验收；桌面首页/设置、移动首页/设置/AI 建议/持仓无控制台错误、无水平溢出；Tauri 原生窗口未单独启动 |
-| 2026-06-30 | 重设计 App 总体模块架构，正式推翻兼容式演进并清理旧实现 | done | 仓库已只保留最新设计基线：`architecture/`、`dist/current-project-architecture.*`、`.gitignore`、`AGENTS.md`、`CLAUDE.md` |
+| 日期 | 任务 | 主模块 | 影响模块 | 级别 | 状态 | 下一步 / 备注 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-02 | 继续设计 `Decision Policy` 轻量核心模块 | Decision Policy | Agent Reasoning, Report Audit, Decision Signal, Portfolio Ledger, Investment Thesis | L3 | accepted | 已完成 L3 架构变更、模块文档、ADR 和架构图更新；后续由全局实现任务承接 |
+| 2026-07-03 | 对照架构设计全局实现新版 App | 全局 | Product Runtime, Research Engine, Domain Memory, Platform Boundaries, Monitor Automation | L3 | implementing | 已完成 11 个可测试阶段和核心模块首版实现；下一步进入集成打磨、真实 UI/API 壳和持久化 repository |
 
-## 需求待办
+## 需求 / 变更待办
 
-| ID | 日期 | 需求 | 主模块 | 修改摘要 | 范围 / 影响 | 状态 | 优先级 | 下一步 / 备注 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| REQ-20260628-v1-architecture | 2026-06-28 | 将当前 demo 收敛为个人桌面端优先的 AI 投研工作台，v1 覆盖全部讨论模块 | architecture | 建立全局架构、核心数据模型、模块边界和运行链路 | 桌面端、本地 API、任务、数据、证据、Agent、报告、信号、投资假设、组合、监控、插件、旧模块边界 | implementing | P0 | Design: architecture/main-design.md；用户已确认架构基线；首个实现切片进行中 |
+| ID | 日期 | 需求 | 主模块 | 影响模块 | 级别 | 修改摘要 | 状态 | 优先级 | 设计路径 / 下一步 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| REQ-20260702-modular-workflow | 2026-07-02 | 用 modular programming workflow 接替旧 `pm-*` / `architecture-design` 流程 | Platform Boundaries | AGENTS, PM, Knowledge, Architecture | L3 | 统一模块门禁、L0-L3 分级、中文文档偏好、standard 确认粒度；仓库内架构作为真源，外部 PM 只记录状态和索引 | implemented | P0 | 已完成；后续使用 `modular-architecture` 继续 `Decision Policy` |
+| REQ-20260702-decision-policy | 2026-07-02 | 新增轻量 `Decision Policy` 核心模块，集中定义建议动作、证据门槛、持仓约束、风险红线和 AI 权限边界 | Decision Policy | Agent Reasoning, Report Audit, Decision Signal, Portfolio Ledger, Investment Thesis | L3 | 不做完整策略引擎、收益预测、组合优化或自动交易；只做准出和解释规则 | accepted | P0 | 已写入 `architecture/changes/2026-07-03-decision-policy.md`、`architecture/modules/decision-policy.md` 和 ADR |
 
-## 设计文档
+## 模块化设计索引
 
 | 类型 | 路径 | 状态 | 备注 |
 | --- | --- | --- | --- |
-| 主设计文档 | /Users/zyc/work/2026/stock-analysis/architecture/main-design.md | accepted | 新版个人桌面投研工作台总体架构；2026-07-01 仓库已清理为只保留最新设计基线 |
-| 架构图 JSON | /Users/zyc/work/2026/stock-analysis/architecture/graphs/current-project.arch.json | accepted | 当前架构图源文件，不含 archive-reference 模块 |
-| 架构图 HTML | /Users/zyc/work/2026/stock-analysis/dist/current-project-architecture.html | accepted | 已重新渲染 |
-| 架构图 SVG | /Users/zyc/work/2026/stock-analysis/dist/current-project-architecture.svg | accepted | 已重新渲染 |
-| 模块设计目录 | /Users/zyc/work/2026/stock-analysis/architecture/modules/ | accepted | 21 个模块设计文档，覆盖运行层、研究层、领域记忆和平台边界 |
+| 主架构 | `/Users/zyc/work/2026/stock-analysis/architecture/main-design.md` | accepted | 当前模块架构真源；2026-07-01 新版个人桌面投研工作台架构 |
+| 模块设计目录 | `/Users/zyc/work/2026/stock-analysis/architecture/modules/` | accepted | 当前模块契约真源 |
+| Decision Policy 模块 | `/Users/zyc/work/2026/stock-analysis/architecture/modules/decision-policy.md` | accepted | 轻量建议准出规则模块 |
+| Decision Policy 架构变更 | `/Users/zyc/work/2026/stock-analysis/architecture/changes/2026-07-03-decision-policy.md` | accepted | L3 架构变更记录 |
+| Decision Policy ADR | `/Users/zyc/work/2026/stock-analysis/architecture/adrs/ADR-2026-07-03-decision-policy.md` | accepted | 轻量建议准出规则决策记录 |
+| 架构图 JSON | `/Users/zyc/work/2026/stock-analysis/architecture/graphs/current-project.arch.json` | accepted | 当前架构图源文件 |
+| 架构图 HTML | `/Users/zyc/work/2026/stock-analysis/dist/current-project-architecture.html` | accepted | 当前渲染产物 |
+| 架构图 SVG | `/Users/zyc/work/2026/stock-analysis/dist/current-project-architecture.svg` | accepted | 当前渲染产物 |
+
+说明：外部 `/Users/zyc/notes/PM/stock-analysis/architecture/` 中 2026-06 旧架构文档仅保留为历史背景；后续模块边界以仓库内 `architecture/` 为准。
+
+## 路线图
+
+| 阶段 | 状态 | 说明 |
+| --- | --- | --- |
+| 旧 demo 调研和早期验证 | historical | 只作为历史背景保留，不代表当前仓库仍保留旧代码 |
+| 兼容式演进方案 | superseded | 2026-06-30 已被用户明确推翻 |
+| 新架构重建设计 | accepted | 仓库内 `architecture/` 和 `dist/` 是当前设计基线 |
+| 模块化工作流接替 | done | 2026-07-02 已完成，`AGENTS.md`、PM 和知识库已切换到 modular workflow |
+| 全局首版实现 | in-progress | 已完成 11 个可测试阶段：核心领域、策略准出、研究最小闭环、Command API、Desktop Shell、配置、存储、插件、Data Hub、Monitor、Workspace UI view model |
 
 ## 里程碑
 
 | 里程碑 | 状态 | 备注 |
 | --- | --- | --- |
-| 旧 demo 调研和早期验证 | historical | 作为设计背景保留在项目记忆中；当前仓库不再保留旧实现 |
-| 兼容式演进方案 | superseded | 2026-06-30 已正式推翻 |
-| 新架构设计文档 | accepted | 2026-07-01 已清理为只保留最新设计基线，并重新渲染架构图 |
-| 新实现拆分 | pending | 下一步按模块选择首个实现切片 |
+| 仓库清理为最新设计基线 | done | 2026-07-01 已完成，根目录仅保留协作规则、架构和渲染产物 |
+| modular workflow 接入 | done | 2026-07-02 已完成 |
+| 核心建议链路定稿 | accepted | `Decision Policy` 已纳入架构基线；Agent 候选建议、Report Audit、DecisionSignal 准出规则已收敛 |
+| 新实现拆分 | in-progress | 已完成 11 个可测试阶段的首版核心实现；后续进入真实运行壳、repository、UI 和端到端集成 |
 
 ## 测试与验证
 
-- 2026-07-01 已验证当前清理结果：根目录只剩 `.git`、`.gitignore`、`AGENTS.md`、`CLAUDE.md`、`architecture/`、`dist/`；架构 JSON 可解析，HTML/SVG 架构图已重新渲染。
-- 本轮主要是架构文档写作，未执行代码构建或单元测试。
-- 写作前已核对当前仓库的关键入口、API 路由、存储模型、任务队列、Agent 编排、投资组合、告警、情报和决策信号结构。
-- 已运行 `python scripts/check_ai_assets.py`，AI 协作资产检查通过。
-- 2026-06-28 已验证 v1 核心闭环：`python -m unittest tests.test_research_workspace_api tests.test_storage -v` 通过 29 个用例；Watchlist 直接回归、`./scripts/ci_gate.sh syntax`、`python scripts/check_ai_assets.py` 和 `git diff --check` 均通过。
-- 2026-06-28 已完成视觉验收：隔离后端 `127.0.0.1:18000`、Vite dev `127.0.0.1:5173` 和 FastAPI 生产静态页均可渲染；桌面首页/设置、移动首页/设置/AI 建议/持仓检查无控制台错误和水平溢出；`npm run build` 通过。
+- 2026-07-03：全局首版实现验证通过：`PYTHONPATH=src python3 -m unittest discover -s tests -v`，34 个测试通过。
+- 2026-07-03：全局首版编译验证通过：`PYTHONPYCACHEPREFIX=/private/tmp/stock-analysis-pycache python3 -m compileall -q src tests`。
+- 2026-07-03：架构 JSON 与 diff 验证通过：`python3 -m json.tool architecture/graphs/current-project.arch.json`、`git diff --check`。
+- 2026-07-02：本轮为文档 / 工作流修复，未执行代码测试。
+- 2026-07-02：已读取 `modular-init`、共享 modular workflow 规则、storage schema、migration rules、当前 `AGENTS.md`、仓库内架构文档和外部 PM / knowledge。
+- 2026-07-01：已验证仓库清理结果，根目录只保留 `.git`、`.gitignore`、`AGENTS.md`、`CLAUDE.md`、`architecture/`、`dist/`；架构 JSON 可解析，HTML/SVG 已重新渲染。
 
-## 部署
-
-- 当前目标是个人本地部署和桌面端使用。
-- 服务侧以 FastAPI（Python Web 接口框架）本地进程为核心。
-- 桌面端以 Tauri（桌面应用封装框架）承载 Web Renderer（Web 渲染层）并管理本地服务生命周期。
-- 云端 SaaS（软件即服务）部署和多用户后台不作为 v1 主线。
-
-## 风险与注意事项
+## 阻塞与风险
 
 | 风险 / 阻塞 | 影响 | 缓解 / 状态 |
 | --- | --- | --- |
-| 当前 demo 表结构以 `stock_code` 为主，没有一等 `Instrument`（标的） | 多市场、多资产和跨模块关联会继续分散 | v1 采用兼容式演进，新增 `Instrument`，旧字段保留过渡 |
-| AI Agent（人工智能代理）结论存在不确定性 | 数据计算、估值和风险判断可能不稳定 | 强化 Deterministic Tools（确定性工具）和 Report Audit（报告审查） |
-| 任务队列当前偏单股票分析 | 难以承载组合复盘、定时监控、插件任务 | 新增 `ResearchTask`（研究任务）作为一等对象 |
-| 报告、信号、长期假设未完全分层 | 研究结论难以沉淀和复盘 | v1 明确 `Report`（报告）、`DecisionSignal`（决策信号）、`InvestmentThesis`（投资假设）的关系 |
-| v1 全模块覆盖范围较大 | 容易一次性过度实现 | 文档中区分 Core（核心）、Built-in（内置）、Plugin（插件）、Legacy/Exit（旧模块退场）成熟度 |
+| 外部 PM 中残留 2026-06 旧 demo 事实 | 后续 agent 可能误以为旧代码仍在仓库主线 | 已在本文件中降级为 historical / superseded，并声明仓库内 `architecture/` 为真源 |
+| 首版实现仍是本地核心模型，不是完整产品壳 | 还没有真实 HTTP 服务、Tauri/Web UI、真实数据源、LLM 调用和 repository 持久化层 | 当前核心链路、模块边界和失败隔离已通过单元测试；后续继续补真实运行壳和端到端集成 |
+| 外部通知、数据源、LLM 依赖未来仍会变化 | 可能影响证据质量和运行可靠性 | 通过 EvidencePack、DataQualitySummary、Report Audit 和 Config Observability 控制 |
 
 ## ADR 摘要
 
-| 日期 | 决策 | 原因 |
-| --- | --- | --- |
-| 2026-07-01 | 仓库只保留最新设计基线，不再保留 archive 目录 | 用户明确要求清理仓库；旧实现不能继续影响新架构边界 |
-| 2026-06-28 | 采用 A 方案：兼容式演进，而不是干净重写 | 当前 demo 已有较多有价值能力，直接重写成本高且风险大 |
-| 2026-06-28 | `Instrument`（标的）作为全局中心实体 | 股票、ETF（交易型开放式指数基金）、指数、期货等都可统一挂接任务、报告、信号和组合 |
-| 2026-06-28 | v1 覆盖全部讨论模块，但按成熟度分层 | 满足完整闭环，同时避免每个模块一开始都做成同等复杂度 |
-| 2026-06-28 | Tauri（桌面应用封装框架）作为主桌面方向 | 个人桌面端优先，弱化复杂 Web 后台和 Electron 旧主线 |
-| 2026-06-28 | Agent 和确定性计算分层 | AI 适合综合研究，公式、核算、质量校验必须由程序承担 |
-| 2026-06-30 | 正式推翻兼容式演进，采用旧代码全量归档参考 + 新架构重建 | 用户明确确认；新版定位为个人桌面投研工作台，以今日驾驶舱、EvidencePack 驱动研究、受控 Agent 和分级输出为主线 |
+| 日期 | 决策 | 模块 | 原因 |
+| --- | --- | --- | --- |
+| 2026-07-02 | 接入 modular programming workflow，替代旧 `pm-*` / `architecture-design` 项目流程 | Platform Boundaries | 让架构成为模块边界真源，PM 只记录状态和索引，减少旧流程漂移 |
+| 2026-07-02 | 文档语言和标题统一使用中文，确认粒度为 standard | Platform Boundaries | 符合用户偏好，同时保留 L3 和高风险边界确认 |
+| 2026-07-02 | 仓库内 `architecture/` 是当前架构真源，外部 PM 仅索引和记录状态 | Platform Boundaries | 当前仓库已清理为最新设计基线，外部 2026-06 架构文档存在历史漂移 |
+| 2026-07-01 | 仓库只保留最新设计基线，不再保留 archive 目录 | 全局 | 用户明确要求清理仓库；旧实现不能继续影响新架构边界 |
+| 2026-06-30 | 正式推翻兼容式演进，采用旧代码退出主线 + 新架构重建 | 全局 | 用户明确确认新版定位为个人桌面投研工作台 |
+
+## 归档
+
+### 2026-06 旧 demo 和兼容式演进阶段
+
+- 2026-06-28 曾创建基于旧 demo 的 v1 兼容式演进架构，并实现过部分核心闭环。
+- 2026-06-30 用户明确推翻兼容式演进路线，改为旧实现退出仓库主线、新架构重建设计。
+- 2026-07-01 仓库已清理，只保留最新设计基线和协作治理文件。
+- 该阶段中的旧目录、旧 API、旧表结构、旧命令和旧测试结果只作为历史背景，不作为当前仓库事实。
 
 ## 最近更新
 
-- 2026-06-28 - 创建当前仓库独立 Project Memory（项目记忆）目录 `/Users/zyc/notes/PM/stock-analysis/`。
-- 2026-06-28 - 写入 v1 主设计文档和模块设计文档，覆盖桌面端、标的、数据、证据、任务、Agent、确定性工具、报告、信号、投资假设、组合、监控、评估、插件和旧模块边界。
-- 2026-06-28 - 完成图表基础校验、PM 设计索引路径校验和 AI 协作资产检查。
-- 2026-06-28 - 用户确认 v1 架构设计文档，主设计和模块设计状态更新为 accepted（已接受）。
-
-- 2026-06-28 - 完成 v1 核心闭环实现：新增核心模型 API、旧分析历史到 v1 工作区桥接、Watchlist 到 Instrument 同步、ResearchTask 生命周期、Report Audit 和 ThesisReview 复核事件。
-
-- 2026-06-28 - 完成 v1 核心闭环视觉验收：Web dev 与生产静态服务均正常，桌面/移动关键页面无明显布局阻断问题；记录移动首页双菜单图标为后续体验优化点。
-- 2026-06-30 - 用户确认正式推翻上一版兼容式演进路线，采用旧代码全量归档为参考并重建 App 架构；仓库新增 `architecture/main-design.md`、模块文档和 `current-project` 架构图。
-- 2026-06-30 - 执行旧代码全量归档：除 `.git`、`.gitignore`、`AGENTS.md`、`CLAUDE.md`、`architecture/`、`archive/` 和架构图渲染产物外，旧项目根目录内容已移动到 `archive/legacy-2026-06-30/root/`。
+- 2026-07-02 - 用户要求使用 `modular-init` 新流程接替；确认文档语言和标题使用中文，确认粒度为 standard。
+- 2026-07-02 - 仓库内 `AGENTS.md` 已切换到 modular programming workflow，旧 `pm-*` 流程降级为历史背景。
+- 2026-07-03 - `Decision Policy` 轻量核心模块完成 L3 架构设计，新增模块文档、架构变更、ADR，并重新渲染架构图。
+- 2026-07-03 - 用户明确要求从头全局实现新版 App，并要求对照设计文件逐阶段实现、每阶段测试；已启动第一阶段实现任务。
+- 2026-07-03 - 已完成 11 个可测试实现阶段，覆盖核心领域、研究引擎、运行边界、平台边界、监控和工作台 view model；34 个单元测试、compileall、架构 JSON 校验和 diff 检查通过。
+- 2026-07-02 - 外部 PM 记忆修复为当前状态：仓库内 `architecture/` 为架构真源，2026-06 旧实现事实降级为历史 / 迁移背景；modular workflow 接替完成。
 - 2026-07-01 - 按用户要求继续清理仓库：删除仓库内历史归档目录，移除 Archive Reference 模块，更新 `.gitignore`，重新渲染架构图；根目录只保留最新设计基线和协作治理文件。

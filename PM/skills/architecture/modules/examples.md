@@ -4,6 +4,8 @@ described: 可渲染的示例架构图和模块文档样例
 module_form: atomic
 module_kind: resource-file
 main_subject: modular-programming/_shared/examples/
+code_paths:
+  - modular-programming/_shared/examples/**
 status: implemented
 review_status: reviewed
 ---
