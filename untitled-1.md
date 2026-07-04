@@ -30,26 +30,3 @@
 
 - asc
 
-| 西安市 | asx |
-| ------ | --- |
-| asc    | asc |
-|        | cas |
-|        |     |
-| as     | asd |
-|        | asc |
-|        | asc |
-|        | cas |
-|        |     |
-| asc    |     |
-| cas    |     |
-| cas    |     |
-| cas    |     |
-| cas    |     |
-| cas    |     |
-| cas    |     |
-| asc    |     |
-| cas    |     |
-| cas    |     |
-| ca     |     |
-| sss    |     |
-|        |     |
