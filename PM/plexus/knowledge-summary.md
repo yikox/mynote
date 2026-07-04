@@ -47,6 +47,8 @@
 | rich 编辑器滚动模型:仅换行时自动滚动 | 产品决策:编辑时**唯一**的自动滚动时机是回车换行,且仅当光标落点越过「阈值线」时才向下滚回该线。阈值是可调变量 `NEWLINE_SCROLL_CARET_RATIO`(默认 0.75 = 距视口顶 3/4 / 距底约 1/4);光标在上 3/4 内回车不滚,只向下滚不向上滚。实现要点:回车在 `ModuleTextarea.handleKeyDown`(IME 守卫之后)上报 `onNewline` → 父组件置 `pendingNewlineScrollRef` → 父组件 `useLayoutEffect([active])` 消费(React 布局副作用子先于父,故此时子的聚焦/自适应高度已完成、光标位置为最终态)→ `scrollCaretIntoNewlineZone`;纯计算 `newlineScrollDelta(caretY, viewportH, ratio)` 在 `caretMapping.ts`,光标行 y 用「逻辑行数×行高」近似(表格 wrap=off 精确) |
 | block 编辑器"吸收尾随空行"是有意设计,不要当混乱来源删掉 | `parseMarkdownModules` 让每个块吸收其后一个空行,是为了"块末回车=块内加行,连敲两次才另起新块"(如表格块末尾回车只是想加一行,应仍属该块)；重构时应显式建模该语义(如 `contentEndOffset`/`moduleContent`),而不是取消 |
 | block 编辑器不宜做"输入期完全不重解析"的会话层 | 现有测试与产品行为依赖逐键重解析识别块类型有机转变(如空段落敲 `- ` 实时变列表,这条路径走普通 onChange,不经结构性按键分支);若跳过重解析会破坏该行为,且影响草稿/自动保存/TOC 的逐键同步；如需推进需先解决这一前置问题 |
+| 「文件已被外部修改」banner 纯本地打字时误弹 | 后端 `watcher.rs` 对所有写入（含应用自身保存）都发 `notes://changed`，无回声抑制。判定自写回声不能只比「磁盘===当前草稿」——保存后继续打字会让草稿领先磁盘（dirty），把自己的写盘事件误判成 conflict。正确判据：`磁盘内容 === lastSavedRef(上次我们成功写盘的内容)` 即为自写回声，直接忽略（与 dirty 无关）。genuine 外部修改 ⇔ `磁盘 !== lastSavedRef`。见 `useNoteDraft.reconcile` |
+| 编辑器内提示条不要用 in-flow 块 | banner/提示插在工具栏与 `.markdown-editor__scroll` 之间会挤压正文、出现/消失造成闪烁跳动。改用 `position:absolute` 顶部浮层（`.markdown-editor__pane` 是 relative），对齐既有 `.editor-statusbar`/`.editor-find-bar`，不进入正文流即无位移 |
 
 ## 5. Modular Workflow Notes
 
