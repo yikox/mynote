@@ -43,6 +43,7 @@
 | 会话 JSON 调试 | 用结构化日志和快照比肉眼看 UI 更稳定 |
 | 事件载荷兼容 | payload 需同时兼容直接对象与 `{ payload: ... }` 包裹形式 |
 | rich 编辑器 IME 光标被重置 | 根因是 `ModuleTextarea.handleKeyDown` 未判断合成态,中文拼音候选确认阶段的 Enter/Backspace 等键被列表/表格/边界结构逻辑当真实编辑拦截；修复:顶部加 `event.nativeEvent.isComposing \|\| event.nativeEvent.keyCode === 229` 守卫,命中即完全放行给浏览器原生处理(与 `src/components/AIChat/InputBox.tsx` 已有同类判断手法一致) |
+| rich 编辑器输入时视口往下跳/光标被甩到页面下方 | 根因:`ModuleTextarea` 的命令式 DOM 操作在滚动容器 `.markdown-editor__scroll`(`overflow-y:auto`)里引发浏览器被动滚动。①自适应高度 `height='auto'` → 读 `scrollHeight` 的重排会钳制容器 `scrollTop`,恢复 `height` 不还原它(每次按键都发生,主因);②`focus()`/`setSelectionRange()` 未用 `preventScroll`,会把焦点元素滚入视野。修复:用 `withNeutralScroll(textarea, run)` 包装(记录→执行→还原容器 scrollTop)包住三处 useLayoutEffect(挂载聚焦/caretNonce 重定位/自适应高度),并 `focus({ preventScroll: true })`。通用教训:滚动容器内做 textarea 自增高/聚焦/选区,务必冻结并还原祖先 scrollTop,否则输入时视口会漂移 |
 | block 编辑器"吸收尾随空行"是有意设计,不要当混乱来源删掉 | `parseMarkdownModules` 让每个块吸收其后一个空行,是为了"块末回车=块内加行,连敲两次才另起新块"(如表格块末尾回车只是想加一行,应仍属该块)；重构时应显式建模该语义(如 `contentEndOffset`/`moduleContent`),而不是取消 |
 | block 编辑器不宜做"输入期完全不重解析"的会话层 | 现有测试与产品行为依赖逐键重解析识别块类型有机转变(如空段落敲 `- ` 实时变列表,这条路径走普通 onChange,不经结构性按键分支);若跳过重解析会破坏该行为,且影响草稿/自动保存/TOC 的逐键同步；如需推进需先解决这一前置问题 |
 
