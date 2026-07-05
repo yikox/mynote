@@ -1,3 +1,8 @@
+---
+status: accepted
+review_status: reviewed
+---
+
 # AI 编排层依赖注入端口（AgentRuntime）架构变更 Design
 
 Last updated: 2026-07-04
@@ -28,7 +33,14 @@ Accepted by: 用户于 2026-07-04 会话内接受 L3 方向并裁定 Q1（一并
 
 Accepted date: 2026-07-04
 
-Implementation status: not-started
+Implementation status: implemented-in-branch, pending-merge（代码已在隔离分支落地并全绿，但**未合并**；基线/PM 完成待合并后再落。设计状态保持 accepted，未置 implemented）
+
+Implementation evidence（pending merge）:
+- 分支 `worktree-agent-runtime-port`（基于 origin/main `55c69b8`），worktree `.claude/worktrees/agent-runtime-port`。
+- 8 次提交 `55c69b8..3079189`：7c959b3(端口) 4ec18b2(agentLoop) 895098e(隔离测试) 4ace1ea(stateSnapshot) 7643bc9(materializeImages) ebb731d(systemPrompt) bcad392(guard) 3079189(guard 加固)。
+- 验证：`npx vitest run` 649/649 通过、`npx tsc --noEmit` 无错、`npm run build` 成功；guard 3/3；4 个编排文件不再 import store（`src/ai/**` 除 runtime.ts 外零 store 引用）。
+- 决策日志/进度：`architecture/plans/archive/2026-07-04-agent-runtime-port-decisions.md`、`-progress.md`。
+- SDD 评审：每 task spec✅+quality Approved；最终全分支评审（opus）READY TO MERGE，无 Critical/Important，3 个 Minor 已修（guard 加固 2 项 + runtime export 位置）。
 
 > 角色声明：本文档由 modular-architect 起草并经 modular-review。用户已接受 L3 方向。**尚未实施、尚未更新基线（main-design/module docs/graph）**——待实现阶段落地后再更新基线。
 

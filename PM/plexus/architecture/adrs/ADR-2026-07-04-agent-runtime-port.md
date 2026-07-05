@@ -1,3 +1,8 @@
+---
+status: accepted
+review_status: reviewed
+---
+
 # ADR-2026-07-04：AI 编排层依赖注入端口，而非直连 store 单例
 
 Status: accepted
