@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: implemented
 review_status: reviewed
 ---
 
@@ -33,7 +33,7 @@ Accepted by: 用户于 2026-07-04 会话内接受 L3 方向并裁定 Q1（一并
 
 Accepted date: 2026-07-04
 
-Implementation status: implemented-in-branch, pending-merge（代码已在隔离分支落地并全绿，但**未合并**；基线/PM 完成待合并后再落。设计状态保持 accepted，未置 implemented）
+Implementation status: implemented（已合并进 `fix/editor-external-banner-false-positive` 并推送 origin；用户测试确认行为正常 2026-07-05）
 
 Implementation evidence（pending merge）:
 - 分支 `worktree-agent-runtime-port`（基于 origin/main `55c69b8`），worktree `.claude/worktrees/agent-runtime-port`。
