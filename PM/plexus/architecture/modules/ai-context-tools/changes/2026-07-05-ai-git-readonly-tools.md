@@ -1,7 +1,9 @@
 ---
-status: accepted
+status: implemented
 review_status: reviewed
 ---
+
+> Implemented 2026-07-05：6 提交 `dc3c605..da109dd` 已 fast-forward 合并进 `fix/editor-external-banner-false-positive`；主工作区 vitest 699/699、cargo 87/87、tsc、build 全绿。未 push（本地领先 origin 7）。
 
 # AI 只读 Git 检视工具集（L2 模块变更）
 

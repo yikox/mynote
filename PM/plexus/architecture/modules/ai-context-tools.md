@@ -20,7 +20,7 @@ review_status: not-reviewed
 
 ## 配置结构
 
-`aiConfigStore` 持有 agent templates、model behavior、tools、loop、context 配置。默认预设包括通用助手、研究助手、笔记管家和写作助手。工具注册表包含 `list_notes`、`read_note`、`search_notes`、`create_note`、`update_note`、`delete_note`、`move_note`、`web_search`。
+`aiConfigStore` 持有 agent templates、model behavior、tools、loop、context 配置。默认预设包括通用助手、研究助手、笔记管家和写作助手。工具注册表包含 `list_notes`、`read_note`、`search_notes`、`create_note`、`update_note`、`delete_note`、`move_note`、`web_search`，以及 `domain:'git'` 的 5 个**只读** Git 检视工具 `git_log`、`read_note_at`、`git_diff`、`git_status`、`git_show_commit`（`write:false`，经 `ctx.git` gitService；恢复笔记靠组合 `read_note_at`+`update_note`，不设 git 写工具）。见变更 `changes/2026-07-05-ai-git-readonly-tools.md`。
 
 ## 合并与优先级
 

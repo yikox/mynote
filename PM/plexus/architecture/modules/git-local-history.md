@@ -15,11 +15,13 @@ review_status: not-reviewed
 
 ## 模块定位
 
-该模块封装 libgit2 本地仓库操作。证据路径：`src-tauri/src/core/git.rs`、`src-tauri/src/commands/workspace.rs`、`src-tauri/src/commands/notes.rs`。
+该模块封装 libgit2 本地仓库操作。证据路径：`src-tauri/src/core/git.rs`、`src-tauri/src/core/git_history.rs`、`src-tauri/src/commands/git_history.rs`、`src-tauri/src/commands/workspace.rs`、`src-tauri/src/commands/notes.rs`。
 
 ## 外部契约
 
 提供 `is_repo()`、`init_repo()`、`commit_all()`、`current_branch()`、`behind_count()`、`unpushed_count()`。
+
+只读历史检视（`core::git_history` + `commands::git_history`，供 AI 只读工具）：`git_log(path?,limit)`、`git_show_file(path,rev)`、`git_diff(path?,from?,to?)`、`git_status()`、`git_show_commit(rev,include_diff?)`——全部 libgit2 只读 API（revwalk/revparse_single/diff/statuses），命令层校验工作区内路径（拒绝 `..`/绝对）、limit clamp [1,100]，不改仓库/工作区/索引，无 shell/透传。见 `ai-context-tools/changes/2026-07-05-ai-git-readonly-tools.md`。
 
 ## 内外映射
 
