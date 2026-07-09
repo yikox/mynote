@@ -120,7 +120,7 @@
 export PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
 pip install modelscope 
 
-snapshot_download('Lightricks/LTX-2.3', local_dir='./LTX-2.3')
+modelscope download --model Lightricks/LTX-2.3
 ```
 
 ### 2. Diffusers 运行
