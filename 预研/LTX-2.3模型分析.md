@@ -129,7 +129,7 @@ modelscope download --model hf-diffusers/LTX-2.3-Diffusers --local_dir /app/mode
 安装（需要包含 LTX-2 支持的较新版本）：
 
 ```bash
-pip install -U git+https://github.com/huggingface/diffusers.git
+pip install -U diffusers
 ```
 
 #### 文本生视频 + 音频（LTX2Pipeline）
