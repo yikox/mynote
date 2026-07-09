@@ -122,7 +122,6 @@ pip install modelscope
 
 mkdir -p /app/model/LTX-2.3-Diffusers
 modelscope download --model hf-diffusers/LTX-2.3-Diffusers README.md --local_dir ./app/model/LTX-2.3-Diffusers
-modelscope download --model Lightricks/LTX-2.3 --local_dir  /app/model/LTX-2.3
 ```
 
 ### 2. Diffusers 运行
