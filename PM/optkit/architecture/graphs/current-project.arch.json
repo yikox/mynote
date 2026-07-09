@@ -1,0 +1,181 @@
+{
+  "format": "arch-graph/v0.2",
+  "id": "current-project",
+  "name": "optkit 项目架构（顶层）",
+  "described": "core-framework + optimization-components(复合) + warps(复合) + auto-test + eval；cache 见下钻图",
+  "objects": [
+    {
+      "id": "core-framework",
+      "ref": "../modules/core-framework.md",
+      "module_kind": "interface-object",
+      "name": "核心框架 core-framework",
+      "described": "OptKitContext 冻结契约 + Spec 容器 + HOOK_ORDER + apply 编排",
+      "at": [1, 2]
+    },
+    {
+      "id": "sage",
+      "ref": "../modules/sage.md",
+      "module_kind": "function-flow",
+      "name": "sage",
+      "described": "注意力后端替换为 SageAttention",
+      "at": [0, 0]
+    },
+    {
+      "id": "quant",
+      "ref": "../modules/quant.md",
+      "module_kind": "function-flow",
+      "name": "quant",
+      "described": "torchao FP8/INT8 权重量化",
+      "at": [1, 0]
+    },
+    {
+      "id": "compile",
+      "ref": "../modules/compile.md",
+      "module_kind": "function-flow",
+      "name": "compile",
+      "described": "逐 block 区域编译",
+      "at": [2, 0]
+    },
+    {
+      "id": "parallel",
+      "ref": "../modules/parallel.md",
+      "module_kind": "function-flow",
+      "name": "parallel",
+      "described": "Ulysses/Ring/USP 序列并行",
+      "at": [0, 1]
+    },
+    {
+      "id": "lora",
+      "ref": "../modules/lora.md",
+      "module_kind": "interface-object",
+      "name": "lora",
+      "described": "运行时 LoRA 热切换",
+      "at": [1, 1]
+    },
+    {
+      "id": "cache",
+      "ref": "../modules/cache.md",
+      "name": "缓存 cache（复合·下钻）",
+      "described": "dicache/magcache/regione 三选一，见 cache.arch.json",
+      "stroke": "#4f46e5",
+      "fill": "#eef2ff",
+      "at": [2, 1]
+    },
+    {
+      "id": "warp-flux",
+      "ref": "../modules/warp-flux.md",
+      "module_kind": "adapter-io",
+      "name": "warp-flux",
+      "described": "FLUX.1 t2i/Kontext/Fill/Inpaint",
+      "at": [4, 0]
+    },
+    {
+      "id": "warp-flux2",
+      "ref": "../modules/warp-flux2.md",
+      "module_kind": "adapter-io",
+      "name": "warp-flux2",
+      "described": "FLUX.2-Klein",
+      "at": [5, 0]
+    },
+    {
+      "id": "warp-qwenimage",
+      "ref": "../modules/warp-qwenimage.md",
+      "module_kind": "adapter-io",
+      "name": "warp-qwenimage",
+      "described": "Qwen-Image t2i/Edit/Edit-Plus",
+      "at": [4, 1]
+    },
+    {
+      "id": "warp-wan",
+      "ref": "../modules/warp-wan.md",
+      "module_kind": "adapter-io",
+      "name": "warp-wan",
+      "described": "Wan t2v/i2v/VACE",
+      "at": [5, 1]
+    },
+    {
+      "id": "warp-step1x",
+      "ref": "../modules/warp-step1x.md",
+      "module_kind": "adapter-io",
+      "name": "warp-step1x",
+      "described": "Step1X-Edit base/v1p2",
+      "at": [4, 2]
+    },
+    {
+      "id": "auto-test",
+      "ref": "../modules/auto-test.md",
+      "module_kind": "function-flow",
+      "name": "自动化测试引擎 auto-test",
+      "described": "判断器→TestPlan→调度执行；适配器⟂v1/v2 引擎",
+      "at": [2, 3]
+    },
+    {
+      "id": "eval",
+      "ref": "../modules/eval.md",
+      "module_kind": "utility-support",
+      "name": "评估工具 eval",
+      "described": "性能 profiling + 画质度量；旁路工具，不参与装配",
+      "at": [1, 3]
+    }
+  ],
+  "groups": [
+    {
+      "id": "optimization-components",
+      "ref": "../modules/optimization-components.md",
+      "name": "优化组件 optimization-components（复合）",
+      "described": "可组合优化能力：sage/quant/compile/parallel/lora/cache",
+      "contains": ["sage", "quant", "compile", "parallel", "lora", "cache"]
+    },
+    {
+      "id": "warps",
+      "ref": "../modules/warps.md",
+      "name": "模型 warp warps（复合）",
+      "described": "模型侧适配，按 5 模型族",
+      "contains": ["warp-flux", "warp-flux2", "warp-qwenimage", "warp-wan", "warp-step1x"]
+    }
+  ],
+  "relations": [
+    {
+      "from": "optimization-components",
+      "to": "core-framework",
+      "described": "各 component attach(OptKitContext) + 按 HOOK_ORDER 注册 hook；apply 编排在 core",
+      "style": "solid"
+    },
+    {
+      "from": "warps",
+      "to": "core-framework",
+      "described": "warp 经 ctx.trigger 发 hook，仅经 hook 名 + value/kw 契约耦合",
+      "style": "solid"
+    },
+    {
+      "from": "auto-test",
+      "to": "core-framework",
+      "described": "经 apply_warp 装配优化，把 optkit_v2 作为被测对象",
+      "style": "solid"
+    },
+    {
+      "from": "parallel",
+      "to": "sage",
+      "described": "replace_dispatch_attention_fn：sage 先 replace 整个 dispatch → ring 后 decorate 包裹",
+      "style": "dashed"
+    },
+    {
+      "from": "quant",
+      "to": "compile",
+      "described": "on_pipe_ready：quant 先改权重 → compile 后编已量化图",
+      "style": "dashed"
+    },
+    {
+      "from": "parallel",
+      "to": "cache",
+      "described": "on_backend_enter：ulysses 先 scatter heads（外层）→ regione（cache 内）后组 KV（内层）",
+      "style": "dashed"
+    },
+    {
+      "from": "compile",
+      "to": "cache",
+      "described": "on_pipe_ready：regione（cache 内）换 scheduler 排最后",
+      "style": "dashed"
+    }
+  ]
+}

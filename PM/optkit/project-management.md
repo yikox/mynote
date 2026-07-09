@@ -31,7 +31,7 @@ Last updated: 2026-07-02
 | ID | 日期 | 需求 | 状态 | 优先级 | 模块/范围 | 下一步 / 备注 |
 | --- | --- | --- | --- | --- | --- | --- |
 | REQ-20260624-autotest-v1v2-modular | 2026-06-24 | autotest 改造为模块化测试引擎，支持分别测 v1 / v2，各有 full 与 smoke | implementing | 中 | `auto_test/`（不动 optkit/optkit_v2 本体） | Design: architecture/modules/auto-test/changes/2026-06-24-v1v2-modular-engine.md（accepted）；TDD 实施中；矩阵清单与判断器逻辑见设计「开放问题」，本轮收口 v2 full |
-| REQ-20260702-autotest-workflow-align | 2026-07-02 | auto_test 与 optkit-auto-test workflow 契约对齐：workflow 收敛为「4 卡机 + test.sh + done.flag」单一路径、删 impact 死代码；auto_test.tar 按 workflow-id 版本化解 OBS 覆盖竞态 | implementing | 高 | auto-test + workflows 仓库（外部）+ optkit CI | Design: architecture/modules/auto-test/changes/2026-07-02-workflow-autotest-align.md（accepted，超时 11h/固定名留 1 月/机型不变）；P0 实施中 |
+| REQ-20260702-autotest-workflow-align | 2026-07-02 | auto_test 与 optkit-auto-test workflow 契约对齐：workflow 收敛为「4 卡机 + test.sh + done.flag」单一路径、删 impact 死代码；auto_test.tar 按 workflow-id 版本化解 OBS 覆盖竞态 | implementing | 高 | auto-test + workflows 仓库（外部）+ optkit CI | Design: architecture/modules/auto-test/changes/2026-07-02-workflow-autotest-align.md（accepted，超时 11h/固定名留 1 月/机型不变）；P0 已完成并合 master；P2 观测性 2026-07-07 完成并合入 master（5dbf9a6，merge 6c24d1b 已推送，CI 将端到端实测）；余 P1 release 验证 |
 
 **REQ-20260624-autotest-v1v2-modular 详述**
 
@@ -66,7 +66,7 @@ Last updated: 2026-07-02
 | 模块: RegionE | `architecture/modules/regione.md` | accepted | 区域感知编辑加速、三处协作 |
 | 模块: 模型 warp | `architecture/modules/warps.md` | accepted | transformer/pipeline 两层、13 个已注册 pipeline |
 | 变更设计: auto-test 双引擎模块化 | `architecture/modules/auto-test/changes/2026-06-24-v1v2-modular-engine.md` | accepted | autotest 三层(判断器/适配器/执行本体)+engine⟂profile；REQ-20260624-autotest-v1v2-modular。auto-test 为候选模块，未入基线 |
-| 变更设计: workflow 契约对齐 | `architecture/modules/auto-test/changes/2026-07-02-workflow-autotest-align.md` | accepted | workflow 收敛单一路径 + tar 版本化 + done.flag 权威完成判定；REQ-20260702-autotest-workflow-align；P0 实施中 |
+| 变更设计: workflow 契约对齐 | `architecture/modules/auto-test/changes/2026-07-02-workflow-autotest-align.md` | accepted | workflow 收敛单一路径 + tar 版本化 + done.flag 权威完成判定；REQ-20260702-autotest-workflow-align；P0/P2 已落地合 master，余 P1 release 验证 |
 
 > 原导读 `v2-architecture.md` 保留为面向新同学的代码导读；上表为模块化基线设计文档（由 pm-document-architecture 维护）。
 
@@ -96,6 +96,7 @@ Last updated: 2026-07-02
 
 ## Recent Updates
 
+- 2026-07-07 - P2 观测性完成（TDD，已提交 5dbf9a6 并经 merge 6c24d1b 合入 master 推送，v2 同步）：REQ-20260702-autotest-workflow-align 剩余 P2 两项落地——①触发信息：judge 把裁剪决策落 plan.meta（matched_rules/components/release_tag/profile 等，字段对齐 web 面板消费键），load_plan 解析，scheduler/run 传 `finalize_report(impact_plan=)` 恢复 test_manager.json `info.impact`；②全局进度：调度器 job 粒度独占写 `$TEST_RESULT_DIR_ROOT/progress.json`，worker `--no-aggregate` 改 NullProgress 不再并发覆盖，test.sh 软链 `auto_test/progress.json` 供 workflow 读取。新增 8 单测（套件 176 passed），端到端实证 web「源码变更」面板与 workflow 进度条渲染；workflows/web 两侧零改动（29/101 passed 回归）。背景：这两个消费端为同事 zyh 5-6 月所建（web 3a7804a 触发面板、workflows f596124 进度条），在 6 月底 auto_test 重构中断供。余 P1 release 验证。
 - 2026-07-02 - P0 代码完成（待部署）：REQ-20260702-autotest-workflow-align 设计经用户确认 accepted（超时 11h、固定名双写留 1 月、机型不变）并完成 P0-1/P0-2 编码——optkit 侧 tar 版本化上传 + whl 打进 tar + env.sh 版本锁定（168 passed）；workflows 侧契约重写 0.3.0（版本化 URL、gpu:4、done.flag 权威三态、11h 硬超时、删 impact 死代码，29 passed，wheel 已构建）。实施中修复探活自匹配 bug（`[-]m auto_test`）。P0-3 部署顺序关键：先装 workflows 0.3.0 再 push optkit（见设计「实施计划」）。
 - 2026-07-02 - pm-design-requirement：REQ-20260702-autotest-workflow-align 转设计，产出 `architecture/modules/auto-test/changes/2026-07-02-workflow-autotest-align.md`（proposed）。核对出 7 项断裂点（gpu:1 vs 4 卡 plan、pgrep 'auto_test run' 空窗误判提前关机、impact 整条死代码、auto_test.tar 固定路径覆盖竞态且 release 错拿 master smoke tar、progress.json 路径失配、info.impact 断供、轮询无硬超时）。方案：workflow 收敛「4 卡机 + test.sh + done.flag」单一路径；tar 按 workflow-id 版本化且 whl 打进 tar 成自洽产物；观测性（全局 progress、judge reason 落 plan.meta）列 P2。需求 → designed。
 - 2026-06-24 - 设计 accepted + 开工：REQ-20260624-autotest-v1v2-modular 设计经用户认可标 accepted，入口定 `run <plan>.yaml`、v1 置卡 CPU 量化→搬卡（后端自带策略）；进入 TDD 实施（TestPlan→V2Backend 等价回归→V1Backend→执行本体贯穿）。需求 → implementing。
