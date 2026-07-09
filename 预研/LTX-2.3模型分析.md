@@ -120,6 +120,7 @@
 export PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
 pip install modelscope 
 
+
 modelscope download --model Lightricks/LTX-2.3 --local_dir  /app/model/LTX-2.3
 ```
 
