@@ -121,6 +121,7 @@ export PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
 pip install modelscope 
 
 mkdir -p /app/model/LTX-2.3
+modelscope download --model hf-diffusers/LTX-2.3-Diffusers README.md --local_dir ./dir
 modelscope download --model Lightricks/LTX-2.3 --local_dir  /app/model/LTX-2.3
 ```
 
