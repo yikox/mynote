@@ -117,7 +117,7 @@
 ### 1. 魔搭下载
 
 ```python
-from modelscope import snapshot_download
+pip install modelscope
 
 snapshot_download('Lightricks/LTX-2.3', local_dir='./LTX-2.3')
 ```
