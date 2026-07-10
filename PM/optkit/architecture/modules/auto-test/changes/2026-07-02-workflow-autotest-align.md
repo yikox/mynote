@@ -12,13 +12,17 @@ Last updated: 2026-07-02
 
 设计状态：accepted（2026-07-02 用户确认：超时 11h、固定名保留一个月、机型策略不变）
 
-实施状态：implementing（P0）
+实施状态：implementing（P0 完成 2026-07-02；P2 完成 2026-07-07 合 master；余 P1 release 验证）
 
 实施证据：
 
 - 2026-07-02 P0-1 代码完成（未提交/未推送）：optkit `upload_to_obs.py`（`tar_object_names` 版本化+固定名双写、`object_name` 参数、`--tar-version` CLI、obs SDK 惰性导入）、`.gitlab-ci.yml`（whl 打进 `auto_test/dist/`、`--tar-version "${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA}"`）、`env.sh`（优先强装 tar 内 whl）；`auto_test/tests/test_ci_config.py` 新增 3 用例，套件 168 passed。
 - 2026-07-02 P0-2 代码完成（未提交/未推送）：workflows `optkit_auto_test.py` 重写——`build_tar_url`、`build_setup_commands(env_type, version, tar_url)` 单一路径、`gpu:4`、三态完成判定（done.flag 权威 + `pgrep -f '[t]est.sh|[-]m auto_test'`）、`poll_until_all_complete` 11h 硬超时、删 impact/AUTO_TEST_COMMAND 全部死代码；README 联动章节重写；版本 0.2.11→0.3.0，wheel 构建通过；`tests/test_optkit_auto_test.py` 重写为新契约，29 passed。
 - 实施中发现并修复：探活模式裸 `[a]uto_test` 会自匹配检查 shell 的 cmdline（含 `auto_test/done.flag`）→ 永判"正在运行"；改 `[-]m auto_test`（只匹配真正的 `python -m auto_test` 进程），本机以真实进程实证三态（不自匹配/测到 test.sh/测到 -m auto_test）。
+- 2026-07-07 P2 代码完成（TDD；提交 5dbf9a6，经 merge 6c24d1b 合入 master 并推送，v2 已同步）：
+  - **C.2 触发信息**：`judge.py` `analyze()` 增返命中规则名、`judge()` 把 meta（profile/base/head/changed_files/matched_rules/components/models/reason，release 路径为 release_tag/profile/reason）随 plan 落盘；`plan.py` `TestPlan.meta` 可选字段 + `load_plan` 宽容解析；`scheduler.py`/`run.py` 两处 `finalize_report(..., impact_plan=plan.meta)`。meta 字段名与 optkit_test_web `_render_impact_panel` 消费键对齐。
+  - **C.1 全局进度**：`progress.py` 新增 `NullProgress`/`make_progress`；`run.py` worker `--no-aggregate` 时用 NullProgress（不再并发覆盖全局文件）；`scheduler.py` 以 job 粒度独占维护 `$TEST_RESULT_DIR_ROOT/progress.json`（starting→running(current=job)→env_setup:\<eg\>→aggregating→completed，字段沿用 done_cells/total_cells 兼容 workflow 0.3.x 已部署解析）；`test.sh` 起调度器前 `ln -sfn` 软链到 `auto_test/progress.json`。
+  - 验证：新增 8 单测（judge meta ×2、plan meta ×2、progress ×2、run_scheduler 全局进度+meta 透传 ×1、test.sh 软链 ×1），auto_test 套件 176 passed；端到端脚本实证 judge 真实 meta → finalize → test_manager.json `info.impact` → web「源码变更」面板渲染（rules/components 徽章），及 ProgressTracker 输出 → workflow `_extract_progress`/`_format_progress_bar` 进度条渲染；workflows 29 passed、web 101 passed 零改动回归。
 
 ## 背景
 
@@ -105,7 +109,7 @@ auto_test 已完成 plan/judge/schedule 改造（REQ-20260624-autotest-v1v2-modu
 | --- | --- | --- |
 | 需求 | implementing | project-management.md 需求待办 REQ-20260702-autotest-workflow-align |
 | 设计文档 | accepted | 本文件（2026-07-02 用户确认） |
-| 实施 | implementing | P0 开工 2026-07-02 |
+| 实施 | implementing | P0 完成 2026-07-02；P2 完成 2026-07-07（用户确认后实施）；余 P1 release 验证 |
 
 ## 测试与验证
 

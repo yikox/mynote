@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>cache 复合模块（下钻）</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1e293b;
+        --muted: #64748b;
+        --line: #111827;
+        --paper: #ffffff;
+        --warning-bg: #fff7ed;
+        --warning-line: #fb923c;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #eef2f7;
+        color: var(--ink);
+      }
+      main {
+        max-width: none;
+        margin: 0 auto;
+        padding: 32px 24px 44px;
+      }
+      header {
+        max-width: 1120px;
+        margin-bottom: 20px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        line-height: 1.2;
+        letter-spacing: 0;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .canvas {
+        overflow: auto;
+        background: var(--paper);
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        box-shadow: 0 18px 55px rgba(30, 41, 59, 0.12);
+      }
+      .diagram {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .node-shape {
+        stroke-width: 1.6;
+      }
+      .node-link,
+      .group-link {
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .node-link:hover .node-shape,
+      .node-link:focus .node-shape,
+      .group-link:hover .group-shape,
+      .group-link:focus .group-shape {
+        stroke-width: 2.6;
+      }
+      .node-line {
+        fill: none;
+        stroke-width: 1.6;
+      }
+      .group-shape {
+        fill: #eef2ff;
+        stroke: #4f46e5;
+        stroke-width: 1.8;
+        stroke-dasharray: 10 7;
+      }
+      .group-title {
+        fill: #312e81;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .group-description {
+        fill: #4338ca;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .node-title {
+        fill: var(--ink);
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .node-description {
+        fill: var(--muted);
+        font-size: 12px;
+      }
+      .relation-line {
+        fill: none;
+        stroke: var(--line);
+        stroke-width: 2.8;
+      }
+      .relation-line-inner {
+        stroke-width: 1.5;
+      }
+      .relation-line-outer {
+        stroke-width: 3.4;
+      }
+      .relation-hitbox {
+        fill: none;
+        stroke: transparent;
+        stroke-width: 18;
+        pointer-events: stroke;
+        cursor: help;
+      }
+      .relation-hover-line {
+        fill: none;
+        stroke: var(--line);
+        stroke-width: 4.4;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .relation-hover-line-inner {
+        stroke-width: 2.2;
+      }
+      .relation-hover-line-outer {
+        stroke-width: 5.2;
+      }
+      .relation-hover:hover .relation-hover-line {
+        opacity: 0.75;
+      }
+      .relation-bubble {
+        opacity: 0;
+        transition: opacity 120ms ease;
+        pointer-events: none;
+      }
+      .relation-hover:hover .relation-bubble {
+        opacity: 1;
+      }
+      .relation-bubble-box {
+        fill: #ffffff;
+        stroke: #94a3b8;
+        stroke-width: 1;
+      }
+      .relation-bubble-text {
+        fill: #0f172a;
+        font-size: 12px;
+        font-weight: 650;
+        pointer-events: none;
+      }
+      .arrow { fill: var(--line); }
+      .warnings {
+        margin-top: 18px;
+        padding: 12px 14px;
+        border-left: 4px solid var(--warning-line);
+        background: var(--warning-bg);
+        border-radius: 6px;
+      }
+      .warnings h2 {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+      .warnings ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>cache 复合模块（下钻）</h1>
+        <p>步级/区域缓存三选一互斥：dicache / magcache / regione</p>
+      </header>
+      <section class="canvas">
+        <svg class="diagram" style="min-width: 1280px;" viewBox="-36 -9 1280 460" role="img" aria-labelledby="diagram-title diagram-desc">
+  <title id="diagram-title">cache 复合模块（下钻）</title>
+  <desc id="diagram-desc">步级/区域缓存三选一互斥：dicache / magcache / regione</desc>
+  <defs>
+    <style>
+      .node-shape { stroke-width: 1.6; }
+      .node-link,
+      .group-link {
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .node-link:hover .node-shape,
+      .node-link:focus .node-shape,
+      .group-link:hover .group-shape,
+      .group-link:focus .group-shape {
+        stroke-width: 2.6;
+      }
+      .node-line {
+        fill: none;
+        stroke-width: 1.6;
+      }
+      .group-shape {
+        fill: #eef2ff;
+        stroke: #4f46e5;
+        stroke-width: 1.8;
+        stroke-dasharray: 10 7;
+      }
+      .group-title {
+        fill: #312e81;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .group-description {
+        fill: #4338ca;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .node-title {
+        fill: #1e293b;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .node-description {
+        fill: #64748b;
+        font-size: 12px;
+      }
+      .relation-line {
+        fill: none;
+        stroke: #111827;
+        stroke-width: 2.8;
+      }
+      .relation-line-inner {
+        stroke-width: 1.5;
+      }
+      .relation-line-outer {
+        stroke-width: 3.4;
+      }
+      .relation-hitbox {
+        fill: none;
+        stroke: transparent;
+        stroke-width: 18;
+        pointer-events: stroke;
+        cursor: help;
+      }
+      .relation-hover-line {
+        fill: none;
+        stroke: #111827;
+        stroke-width: 4.4;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .relation-hover-line-inner {
+        stroke-width: 2.2;
+      }
+      .relation-hover-line-outer {
+        stroke-width: 5.2;
+      }
+      .relation-hover:hover .relation-hover-line {
+        opacity: 0.75;
+      }
+      .relation-bubble {
+        opacity: 0;
+        transition: opacity 120ms ease;
+        pointer-events: none;
+      }
+      .relation-hover:hover .relation-bubble {
+        opacity: 1;
+      }
+      .relation-bubble-box {
+        fill: #ffffff;
+        stroke: #94a3b8;
+        stroke-width: 1;
+      }
+      .relation-bubble-text {
+        fill: #0f172a;
+        font-size: 12px;
+        font-weight: 650;
+        pointer-events: none;
+      }
+      .arrow { fill: #111827; }
+    </style>
+    <marker id="arrow-inner" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="arrow" />
+    </marker>
+    <marker id="arrow-outer" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="arrow" />
+    </marker>
+  </defs>
+  <a class="group-link" href="../modules/cache.md" target="_blank">
+<g class="group" data-id="cache">
+<title>cache - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/cache.md</title>
+<rect x="36.0" y="63.0" width="988.0" height="208.0" rx="10" class="group-shape" />
+<text x="54.0" y="91.0" class="group-title" text-anchor="start">缓存 cache（复合）</text>
+<text x="54.0" y="111.0" class="group-description" text-anchor="start">三选一互斥；dicache/magcache 共享 CacheComponent 基类，regione 另深协作</text>
+</g>
+</a>
+  
+  <a class="node-link" href="../modules/dicache.md" target="_blank">
+<g class="node" data-id="dicache">
+<title>dicache - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/dicache.md</title>
+<polygon points="103.0,125.0 277.0,125.0 305.0,180.0 277.0,235.0 103.0,235.0 75.0,180.0" class="node-shape" style="fill: #f5f3ff; stroke: #7c3aed;" />
+<text x="190.0" y="160.0" class="node-title" text-anchor="middle">dicache</text>
+<text x="190.0" y="181.0" class="node-description" text-anchor="middle">probe block</text>
+<text x="190.0" y="199.0" class="node-description" text-anchor="middle">输出漂移判跳，跳块复用残差</text>
+</g>
+</a>
+<a class="node-link" href="../modules/magcache.md" target="_blank">
+<g class="node" data-id="magcache">
+<title>magcache - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/magcache.md</title>
+<polygon points="443.0,125.0 617.0,125.0 645.0,180.0 617.0,235.0 443.0,235.0 415.0,180.0" class="node-shape" style="fill: #f5f3ff; stroke: #7c3aed;" />
+<text x="530.0" y="170.0" class="node-title" text-anchor="middle">magcache</text>
+<text x="530.0" y="191.0" class="node-description" text-anchor="middle">离线标定逐步幅度比判跳</text>
+</g>
+</a>
+<a class="node-link" href="../modules/regione.md" target="_blank">
+<g class="node" data-id="regione">
+<title>regione - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/regione.md</title>
+<polygon points="783.0,125.0 957.0,125.0 985.0,180.0 957.0,235.0 783.0,235.0 755.0,180.0" class="node-shape" style="fill: #f5f3ff; stroke: #7c3aed;" />
+<text x="870.0" y="160.0" class="node-title" text-anchor="middle">regione</text>
+<text x="870.0" y="181.0" class="node-description" text-anchor="middle">区域感知编辑加速：空间</text>
+<text x="870.0" y="199.0" class="node-description" text-anchor="middle">partition + 时间 AVDCache</text>
+</g>
+</a>
+  
+</svg>
+      </section>
+    </main>
+  </body>
+</html>

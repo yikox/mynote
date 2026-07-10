@@ -1,0 +1,42 @@
+{
+  "format": "arch-graph/v0.2",
+  "id": "cache",
+  "name": "cache 复合模块（下钻）",
+  "described": "步级/区域缓存三选一互斥：dicache / magcache / regione",
+  "objects": [
+    {
+      "id": "dicache",
+      "ref": "../modules/dicache.md",
+      "module_kind": "function-flow",
+      "name": "dicache",
+      "described": "probe block 输出漂移判跳，跳块复用残差",
+      "at": [0, 0]
+    },
+    {
+      "id": "magcache",
+      "ref": "../modules/magcache.md",
+      "module_kind": "function-flow",
+      "name": "magcache",
+      "described": "离线标定逐步幅度比判跳",
+      "at": [1, 0]
+    },
+    {
+      "id": "regione",
+      "ref": "../modules/regione.md",
+      "module_kind": "function-flow",
+      "name": "regione",
+      "described": "区域感知编辑加速：空间 partition + 时间 AVDCache",
+      "at": [2, 0]
+    }
+  ],
+  "groups": [
+    {
+      "id": "cache",
+      "ref": "../modules/cache.md",
+      "name": "缓存 cache（复合）",
+      "described": "三选一互斥；dicache/magcache 共享 CacheComponent 基类，regione 另深协作",
+      "contains": ["dicache", "magcache", "regione"]
+    }
+  ],
+  "relations": []
+}

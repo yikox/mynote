@@ -1,0 +1,338 @@
+<svg class="diagram" style="min-width: 2300px;" viewBox="-36 -9 2300 1154" role="img" aria-labelledby="diagram-title diagram-desc">
+  <title id="diagram-title">optkit 项目架构（顶层）</title>
+  <desc id="diagram-desc">core-framework + optimization-components(复合) + warps(复合) + auto-test + eval；cache 见下钻图</desc>
+  <defs>
+    <style>
+      .node-shape { stroke-width: 1.6; }
+      .node-link,
+      .group-link {
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .node-link:hover .node-shape,
+      .node-link:focus .node-shape,
+      .group-link:hover .group-shape,
+      .group-link:focus .group-shape {
+        stroke-width: 2.6;
+      }
+      .node-line {
+        fill: none;
+        stroke-width: 1.6;
+      }
+      .group-shape {
+        fill: #eef2ff;
+        stroke: #4f46e5;
+        stroke-width: 1.8;
+        stroke-dasharray: 10 7;
+      }
+      .group-title {
+        fill: #312e81;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .group-description {
+        fill: #4338ca;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .node-title {
+        fill: #1e293b;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .node-description {
+        fill: #64748b;
+        font-size: 12px;
+      }
+      .relation-line {
+        fill: none;
+        stroke: #111827;
+        stroke-width: 2.8;
+      }
+      .relation-line-inner {
+        stroke-width: 1.5;
+      }
+      .relation-line-outer {
+        stroke-width: 3.4;
+      }
+      .relation-hitbox {
+        fill: none;
+        stroke: transparent;
+        stroke-width: 18;
+        pointer-events: stroke;
+        cursor: help;
+      }
+      .relation-hover-line {
+        fill: none;
+        stroke: #111827;
+        stroke-width: 4.4;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .relation-hover-line-inner {
+        stroke-width: 2.2;
+      }
+      .relation-hover-line-outer {
+        stroke-width: 5.2;
+      }
+      .relation-hover:hover .relation-hover-line {
+        opacity: 0.75;
+      }
+      .relation-bubble {
+        opacity: 0;
+        transition: opacity 120ms ease;
+        pointer-events: none;
+      }
+      .relation-hover:hover .relation-bubble {
+        opacity: 1;
+      }
+      .relation-bubble-box {
+        fill: #ffffff;
+        stroke: #94a3b8;
+        stroke-width: 1;
+      }
+      .relation-bubble-text {
+        fill: #0f172a;
+        font-size: 12px;
+        font-weight: 650;
+        pointer-events: none;
+      }
+      .arrow { fill: #111827; }
+    </style>
+    <marker id="arrow-inner" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="arrow" />
+    </marker>
+    <marker id="arrow-outer" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="arrow" />
+    </marker>
+  </defs>
+  <a class="group-link" href="../modules/optimization-components.md" target="_blank">
+<g class="group" data-id="optimization-components">
+<title>optimization-components - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/optimization-components.md</title>
+<rect x="36.0" y="63.0" width="988.0" height="448.0" rx="10" class="group-shape" />
+<text x="54.0" y="91.0" class="group-title" text-anchor="start">优化组件 optimization-components（复合）</text>
+<text x="54.0" y="111.0" class="group-description" text-anchor="start">可组合优化能力：sage/quant/compile/parallel/lora/cache</text>
+</g>
+</a>
+<a class="group-link" href="../modules/warps.md" target="_blank">
+<g class="group" data-id="warps">
+<title>warps - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/warps.md</title>
+<rect x="1396.0" y="63.0" width="648.0" height="688.0" rx="10" class="group-shape" />
+<text x="1414.0" y="91.0" class="group-title" text-anchor="start">模型 warp warps（复合）</text>
+<text x="1414.0" y="111.0" class="group-description" text-anchor="start">模型侧适配，按 5 模型族</text>
+</g>
+</a>
+  <g class="relation relation-line-layer">
+<path d="M 530.0 511.0 L 530.0 605.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 1396.0 407.0 L 1020.5 407.0 L 1020.5 660.0 L 645.0 660.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 870.0 845.0 L 870.0 780.0 L 530.0 780.0 L 530.0 715.0" class="relation-line relation-line-outer" marker-end="url(#arrow-outer)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 190.0 365.0 L 190.0 235.0" class="relation-line relation-line-inner" stroke-dasharray="8 7" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 645.0 180.0 L 755.0 180.0" class="relation-line relation-line-inner" stroke-dasharray="8 7" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 190.0 475.0 L 190.0 498.0 L 870.0 498.0 L 870.0 475.0" class="relation-line relation-line-inner" stroke-dasharray="8 7" marker-end="url(#arrow-inner)" />
+</g>
+<g class="relation relation-line-layer">
+<path d="M 870.0 235.0 L 870.0 365.0" class="relation-line relation-line-inner" stroke-dasharray="8 7" marker-end="url(#arrow-inner)" />
+</g>
+  <a class="node-link" href="../modules/core-framework.md" target="_blank">
+<g class="node" data-id="core-framework">
+<title>core-framework - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/core-framework.md</title>
+<rect x="415.0" y="605.0" width="230.0" height="110.0" rx="12" class="node-shape" style="fill: #ecfdf5; stroke: #059669;" />
+<text x="530.0" y="640.0" class="node-title" text-anchor="middle">核心框架 core-framework</text>
+<text x="530.0" y="661.0" class="node-description" text-anchor="middle">OptKitContext 冻结契约 + Spec</text>
+<text x="530.0" y="679.0" class="node-description" text-anchor="middle">容器 + HOOK_ORDER + apply 编排</text>
+</g>
+</a>
+<a class="node-link" href="../modules/sage.md" target="_blank">
+<g class="node" data-id="sage">
+<title>sage - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/sage.md</title>
+<polygon points="103.0,125.0 277.0,125.0 305.0,180.0 277.0,235.0 103.0,235.0 75.0,180.0" class="node-shape" style="fill: #f5f3ff; stroke: #7c3aed;" />
+<text x="190.0" y="170.0" class="node-title" text-anchor="middle">sage</text>
+<text x="190.0" y="191.0" class="node-description" text-anchor="middle">注意力后端替换为 SageAttention</text>
+</g>
+</a>
+<a class="node-link" href="../modules/quant.md" target="_blank">
+<g class="node" data-id="quant">
+<title>quant - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/quant.md</title>
+<polygon points="443.0,125.0 617.0,125.0 645.0,180.0 617.0,235.0 443.0,235.0 415.0,180.0" class="node-shape" style="fill: #f5f3ff; stroke: #7c3aed;" />
+<text x="530.0" y="170.0" class="node-title" text-anchor="middle">quant</text>
+<text x="530.0" y="191.0" class="node-description" text-anchor="middle">torchao FP8/INT8 权重量化</text>
+</g>
+</a>
+<a class="node-link" href="../modules/compile.md" target="_blank">
+<g class="node" data-id="compile">
+<title>compile - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/compile.md</title>
+<polygon points="783.0,125.0 957.0,125.0 985.0,180.0 957.0,235.0 783.0,235.0 755.0,180.0" class="node-shape" style="fill: #f5f3ff; stroke: #7c3aed;" />
+<text x="870.0" y="170.0" class="node-title" text-anchor="middle">compile</text>
+<text x="870.0" y="191.0" class="node-description" text-anchor="middle">逐 block 区域编译</text>
+</g>
+</a>
+<a class="node-link" href="../modules/parallel.md" target="_blank">
+<g class="node" data-id="parallel">
+<title>parallel - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/parallel.md</title>
+<polygon points="103.0,365.0 277.0,365.0 305.0,420.0 277.0,475.0 103.0,475.0 75.0,420.0" class="node-shape" style="fill: #f5f3ff; stroke: #7c3aed;" />
+<text x="190.0" y="410.0" class="node-title" text-anchor="middle">parallel</text>
+<text x="190.0" y="431.0" class="node-description" text-anchor="middle">Ulysses/Ring/USP 序列并行</text>
+</g>
+</a>
+<a class="node-link" href="../modules/lora.md" target="_blank">
+<g class="node" data-id="lora">
+<title>lora - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/lora.md</title>
+<rect x="415.0" y="365.0" width="230.0" height="110.0" rx="12" class="node-shape" style="fill: #ecfdf5; stroke: #059669;" />
+<text x="530.0" y="410.0" class="node-title" text-anchor="middle">lora</text>
+<text x="530.0" y="431.0" class="node-description" text-anchor="middle">运行时 LoRA 热切换</text>
+</g>
+</a>
+<a class="node-link" href="../modules/cache.md" target="_blank">
+<g class="node" data-id="cache">
+<title>cache - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/cache.md</title>
+<rect x="755.0" y="377.0" width="230.0" height="86.0" class="node-shape" style="fill: #eef2ff; stroke: #4f46e5;" />
+<ellipse cx="870.0" cy="377.0" rx="115.0" ry="16" class="node-shape" style="fill: #eef2ff; stroke: #4f46e5;" />
+<path d="M 755.0 463.0 C 755.0 485.0, 985.0 485.0, 985.0 463.0" class="node-line" style="stroke: #4f46e5;" />
+<text x="870.0" y="400.0" class="node-title" text-anchor="middle">缓存 cache（复合·下钻）</text>
+<text x="870.0" y="421.0" class="node-description" text-anchor="middle">dicache/magcache/regione</text>
+<text x="870.0" y="439.0" class="node-description" text-anchor="middle">三选一，见 cache.arch.json</text>
+</g>
+</a>
+<a class="node-link" href="../modules/warp-flux.md" target="_blank">
+<g class="node" data-id="warp-flux">
+<title>warp-flux - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/warp-flux.md</title>
+<polygon points="1453.0,125.0 1665.0,125.0 1647.0,235.0 1435.0,235.0" class="node-shape" style="fill: #fff7ed; stroke: #ea580c;" />
+<text x="1550.0" y="160.0" class="node-title" text-anchor="middle">warp-flux</text>
+<text x="1550.0" y="181.0" class="node-description" text-anchor="middle">FLUX.1</text>
+<text x="1550.0" y="199.0" class="node-description" text-anchor="middle">t2i/Kontext/Fill/Inpaint</text>
+</g>
+</a>
+<a class="node-link" href="../modules/warp-flux2.md" target="_blank">
+<g class="node" data-id="warp-flux2">
+<title>warp-flux2 - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/warp-flux2.md</title>
+<polygon points="1793.0,125.0 2005.0,125.0 1987.0,235.0 1775.0,235.0" class="node-shape" style="fill: #fff7ed; stroke: #ea580c;" />
+<text x="1890.0" y="170.0" class="node-title" text-anchor="middle">warp-flux2</text>
+<text x="1890.0" y="191.0" class="node-description" text-anchor="middle">FLUX.2-Klein</text>
+</g>
+</a>
+<a class="node-link" href="../modules/warp-qwenimage.md" target="_blank">
+<g class="node" data-id="warp-qwenimage">
+<title>warp-qwenimage - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/warp-qwenimage.md</title>
+<polygon points="1453.0,365.0 1665.0,365.0 1647.0,475.0 1435.0,475.0" class="node-shape" style="fill: #fff7ed; stroke: #ea580c;" />
+<text x="1550.0" y="410.0" class="node-title" text-anchor="middle">warp-qwenimage</text>
+<text x="1550.0" y="431.0" class="node-description" text-anchor="middle">Qwen-Image t2i/Edit/Edit-Plus</text>
+</g>
+</a>
+<a class="node-link" href="../modules/warp-wan.md" target="_blank">
+<g class="node" data-id="warp-wan">
+<title>warp-wan - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/warp-wan.md</title>
+<polygon points="1793.0,365.0 2005.0,365.0 1987.0,475.0 1775.0,475.0" class="node-shape" style="fill: #fff7ed; stroke: #ea580c;" />
+<text x="1890.0" y="410.0" class="node-title" text-anchor="middle">warp-wan</text>
+<text x="1890.0" y="431.0" class="node-description" text-anchor="middle">Wan t2v/i2v/VACE</text>
+</g>
+</a>
+<a class="node-link" href="../modules/warp-step1x.md" target="_blank">
+<g class="node" data-id="warp-step1x">
+<title>warp-step1x - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/warp-step1x.md</title>
+<polygon points="1453.0,605.0 1665.0,605.0 1647.0,715.0 1435.0,715.0" class="node-shape" style="fill: #fff7ed; stroke: #ea580c;" />
+<text x="1550.0" y="650.0" class="node-title" text-anchor="middle">warp-step1x</text>
+<text x="1550.0" y="671.0" class="node-description" text-anchor="middle">Step1X-Edit base/v1p2</text>
+</g>
+</a>
+<a class="node-link" href="../modules/auto-test.md" target="_blank">
+<g class="node" data-id="auto-test">
+<title>auto-test - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/auto-test.md</title>
+<polygon points="783.0,845.0 957.0,845.0 985.0,900.0 957.0,955.0 783.0,955.0 755.0,900.0" class="node-shape" style="fill: #f5f3ff; stroke: #7c3aed;" />
+<text x="870.0" y="880.0" class="node-title" text-anchor="middle">自动化测试引擎 auto-test</text>
+<text x="870.0" y="901.0" class="node-description" text-anchor="middle">判断器→TestPlan→调度执行；适配</text>
+<text x="870.0" y="919.0" class="node-description" text-anchor="middle">器⟂v1/v2 引擎</text>
+</g>
+</a>
+<a class="node-link" href="../modules/eval.md" target="_blank">
+<g class="node" data-id="eval">
+<title>eval - /Users/chenzeyang/zycode/zynode/PM/optkit/architecture/modules/eval.md</title>
+<rect x="427.0" y="852.0" width="206.0" height="96.0" rx="6" class="node-shape" style="fill: #f8fafc; stroke: #64748b;" />
+<text x="530.0" y="880.0" class="node-title" text-anchor="middle">评估工具 eval</text>
+<text x="530.0" y="901.0" class="node-description" text-anchor="middle">性能 profiling +</text>
+<text x="530.0" y="919.0" class="node-description" text-anchor="middle">画质度量；旁路工具，不参与装配</text>
+</g>
+</a>
+  <g class="relation relation-hover">
+<desc>各 component attach(OptKitContext) + 按 HOOK_ORDER 注册 hook；apply 编排在 core</desc>
+<path d="M 530.0 511.0 L 530.0 605.0" class="relation-hitbox" />
+<path d="M 530.0 511.0 L 530.0 605.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="415.6" y="529.0" width="228.8" height="61.0" rx="6" class="relation-bubble-box" />
+<text x="530.0" y="548.0" class="relation-bubble-text" text-anchor="middle">各 component attach(OptKitContext)</text>
+<text x="530.0" y="563.0" class="relation-bubble-text" text-anchor="middle">+ 按 HOOK_ORDER 注册 hook；apply</text>
+<text x="530.0" y="578.0" class="relation-bubble-text" text-anchor="middle">编排在 core</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>warp 经 ctx.trigger 发 hook，仅经 hook 名 + value/kw 契约耦合</desc>
+<path d="M 1396.0 407.0 L 1020.5 407.0 L 1020.5 660.0 L 645.0 660.0" class="relation-hitbox" />
+<path d="M 1396.0 407.0 L 1020.5 407.0 L 1020.5 660.0 L 645.0 660.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="909.2" y="512.0" width="222.6" height="46.0" rx="6" class="relation-bubble-box" />
+<text x="1020.5" y="531.0" class="relation-bubble-text" text-anchor="middle">warp 经 ctx.trigger 发 hook，仅经</text>
+<text x="1020.5" y="546.0" class="relation-bubble-text" text-anchor="middle">hook 名 + value/kw 契约耦合</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>经 apply_warp 装配优化，把 optkit_v2 作为被测对象</desc>
+<path d="M 870.0 845.0 L 870.0 780.0 L 530.0 780.0 L 530.0 715.0" class="relation-hitbox" />
+<path d="M 870.0 845.0 L 870.0 780.0 L 530.0 780.0 L 530.0 715.0" class="relation-hover-line relation-hover-line-outer" />
+<g class="relation-bubble">
+<rect x="610.4" y="758.5" width="179.2" height="46.0" rx="6" class="relation-bubble-box" />
+<text x="700.0" y="777.5" class="relation-bubble-text" text-anchor="middle">经 apply_warp 装配优化，把</text>
+<text x="700.0" y="792.5" class="relation-bubble-text" text-anchor="middle">optkit_v2 作为被测对象</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>replace_dispatch_attention_fn：sage 先 replace 整个 dispatch → ring 后 decorate 包裹</desc>
+<path d="M 190.0 365.0 L 190.0 235.0" class="relation-hitbox" />
+<path d="M 190.0 365.0 L 190.0 235.0" class="relation-hover-line relation-hover-line-inner" stroke-dasharray="8 7" />
+<g class="relation-bubble">
+<rect x="75.6" y="271.0" width="228.8" height="61.0" rx="6" class="relation-bubble-box" />
+<text x="190.0" y="290.0" class="relation-bubble-text" text-anchor="middle">replace_dispatch_attention_fn：sag</text>
+<text x="190.0" y="305.0" class="relation-bubble-text" text-anchor="middle">e 先 replace 整个 dispatch → ring</text>
+<text x="190.0" y="320.0" class="relation-bubble-text" text-anchor="middle">后 decorate 包裹</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>on_pipe_ready：quant 先改权重 → compile 后编已量化图</desc>
+<path d="M 645.0 180.0 L 755.0 180.0" class="relation-hitbox" />
+<path d="M 645.0 180.0 L 755.0 180.0" class="relation-hover-line relation-hover-line-inner" stroke-dasharray="8 7" />
+<g class="relation-bubble">
+<rect x="594.9" y="274.5" width="210.2" height="46.0" rx="6" class="relation-bubble-box" />
+<text x="700.0" y="293.5" class="relation-bubble-text" text-anchor="middle">on_pipe_ready：quant 先改权重 →</text>
+<text x="700.0" y="308.5" class="relation-bubble-text" text-anchor="middle">compile 后编已量化图</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>on_backend_enter：ulysses 先 scatter heads（外层）→ regione（cache 内）后组 KV（内层）</desc>
+<path d="M 190.0 475.0 L 190.0 498.0 L 870.0 498.0 L 870.0 475.0" class="relation-hitbox" />
+<path d="M 190.0 475.0 L 190.0 498.0 L 870.0 498.0 L 870.0 475.0" class="relation-hover-line relation-hover-line-inner" stroke-dasharray="8 7" />
+<g class="relation-bubble">
+<rect x="415.6" y="503.0" width="228.8" height="61.0" rx="6" class="relation-bubble-box" />
+<text x="530.0" y="522.0" class="relation-bubble-text" text-anchor="middle">on_backend_enter：ulysses 先</text>
+<text x="530.0" y="537.0" class="relation-bubble-text" text-anchor="middle">scatter heads（外层）→</text>
+<text x="530.0" y="552.0" class="relation-bubble-text" text-anchor="middle">regione（cache 内）后组 KV（内层）</text>
+</g>
+</g>
+<g class="relation relation-hover">
+<desc>on_pipe_ready：regione（cache 内）换 scheduler 排最后</desc>
+<path d="M 870.0 235.0 L 870.0 365.0" class="relation-hitbox" />
+<path d="M 870.0 235.0 L 870.0 365.0" class="relation-hover-line relation-hover-line-inner" stroke-dasharray="8 7" />
+<g class="relation-bubble">
+<rect x="771.1" y="278.5" width="197.8" height="46.0" rx="6" class="relation-bubble-box" />
+<text x="870.0" y="297.5" class="relation-bubble-text" text-anchor="middle">on_pipe_ready：regione（cache</text>
+<text x="870.0" y="312.5" class="relation-bubble-text" text-anchor="middle">内）换 scheduler 排最后</text>
+</g>
+</g>
+</svg>

@@ -29,6 +29,7 @@ Last updated: 2026-07-01
 | --- | --- | --- | --- |
 | 2026-07-01 | 轮换/吊销已泄露的旧 AIMaster token（zyh8@meitu.com） | 进行中 | token 仍在 git 历史中，需在 AIMaster 侧吊销并换新值 |
 | 2026-07-01 | optkit-test 机配置 `AM_MASTER_AUTHORIZATION` 环境变量 | 进行中 | 0.2.11 已只读环境变量，运行前需 export 新 token，否则报错 |
+| 2026-07-09 | optkit_auto_test.py 重构：machine/config/auto_test 三模块 + 每机独立状态机 + 生命周期重试 | 已部署，待 CI 真实触发 | 32 单测通过；本地 e2e（cf5d2504）exit 0 自动关机；修复 launch shell 优先级 bug。07-09 已部署 lyw 机：workflows 0.3.2→0.4.0、am-tools 0.2.3→0.2.0（本仓编译，含 register_pubkey，远端旧版缺此函数）。下一步：推 commit 触发 CI 验证 |
 
 ## Requirements Backlog
 
@@ -47,7 +48,8 @@ Last updated: 2026-07-01
 
 ## Testing and Validation
 
-- 单测：`python3 -m pytest tests/test_optkit_auto_test.py -q`（2026-07-01 验证，30 passed）。
+- 单测：`python3 -m pytest tests/ -q`（2026-07-09 验证，31 passed；覆盖 machine 生命周期/SSH、契约函数、状态机重试）。
+- 旧 `tests/test_optkit_auto_test.py` 已随重构删除，用例平移到 `test_machine.py` + `test_auto_test.py`。
 
 ## Deployment
 
@@ -72,3 +74,5 @@ Last updated: 2026-07-01
 
 - 2026-07-01 - 初始化项目记忆；记录 optkit-test 部署机、凭证改造、健壮性修复合入。
 - 2026-07-01 - 清理 optkit-test 目录（释放约 50MB）；bump 0.2.11 并构建部署到该机，验证凭证走环境变量。
+- 2026-07-09 - 重构 optkit 自动测试为 machine/config/auto_test 三模块（0.4.0）：SSH 改 am_tools.proxy 公钥注册+系统 ssh（ssh_session 已被 am_tools 移除）；每机独立生命周期线程（STARTING→SETUP→TESTING→终态，互不阻塞，终态必关机）；失败经 restart 重试一轮；冒烟 1 台（5090）/release 3 台；setup SSH 超时 4h→20min 并加 30min 总预算（修 12h CI 超时 SIGKILL 泄漏 3 台机器的事故根因）；退出码只看流程成败，test rc!=0 仅警告。
+- 2026-07-09 - 本地真实 e2e 验证通过（cf5d2504，exit 0，机器自动回收无泄漏）；实机定位 launch 挂 20min 根因：`cd X && setsid ... &` 的 & 后台化整个列表、等待子 shell 握着 sshd 管道（paramiko 时代被 exit-status 语义掩盖），修复为 `{ setsid ... & }` 并加回归单测（32 passed）。
