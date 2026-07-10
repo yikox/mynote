@@ -36,17 +36,17 @@
 
 ### 涉及的模型组件速查
 
-| 组件 | 模型 | 作用 |
-|------|------|------|
-| 文本编码器 | Gemma 3 12B (fp4) | prompt → embedding |
-| 文本投影 | Text Projection (bf16) | embedding → DiT 条件向量 |
-| 视频 VAE | LTX23_video_vae (~0.5GB) | 像素 ↔ latent（空间压缩 32x） |
-| 音频 VAE | LTX23_audio_vae | 音频 ↔ latent |
-| 扩散主干 | ltx-2.3-22b-dev (46GB bf16 / ~29GB FP8) | 22B DiT，去噪生成 latent |
-| 蒸馏 LoRA | ltx-2.3-22b-distilled-lora (~7.6GB) | 加速推理（8 步替代 30+ 步） |
-| 空间放大器 | ltx-2.3-spatial-upscaler-x2 | latent 空间 2x 超分 |
-| 时间放大器 | (可选) temporal-upscaler | latent 帧率翻倍 |
-| 声码器 | Vocoder + MelBandRoformer | 音频 latent → 波形，增强音质 |
+| 组件       | 模型                                    | 作用                          |
+| ---------- | --------------------------------------- | ----------------------------- |
+| 文本编码器 | Gemma 3 12B (fp4)                       | prompt → embedding            |
+| 文本投影   | Text Projection (bf16)                  | embedding → DiT 条件向量      |
+| 视频 VAE   | LTX23_video_vae (~0.5GB)                | 像素 ↔ latent（空间压缩 32x） |
+| 音频 VAE   | LTX23_audio_vae                         | 音频 ↔ latent                 |
+| 扩散主干   | ltx-2.3-22b-dev (46GB bf16 / ~29GB FP8) | 22B DiT，去噪生成 latent      |
+| 蒸馏 LoRA  | ltx-2.3-22b-distilled-lora (~7.6GB)     | 加速推理（8 步替代 30+ 步）   |
+| 空间放大器 | ltx-2.3-spatial-upscaler-x2             | latent 空间 2x 超分           |
+| 时间放大器 | (可选) temporal-upscaler                | latent 帧率翻倍               |
+| 声码器     | Vocoder + MelBandRoformer               | 音频 latent → 波形，增强音质  |
 
 ### 管线分阶段
 
