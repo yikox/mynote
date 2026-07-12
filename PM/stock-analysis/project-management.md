@@ -25,7 +25,7 @@
 | 日期 | 任务 | 主模块 | 影响模块 | 级别 | 状态 | 下一步 / 备注 |
 | --- | --- | --- | --- | --- | --- | --- |
 | 2026-07-02 | 继续设计 `Decision Policy` 轻量核心模块 | Decision Policy | Agent Reasoning, Report Audit, Decision Signal, Portfolio Ledger, Investment Thesis | L3 | accepted | 已完成 L3 架构变更、模块文档、ADR 和架构图更新；后续由全局实现任务承接 |
-| 2026-07-03 | 对照架构设计全局实现新版 App | 全局 | Product Runtime, Research Engine, Domain Memory, Platform Boundaries, Monitor Automation | L3 | implementing | 已完成 11 个可测试阶段和核心模块首版实现；下一步进入集成打磨、真实 UI/API 壳和持久化 repository |
+| 2026-07-03 | 对照架构设计全局实现新版 App | 全局 | Product Runtime, Research Engine, Domain Memory, Platform Boundaries, Monitor Automation | L3 | implementing | 已完成 11 个基础阶段 + 2026-07-11 P0-P4 优先级波次；下一步进入真实 HTTP/桌面壳、repository 集成和端到端 demo |
 
 ## 需求 / 变更待办
 
@@ -57,7 +57,7 @@
 | 兼容式演进方案 | superseded | 2026-06-30 已被用户明确推翻 |
 | 新架构重建设计 | accepted | 仓库内 `architecture/` 和 `dist/` 是当前设计基线 |
 | 模块化工作流接替 | done | 2026-07-02 已完成，`AGENTS.md`、PM 和知识库已切换到 modular workflow |
-| 全局首版实现 | in-progress | 已完成 11 个可测试阶段：核心领域、策略准出、研究最小闭环、Command API、Desktop Shell、配置、存储、插件、Data Hub、Monitor、Workspace UI view model |
+| 全局首版实现 | in-progress | 已完成 11 个基础阶段，并追加 repository、Report、Deterministic Analytics、Command JSON adapter；当前 46 个单元测试通过 |
 
 ## 里程碑
 
@@ -70,7 +70,9 @@
 
 ## 测试与验证
 
+- 2026-07-11：优先级执行波次验证通过：`PYTHONPATH=src python3 -m unittest discover -s tests -v`，46 个测试通过。
 - 2026-07-03：全局首版实现验证通过：`PYTHONPATH=src python3 -m unittest discover -s tests -v`，34 个测试通过。
+- 2026-07-11：优先级执行波次编译验证通过：`PYTHONPYCACHEPREFIX=/private/tmp/stock-analysis-pycache python3 -m compileall -q src tests`。
 - 2026-07-03：全局首版编译验证通过：`PYTHONPYCACHEPREFIX=/private/tmp/stock-analysis-pycache python3 -m compileall -q src tests`。
 - 2026-07-03：架构 JSON 与 diff 验证通过：`python3 -m json.tool architecture/graphs/current-project.arch.json`、`git diff --check`。
 - 2026-07-02：本轮为文档 / 工作流修复，未执行代码测试。
@@ -82,7 +84,7 @@
 | 风险 / 阻塞 | 影响 | 缓解 / 状态 |
 | --- | --- | --- |
 | 外部 PM 中残留 2026-06 旧 demo 事实 | 后续 agent 可能误以为旧代码仍在仓库主线 | 已在本文件中降级为 historical / superseded，并声明仓库内 `architecture/` 为真源 |
-| 首版实现仍是本地核心模型，不是完整产品壳 | 还没有真实 HTTP 服务、Tauri/Web UI、真实数据源、LLM 调用和 repository 持久化层 | 当前核心链路、模块边界和失败隔离已通过单元测试；后续继续补真实运行壳和端到端集成 |
+| 首版实现仍不是完整产品壳 | 还没有真实 HTTP 服务、Tauri/Web UI、真实数据源、LLM 调用和端到端 demo；repository 已有最小 SQLite 切片但尚未接入运行主链路 | 当前核心链路、持久化切片、报告对象、确定性计算、JSON adapter 已通过单元测试；后续继续补真实运行壳和端到端集成 |
 | 外部通知、数据源、LLM 依赖未来仍会变化 | 可能影响证据质量和运行可靠性 | 通过 EvidencePack、DataQualitySummary、Report Audit 和 Config Observability 控制 |
 
 ## ADR 摘要
@@ -110,6 +112,7 @@
 - 2026-07-02 - 仓库内 `AGENTS.md` 已切换到 modular programming workflow，旧 `pm-*` 流程降级为历史背景。
 - 2026-07-03 - `Decision Policy` 轻量核心模块完成 L3 架构设计，新增模块文档、架构变更、ADR，并重新渲染架构图。
 - 2026-07-03 - 用户明确要求从头全局实现新版 App，并要求对照设计文件逐阶段实现、每阶段测试；已启动第一阶段实现任务。
+- 2026-07-11 - 按优先级派生子 agent 执行 P1 repository、P2 Report、P3 deterministic analytics，本地完成 P0 AGENTS 状态修正和 P4 Command JSON adapter；46 个单元测试、compileall、架构 JSON 校验和 diff 检查通过。
 - 2026-07-03 - 已完成 11 个可测试实现阶段，覆盖核心领域、研究引擎、运行边界、平台边界、监控和工作台 view model；34 个单元测试、compileall、架构 JSON 校验和 diff 检查通过。
 - 2026-07-02 - 外部 PM 记忆修复为当前状态：仓库内 `architecture/` 为架构真源，2026-06 旧实现事实降级为历史 / 迁移背景；modular workflow 接替完成。
 - 2026-07-01 - 按用户要求继续清理仓库：删除仓库内历史归档目录，移除 Archive Reference 模块，更新 `.gitignore`，重新渲染架构图；根目录只保留最新设计基线和协作治理文件。

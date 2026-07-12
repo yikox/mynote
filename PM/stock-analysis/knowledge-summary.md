@@ -8,7 +8,9 @@
 | --- | --- | --- |
 | 2026-07-02 | `pwd` | 确认当前仓库根目录为 `/Users/zyc/work/2026/stock-analysis` |
 | 2026-07-02 | `rg --files architecture` | 确认仓库内保留新版架构主文档、模块文档和架构图 JSON |
+| 2026-07-11 | `PYTHONPATH=src python3 -m unittest discover -s tests -v` | 优先级执行波次后 46 个单元测试通过 |
 | 2026-07-03 | `PYTHONPATH=src python3 -m unittest discover -s tests -v` | 全局首版实现 34 个单元测试通过 |
+| 2026-07-11 | `PYTHONPYCACHEPREFIX=/private/tmp/stock-analysis-pycache python3 -m compileall -q src tests` | 优先级执行波次后全量 Python 编译验证通过 |
 | 2026-07-03 | `PYTHONPYCACHEPREFIX=/private/tmp/stock-analysis-pycache python3 -m compileall -q src tests` | macOS 受限环境下全量 Python 编译验证通过，避免写入用户 Library cache |
 | 2026-07-03 | `python3 -m json.tool architecture/graphs/current-project.arch.json` | 当前架构图 JSON 可解析 |
 | 2026-07-03 | `git diff --check` | 当前改动无空白错误 |
@@ -35,6 +37,10 @@
 | `/Users/zyc/work/2026/stock-analysis/src/stock_analysis_app/platform/plugins.py` | Plugin Boundary manifest 校验和失败隔离实现路径 |
 | `/Users/zyc/work/2026/stock-analysis/src/stock_analysis_app/platform/config.py` | 配置脱敏和诊断实现路径 |
 | `/Users/zyc/work/2026/stock-analysis/src/stock_analysis_app/domain/decision_signal.py` | Decision Signal 冻结 policy metadata 的实现路径 |
+| `/Users/zyc/work/2026/stock-analysis/src/stock_analysis_app/platform/repositories.py` | SQLite repository 最小持久化切片实现路径 |
+| `/Users/zyc/work/2026/stock-analysis/src/stock_analysis_app/research/report.py` | Report 正式产物对象实现路径 |
+| `/Users/zyc/work/2026/stock-analysis/src/stock_analysis_app/research/analytics.py` | Deterministic Analytics 最小可复现计算实现路径 |
+| `/Users/zyc/work/2026/stock-analysis/src/stock_analysis_app/runtime/command_json.py` | Command API JSON adapter 实现路径 |
 | `/Users/zyc/notes/PM/stock-analysis/project-management.md` | 外部 PM，记录任务、需求、设计索引、风险和更新 |
 | `/Users/zyc/notes/PM/stock-analysis/knowledge-summary.md` | 外部知识库，记录可复用事实和经验 |
 
@@ -82,6 +88,7 @@
 - `Decision Policy` 不应演化成完整策略引擎；v1 只保留内置规则、三档风险偏好和可冻结的 `policy_version` / `policy_profile`。
 - 建议链路需要单独的轻量 `Decision Policy`，避免证据门槛、AI 权限和持仓约束散落在 Prompt、Report Audit 和 DecisionSignal 中。
 - `code_paths` 应尽量落到 atomic 模块；composite 模块不要用宽泛 glob 抢占子模块代码路径。
+- 大任务派生子 agent 时，应按 disjoint write set 拆分，例如 repository、Report、analytics、runtime adapter 分开，主 agent 负责 P0 文档漂移修正和最终集成验证。
 
 ## 排障记录
 
