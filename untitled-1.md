@@ -9,11 +9,6 @@
 
 > asxas 
 
-| x      | x   |
-| ------ | --- |
-| xas    | cas |
-|        | asc |
-| sssacs |     |
 
 
 
