@@ -10,5 +10,3 @@
 
 sacs
 
-s
-sasx
