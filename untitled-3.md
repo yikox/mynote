@@ -10,5 +10,3 @@ sacs
 
 
 sacs
-
-asc
