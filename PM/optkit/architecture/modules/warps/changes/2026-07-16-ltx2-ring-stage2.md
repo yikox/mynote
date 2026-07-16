@@ -10,6 +10,7 @@ Last updated: 2026-07-16
 - 关联实现：`optkit_v2/warps/transformers/transformer_ltx2.py`、`optkit_v2/components/parallel/`、`TDD/LTX/ltx2.3_demo_opt_stage2.py`
 - 用户确认：2026-07-16；V2 中 Ring 与 Ulysses 是两个可独立配置且可同时启用的并行维度，不引入或区分“USP”路径
 - 实施状态：pending
+- 实施计划：`2026-07-16-ltx2-ring-stage2-implementation-plan.md`
 
 ## 1. 结论
 

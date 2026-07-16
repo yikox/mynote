@@ -32,7 +32,7 @@ Last updated: 2026-07-16
 
 | ID | 日期 | 需求 | 状态 | 优先级 | 模块/范围 | 下一步 / 备注 |
 | --- | --- | --- | --- | --- | --- | --- |
-| REQ-20260716-ltx2-ring-stage2 | 2026-07-16 | LTX2 Stage2 支持纯 Ring 及 Ring + Ulysses 组合 | designed | 高 | LTX2 warp + parallel + `TDD/LTX` Stage2 demo | Design: `architecture/modules/warps/changes/2026-07-16-ltx2-ring-stage2.md`（accepted）；公共契约不变，下一步实施并远端验证三种拓扑 |
+| REQ-20260716-ltx2-ring-stage2 | 2026-07-16 | LTX2 Stage2 支持纯 Ring 及 Ring + Ulysses 组合 | designed | 高 | LTX2 warp + parallel + `TDD/LTX` Stage2 demo | Design: `architecture/modules/warps/changes/2026-07-16-ltx2-ring-stage2.md`（accepted）；Plan: `architecture/modules/warps/changes/2026-07-16-ltx2-ring-stage2-implementation-plan.md`；公共契约不变，下一步按 TDD 实施并远端验证三种拓扑 |
 | REQ-20260624-autotest-v1v2-modular | 2026-06-24 | autotest 改造为模块化测试引擎，支持分别测 v1 / v2，各有 full 与 smoke | implementing | 中 | `auto_test/`（不动 optkit/optkit_v2 本体） | Design: architecture/modules/auto-test/changes/2026-06-24-v1v2-modular-engine.md（accepted）；TDD 实施中；矩阵清单与判断器逻辑见设计「开放问题」，本轮收口 v2 full |
 | REQ-20260702-autotest-workflow-align | 2026-07-02 | auto_test 与 optkit-auto-test workflow 契约对齐：workflow 收敛为「4 卡机 + test.sh + done.flag」单一路径、删 impact 死代码；auto_test.tar 按 workflow-id 版本化解 OBS 覆盖竞态 | implementing | 高 | auto-test + workflows 仓库（外部）+ optkit CI | Design: architecture/modules/auto-test/changes/2026-07-02-workflow-autotest-align.md（accepted，超时 11h/固定名留 1 月/机型不变）；P0 已完成并合 master；P2 观测性 2026-07-07 完成并合入 master（5dbf9a6，merge 6c24d1b 已推送，CI 将端到端实测）；余 P1 release 验证 |
 
