@@ -11,7 +11,7 @@
 | 中国科技大学 | `https://pypi.mirrors.ustc.edu.cn/simple/`             | 中国科学技术大学       |
 | 豆瓣         | `https://pypi.doubanio.com/simple/`                    | 豆瓣                   |
 | 华为云       | `https://repo.huaweicloud.com/repository/pypi/simple/` | 华为云                 |
-| 腾讯云       | `https://mirrors.closud.tencent.com/pypi/simple`        | 腾讯云                 |
+| 腾讯云       | `https://mirrors.cloud.tencent.com/pypi/simple`        | 腾讯云                 |
 
 ## 修改 pip 源的多种方法
 
