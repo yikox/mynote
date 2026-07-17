@@ -6,12 +6,12 @@ Last updated: 2026-07-17
 
 - **optkit**：面向生产部署的 diffusion 推理优化工具包，把 SageAttention / FP8 量化 / torch.compile / 步级缓存（MagCache/DiCache）/ 并行（Ulysses+Ring CP）/ RegionE 等手段封装为可调用的优化能力。
 - **v1**：按「每模型一个 opt 文件」组织（`optkit/optimizers/`），优化顺序硬编码、跨能力耦合，新增模型/能力成本高。仍并行保留，不被替换。
-- **v2（当前主线）**：把优化能力重构为**可组合 component 框架**——优化手段解耦为独立插件，模型侧只写 warp（替换 transformer.forward + attn processor），二者通过 `OptKitContext` 的 hook 契约交互。统一入口 `apply_warp(pipe, config)`（warp 按 pipe 类名自动解析）。
-- 工作目录 `/Users/chenzeyang/MTGIT/optkit`，git 主分支 `master`，开发分支 `v2`。
+- **v2（已合入 master）**：把优化能力重构为**可组合 component 框架**——优化手段解耦为独立插件，模型侧只写 warp（替换 transformer.forward + attn processor），二者通过 `OptKitContext` 的 hook 契约交互。统一入口 `apply_warp(pipe, config)`（warp 按 pipe 类名自动解析）。
+- 工作目录 `/Users/chenzeyang/MTGIT/optkit-workspace/optkit`，git 主分支 `master`，开发分支 `v2` 保留。
 
 ## 当前状态
 
-- **版本**：v2 开发分支（`v2`），未发版。
+- **版本**：v2 已通过合并提交 `c8f9b04` 进入 `master`，尚未发版；`v2` 分支继续保留。
 - **阶段**：核心框架契约已冻结；6 类 component + 多模型 warp 已接通；处于「权重/性能收口 + 缺陷修复」阶段。
 - **当前焦点**：v2 使用文档已补齐（`docs/v2/` README + 5 模型系）并推送；Wan 全路径权重验证收口；v1→v2 迁移说明待补。
 - **LTX2 进展**：基础 warp、只切 video 的 Ulysses CP、双流 DiCache 已在 `v2` 分支落地并推送；Stage2 已接入纯 Ring 与 Ring + Ulysses 组合配置，并完成真实 5090/CUDA/NCCL 验证。`u2/r2` 约 28.4 秒且逐帧视频/音频数值门禁通过；纯 Ring `u1/r2` 运行正确，但默认 FP8 + SageAttention 的音频 cosine 未过相对控制线。匹配的原生 attention 全模型对照已通过，确认 Sage 分块近似是主要贡献者；产品回退策略仍待确认。
@@ -23,7 +23,7 @@ Last updated: 2026-07-17
 
 ## 进行中 / 活跃任务
 
-- LTX2 Stage2 Ring + Ulysses：demo 配置、V2 术语清理和三种拓扑真实权重验证已完成；保持公共并行契约不变。匹配的 single、`u2/r1`、`u1/r2` 原生 attention 全模型实验显示，纯 Ring 以 `0.822073 >= 0.796239` 通过音频门禁，结合微测试确认 Sage 分块近似是默认纯 Ring 漂移的主要贡献者，但不是唯一来源的证明。下一步需确认是保留风险说明、纯 Ring 自动回退原生 attention，还是仅推荐已通过默认门禁的 `u2/r2`；不能通过放宽阈值收口。
+- LTX2 Stage2 Ring + Ulysses：demo 配置、V2 术语清理和三种拓扑真实权重验证已完成；Stage2 实现本身未改变并行执行契约。2026-07-17 后续审阅仅收紧未实现的数据并行子组配置：`cp_degree=1` 或等于 `world_size`。匹配的 single、`u2/r1`、`u1/r2` 原生 attention 全模型实验显示，纯 Ring 以 `0.822073 >= 0.796239` 通过音频门禁，结合微测试确认 Sage 分块近似是默认纯 Ring 漂移的主要贡献者，但不是唯一来源的证明。下一步需确认是保留风险说明、纯 Ring 自动回退原生 attention，还是仅推荐已通过默认门禁的 `u2/r2`；不能通过放宽阈值收口。
 - 2026-06-30 - 已完成：review `origin/master...v2` 分支差异；复核后 auto_test 单 cell OOM/RuntimeError 作为 error cell 继续执行是既有策略，CLI/调度器退出码属于策略确认/可改进点；v1 noopt 基线配置语义为待确认真问题。
 - M4 收口：Wan t2v/ti2v/VACE「盲写」warp 的真实权重验证；性能基线报告归档。
 - 跟进遗留缺陷：qwen t2i + ulysses4 + true CFG 的 latent NaN（见下）。
@@ -102,6 +102,8 @@ Last updated: 2026-07-17
 
 ## Recent Updates
 
+- 2026-07-17 - 将 `v2` 合并回 `master`：先将本地 `master` 快进到远端 `e2c647d`，再以非快进合并提交 `c8f9b04` 合入 `v2@ba9d1b7` 并推送 `origin/master`。唯一冲突位于 `optkit_v2/components/quant/backend.py`，处理时保留 master 的 `QuantDtype` 类型安全与扩展量化类型，并把 v2 的 PerRow FP8 纳入 `QuantDtype.FP8_ROW`、兼容别名 `float8_row`，未丢失任一侧能力。合并后 `auto_test` 176 passed、2 skipped，量化后端语法检查和暂存差异检查通过；远端 master 哈希已核对，`v2` 分支未删除。
+- 2026-07-17 - 完成代码质量审阅项 1、4、5（L1），提交 `ba9d1b7` 已推送 `origin/v2`：TDD 修复 CP 并行度配置与运行时 group 契约不一致，要求两个 degree 均 `>=1`，`cp_degree=1` 为 identity、启用 CP 时必须等于 `world_size`；统一清理 parallel/RegionE/transformer/pipeline 中 CP 切分下沉后的偏移注释，以及核心代码中的过程性说明和 FLUX.2-Klein 示例失效引用。`auto_test` 176 passed、2 skipped，19 个改动 Python 文件编译通过，目标 `ruff` 与 `git diff --check` 通过。根因报告：`bugs/2026-07-17-parallel-cp-degree-contract.md`。
 - 2026-07-17 - LTX2 Stage2 Ring + Ulysses 实现与远端验证：Stage2 demo 支持独立配置 `ulysses_degree`、`ring_degree` 与 P2P/AllGather rotation，要求 degree 乘积等于 torchrun world size；V2 不引入“USP”模式。真实 5090 compile=1 矩阵全部运行成功：single 39.39s、u2/r1 30.34s、u1/r2 29.95s、u2/r2 28.48s 以内，峰值约 29.86 GB。两候选逐帧视频门禁均为 0 个失败帧，u2/r2 音频数值门禁通过；纯 Ring u1/r2 默认 Sage 音频未过相对控制线。微测试排除 P2P transport、NCCL 与 rank divergence；匹配的原生 attention 全模型实验中，single/u2r1/u1r2 timed 分别为 46.36/37.25/32.25 秒，纯 Ring 音频 `0.822073 >= 0.796239` 通过相对门禁，确认 Sage 分块近似是主要贡献者。fp8_row 对照没有缩小拓扑间直接差异。设计状态保持 accepted，需求保持 verifying，待确认产品回退/推荐策略；不修改公共并行契约或质量阈值，主观听音未验收。
 - 2026-07-16 - LTX2 Stage2 Ring + Ulysses 设计确认：审计现有 V2 parallel 后确认无需新增并行路径或修改公共契约；attention 级 Gloo 验证 `u2/r1`、`u1/r2`、`u2/r2` 均与全量参考对齐（最大误差 `2.38e-7`）。设计要求 video self 走 Ulysses 外层 + Ring 内层，`v2a` 继续在完整 CP group 合并 partial out/LSE；Stage2 demo 使用全部 rank，degree 乘积必须等于 world size。Design: `architecture/modules/warps/changes/2026-07-16-ltx2-ring-stage2.md`。
 - 2026-07-07 - P2 观测性完成（TDD，已提交 5dbf9a6 并经 merge 6c24d1b 合入 master 推送，v2 同步）：REQ-20260702-autotest-workflow-align 剩余 P2 两项落地——①触发信息：judge 把裁剪决策落 plan.meta（matched_rules/components/release_tag/profile 等，字段对齐 web 面板消费键），load_plan 解析，scheduler/run 传 `finalize_report(impact_plan=)` 恢复 test_manager.json `info.impact`；②全局进度：调度器 job 粒度独占写 `$TEST_RESULT_DIR_ROOT/progress.json`，worker `--no-aggregate` 改 NullProgress 不再并发覆盖，test.sh 软链 `auto_test/progress.json` 供 workflow 读取。新增 8 单测（套件 176 passed），端到端实证 web「源码变更」面板与 workflow 进度条渲染；workflows/web 两侧零改动（29/101 passed 回归）。背景：这两个消费端为同事 zyh 5-6 月所建（web 3a7804a 触发面板、workflows f596124 进度条），在 6 月底 auto_test 重构中断供。余 P1 release 验证。

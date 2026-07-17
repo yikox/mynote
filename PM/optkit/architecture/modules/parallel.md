@@ -44,7 +44,7 @@ flowchart LR
 
 ## 6. 全局约束
 
-`cp_degree (= ulysses × ring) <= world_size`，否则 config 报错；`cp_degree <= 1` 时除暴露 `ctx.parallel = self` 外不注册任何 hook（全 identity）。需外部已 `dist.init_process_group`（典型 torchrun）。
+`ulysses_degree`、`ring_degree` 均须 `>=1`；`cp_degree=1` 时除暴露 `ctx.parallel = self` 外不注册任何 hook（全 identity），`cp_degree>1` 时必须等于 `world_size`。当前不支持在同一 world 内再分数据并行子组；需外部已 `dist.init_process_group`（典型 torchrun）。
 
 ## 7. 已知风险
 

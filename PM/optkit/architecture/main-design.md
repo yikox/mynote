@@ -79,15 +79,17 @@ sequenceDiagram
 
 ## 5. 跨模块顺序契约（HOOK_ORDER）
 
-为什么不用全局优先级数字？因为**同两个 component 在不同 hook 需要相反顺序**（如 `on_denoise_step_pre` regione 先切、parallel 后切；`on_denoise_step_post` parallel 先 gather、regione 后 restore）。故顺序事实源放在**注册点一侧**，改顺序只动 `order.py`：
+每个注册点的参与者和 fold 顺序都是局部契约。全局优先级会把互不相关的阶段绑到同一标尺，也不能直接校验某个 component 是否允许注册该 hook。故顺序事实源放在**注册点一侧**，改顺序只动 `order.py`：
 
 | 注册点 | 顺序 | 含义 |
 | --- | --- | --- |
 | `on_pipe_ready` | `(QUANT, COMPILE, REGIONE)` | 量化早于 compile（编已量化权重），regione 换 scheduler 最后 |
 | `replace_dispatch_attention_fn` | `(SAGE, PARALLEL)` | sage 先 replace 整个 dispatch，ring 再 decorate 包裹（保留 sage 加速） |
 | `on_backend_enter` | `(PARALLEL, REGIONE)` | Ulysses 先 scatter head，RegionE 的 KV 组装在内层 |
-| `on_denoise_step_pre` | regione 先切 edited，parallel 后切 1/cp | |
-| `on_denoise_step_post` | parallel 先 gather（unwind），regione 后 restore | |
+| `on_denoise_step_pre` | `(REGIONE)` | pipeline 层裁剪 edited 子集；CP 不在此 hook |
+| `on_denoise_step_post` | `(REGIONE)` | pipeline 层 restore edited→full；CP 不在此 hook |
+| `cp_split_blocks` | `(PARALLEL)` | transformer 内、block 循环前切分序列 |
+| `cp_gather_blocks` | `(PARALLEL)` | transformer 内、proj_out 后聚合序列 |
 
 未登记的 `(注册点, component)` 直接报错（`hook_priority` 抛错）。
 
@@ -96,7 +98,7 @@ sequenceDiagram
 - `cache` 字段**三选一互斥**（DiCache / MagCache / RegionE，从类型上构造不出「同时开两个」）。
 - RegionE **不支持 Ring**（ring 的 seq-partition K/V 与 RegionE 全局 cache 不兼容）；只能 `ulysses_degree>1, ring_degree=1`。
 - RegionE + Ulysses 必须 `ulysses_anything=True`；RegionE + compile 强制 `dynamic=True`。
-- `cp_degree (= ulysses × ring) <= world_size`，需外部已 `dist.init_process_group`（典型 torchrun）。
+- `ulysses_degree`、`ring_degree` 均须 `>=1`；`cp_degree=1` 为 identity，否则必须等于 `world_size`。当前不支持在同一 world 内再分数据并行子组；需外部已 `dist.init_process_group`（典型 torchrun）。
 - **transformer 不做 cpu-offload**（torchao 量化张量与 accelerate 跨设备不兼容）；显存不足靠 FP8 量化缩到常驻。text_encoder 可 group-offload，vae 留 GPU。
 
 ## 7. 关联文档

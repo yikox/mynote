@@ -120,7 +120,7 @@ images = pipe(prompt="...").images
 - = 外置 Ulysses head-alltoall ∘ 内层 ring 装饰器组合而成（2D mesh `(ring, ulysses)`）。
 - **限制**：USP 路径需真机 2×2 数值对比验证后方可信（代码标注 ⚠️）。
 
-**Parallel 的全局约束**：`cp_degree (= ulysses × ring) <= world_size`，否则 config 报错；`cp_degree <= 1` 时除暴露 `ctx.parallel = self` 外不注册任何 hook（全 identity）。需外部已 `dist.init_process_group`（典型 torchrun）。
+**Parallel 的全局约束**：`ulysses_degree`、`ring_degree` 均须 `>=1`；`cp_degree=1` 时除暴露 `ctx.parallel = self` 外不注册任何 hook（全 identity），`cp_degree>1` 时必须等于 `world_size`。当前不支持在同一 world 内再分数据并行子组；需外部已 `dist.init_process_group`（典型 torchrun）。
 
 ### 1.5 步级缓存 DiCache / MagCache（`components/cache/`）
 
@@ -141,7 +141,7 @@ images = pipe(prompt="...").images
 - **时间维（AVDCache）**：步级缓存，`cache_threshold > 0` 启用（默认 0 关闭）；gamma 由 28 步标定曲线线性插值，支持任意步数。
 
 **三处协作**（这是 RegionE 最复杂的部分）：
-1. **序列切分在 pipeline 层**：`on_denoise_step_pre` 把 `[noise|cond]` 中 noise 按 `edited_ids` 切成 edited 子集（Q 侧降维），rotary 同步切；`on_denoise_step_post` 用 `ids_scatter` 还原。`HOOK_ORDER` 中 **regione 在 parallel CP 切分之前**（regione 先切 edited，CP 再分发）。
+1. **RegionE 子集裁剪在 pipeline 层**：`on_denoise_step_pre` 把 `[noise|cond]` 中 noise 按 `edited_ids` 切成 edited 子集（Q 侧降维），rotary 同步切；`on_denoise_step_post` 用 `ids_scatter` 还原。CP 切分位于 transformer 内的 `cp_split_blocks`，真实执行链是 RegionE 先裁 edited 子集、CP 再分发。
 2. **KV cache 组装在 attn 内**：`on_backend_enter`（内层，parallel 之后）。store 步存 post-rotary full K/V；partial 步从 cache 拼 full K/V（edited 位置写 partial、cond 段整体覆盖）。Q 是 edited 子集而 K/V 是 full → 等价「edited query attend 全部 token」。
 3. **换 scheduler**：`on_pipe_ready` 把 scheduler 换成 `RegionEFlowMatchScheduler`，给每个 block 准备 `RegionEAttnState`（cond+uncond cache；含 single_transformer_blocks 的模型如 Flux 两段都覆盖）。
 
@@ -208,12 +208,7 @@ ctx.parallel   # ParallelComponent | None —— 持 cp_group / dispatcher / mes
 
 ### 顺序事实源：`core/order.py`
 
-为什么不用全局优先级数字？因为**同两个 component 在不同 hook 需要相反顺序**：
-
-- `on_denoise_step_pre`：regione 先切 edited、parallel 后切 1/cp；
-- `on_denoise_step_post`：parallel 先 gather（unwind）、regione 后 restore。
-
-单一全局数字无法表达「此处 A 先、彼处 B 先」。故顺序事实源放在**注册点一侧**：`HOOK_ORDER[hook] = (Comp.X, Comp.Y, ...)` 显式列出参与者顺序，component 注册时只报自己名字（`by=self.name`），优先级 = 名字在元组里的下标。**未登记的 `(注册点, component)` 直接报错**（`hook_priority` 抛 KeyError/ValueError）。改顺序只动 `order.py` 这一个文件。
+每个注册点的参与者和 fold 顺序都是局部契约。全局优先级会把互不相关的阶段绑到同一标尺，也不能直接校验某个 component 是否允许注册该 hook。故顺序事实源放在**注册点一侧**：`HOOK_ORDER[hook] = (Comp.X, Comp.Y, ...)` 显式列出参与者顺序，component 注册时只报自己名字（`by=self.name`），优先级 = 名字在元组里的下标。**未登记的 `(注册点, component)` 直接报错**（`hook_priority` 抛 KeyError/ValueError）。改顺序只动 `order.py` 这一个文件。
 
 ### 延迟 pipe 变换到 `on_pipe_ready`
 

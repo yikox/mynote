@@ -51,7 +51,7 @@ Last updated: 2026-07-17
 
 - **思考用英语，回应/文档一律中文**（用户全局要求）。
 - 代码简洁实用、模块化、合理用设计模式、注重解耦；第一性原理：目标/动机不清就停下讨论。
-- **优化应用顺序敏感**：v1 硬编码 sage→fp8→compile→cache；v2 把顺序事实源放在 `core/order.py` 的 `HOOK_ORDER`，按「注册点」排序而非全局优先级（同两 component 在不同 hook 可能需相反顺序），未登记的 (注册点, component) 直接报错。
+- **优化应用顺序敏感**：v1 硬编码 sage→fp8→compile→cache；v2 把顺序事实源放在 `core/order.py` 的 `HOOK_ORDER`，按「注册点」声明局部参与者和 fold 顺序，避免全局优先级耦合互不相关的阶段；未登记的 (注册点, component) 直接报错。
 - **延迟 pipe 变换到 `on_pipe_ready`**：quant 改权重 → compile 编 graph → regione 换 scheduler，统一在 warp 替换完 forward 后按序执行，故 attach 顺序无所谓。
 - **transformer 不做 offload**：torchao 量化张量与 accelerate 跨设备不兼容，且反复 CPU↔GPU 搬运严重拖慢；显存不足靠 FP8 量化缩到常驻。text_encoder 可 `apply_group_offloading(..., offload_type="leaf_level")`，vae 留 GPU。
 - **compile 测试必须跑两遍**：第一遍含编译开销，计时/对比结论取第二遍稳态。
@@ -62,7 +62,7 @@ Last updated: 2026-07-17
 - RegionE **不支持** Ring attention（ring 的 seq-partition K/V 与 RegionE 全局 cache 不兼容）；只能 `ulysses_degree>1, ring_degree=1`。
 - RegionE + Ulysses 必须 `ulysses_anything=True`（Qwen txt/img 序列不保证整除 cp_size）。
 - RegionE + compile 强制 `dynamic=True`（partial step 变长序列，否则 dynamo 反复重编译）。
-- `cp_degree (= ulysses×ring) <= world_size`。
+- `ulysses_degree`、`ring_degree` 均须 `>=1`；`cp_degree=1` 为 identity，否则必须等于 `world_size`。当前未实现同一 world 内的数据并行子组。
 - LTX2 只切 video，audio/text 复制；video self 才进入 Ulysses/Ring。`v2a` 是 audio Q 全量、video K/V 分片，必须在完整 CP group 合并 partial output 与 log-sum-exp，禁止简单相加局部输出，也不走 Ring。
 
 ## 排查
@@ -81,6 +81,7 @@ Last updated: 2026-07-17
 ## 调查结论
 
 - **CP 数值已验证**：重构后 ulysses/ring 真机忠实；v1/v2 量化产物不可混用。
+- **CP group 元数据必须取局部 group**：若未来支持 `cp_degree < world_size` 的数据并行子组，dispatcher 的 world size/rank、mesh 和 collective group 必须成套改为局部契约；当前实现未建立这些子组，因此配置只允许 `cp_degree=1` 或占满 `world_size`。
 - **V2 不区分组合模式名**：Ring 与 Ulysses 是两个正交 degree，可独立或同时启用；二维 mesh 为 `(ring, ulysses)`，执行顺序是 Ulysses 外层 head all-to-all、Ring 内层 K/V rotation。
 - **LTX2 Ring 真机边界**：u2/r2 在 4×RTX5090 下 timed 约 28.4 秒并通过逐帧视频/音频数值门禁（主观听音未验收）；纯 Ring u1/r2 timed 约 29.95 秒，逐帧视频通过但默认 FP8 + Sage 音频 cosine `0.792696 < 0.804666`。attention 代表形状中 Sage Ring 对 full-KV relative L2 约 4.3%，native 约 0.3%；P2P 与 AllGather 逐项相同。匹配的原生 attention 全模型实验中，u1/r2 timed 约 32.25 秒，音频 `0.822073 >= 0.796239` 通过相对门禁。这确认 Sage 分块近似是主要贡献者，但不证明是唯一来源，也不自动授权改变内核选择。
 - **质量实验必须匹配控制变量**：更换 FP8 dtype 后，旧 single 不能继续作为匹配 reference。若没有 single-row，只能报告 rowwise 拓扑间直接距离，不能因为控制组下降更多而宣称候选通过。
@@ -96,7 +97,7 @@ Last updated: 2026-07-17
 ## 决策（ADR 摘要）
 
 - ADR-001：v1 优化顺序硬编码/能力耦合 → 改为 component + context hook 框架（能力解耦、任意组合、模型只写 warp）。
-- ADR-002：同两 component 在不同 hook 需相反顺序 → 按「注册点」排序（`HOOK_ORDER` 唯一事实源），废弃全局 Phase。
+- ADR-002：每个 hook 的参与者与 fold 顺序属于注册点局部契约 → 按「注册点」排序（`HOOK_ORDER` 唯一事实源），废弃全局 Phase。
 - ADR-003：顺序敏感的 pipe 变换 → 延迟到 `on_pipe_ready` 统一按序 fold（quant→compile→regione 固定）。
 - ADR-004：RegionE 与 Ring attention 禁止共存，config 层报错（算法不兼容）。
 - ADR-005：CP 切分单位=自注意力序列，下沉到 transformer 级；原始 self/cross 两类已由 LTX2 扩展为 self/cross/v2a 三类，支持不均匀切分。

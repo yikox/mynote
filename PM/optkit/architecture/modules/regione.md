@@ -24,7 +24,7 @@ flowchart TD
     s --> p --> a
 ```
 
-1. **序列切分在 pipeline 层**：`on_denoise_step_pre` 把 `[noise|cond]` 中 noise 按 `edited_ids` 切成 edited 子集（Q 侧降维），rotary 同步切；`on_denoise_step_post` 用 `ids_scatter` 还原。`HOOK_ORDER` 中 **regione 在 parallel CP 切分之前**（regione 先切 edited，CP 再分发）。
+1. **RegionE 子集裁剪在 pipeline 层**：`on_denoise_step_pre` 把 `[noise|cond]` 中 noise 按 `edited_ids` 切成 edited 子集（Q 侧降维），rotary 同步切；`on_denoise_step_post` 用 `ids_scatter` 还原。CP 切分位于 transformer 内的 `cp_split_blocks`，因此真实执行链是 RegionE 先裁 edited 子集、CP 再分发，不依赖二者在同一 hook 的优先级。
 2. **KV cache 组装在 attn 内**：`on_backend_enter`（内层，parallel 之后）。store 步存 post-rotary full K/V；partial 步从 cache 拼 full K/V（edited 位置写 partial、cond 段整体覆盖）。Q 是 edited 子集而 K/V 是 full → 等价「edited query attend 全部 token」。
 3. **换 scheduler**：`on_pipe_ready` 换成 `RegionEFlowMatchScheduler`，给每个 block 准备 `RegionEAttnState`（cond+uncond cache；含 single_transformer_blocks 的模型如 Flux 两段都覆盖）。
 

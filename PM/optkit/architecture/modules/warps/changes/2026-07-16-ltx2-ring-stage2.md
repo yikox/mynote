@@ -31,7 +31,7 @@ LTX2 是 video + audio 双残差流联合 DiT。每个 block 有六路 attention
 - video self 的 Q/K/V 都随 video 分片；
 - `a2v` 是 video Q 分片、audio K/V 复制，本地计算即正确；
 - `v2a` 是 audio Q 复制、video K/V 分片，必须合并局部 softmax 状态，禁止直接相加局部输出；
-- Stage2 使用所有 torchrun rank 做 CP，因此 demo 层要求 `ulysses_degree × ring_degree == world_size`；公共配置仍保留 `cp_degree <= world_size`，不收窄其他调用方可能使用的数据并行空间。
+- Stage2 使用所有 torchrun rank 做 CP，因此要求 `ulysses_degree × ring_degree == world_size`。2026-07-17 后续审阅确认公共实现并未建立数据并行子组，故配置契约已收敛为 `cp_degree=1`（identity）或 `cp_degree == world_size`；未来若支持数据并行子组，须单独设计 mesh 与局部 rank/world_size 契约。
 
 ## 3. 现有 V2 能力审计
 
