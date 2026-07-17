@@ -4,7 +4,7 @@
 
 **Goal:** 在不修改 V2 公共并行契约和算法的前提下，让 LTX2 Stage2 demo 支持纯 Ring 与 Ring + Ulysses 组合，并完成真实 5090 环境的数值、视频、音频和性能验收。
 
-**执行状态（2026-07-17）：** Task 1–5 已完成；Task 6 的运行、性能、P2P、逐帧视频和组合拓扑音频数值门禁已完成，主观听音未验收。纯 Ring `u1/r2` 默认 FP8 音频 cosine 未过原门禁，因此 Task 7 不能按“全部硬门槛通过”完成，只更新为验证中状态。Task 3 的质量工具在代码审查中经过两轮数值稳定性加固，下文 Step 3 已同步为最终算法。
+**执行状态（2026-07-17）：** Task 1–5 已完成；Task 6 的运行、性能、P2P、逐帧视频和组合拓扑音频数值门禁已完成，主观听音未验收。纯 Ring `u1/r2` 默认 FP8 + Sage 音频 cosine 未过原门禁；匹配的原生 attention 全模型诊断已通过，并确认 Sage 分块近似是主要贡献者。由于默认产品组合仍未通过全部硬门槛、回退策略未确认，Task 7 不能完成，只更新为验证中状态。Task 3 的质量工具在代码审查中经过两轮数值稳定性加固，下文 Step 3 已同步为最终算法。
 
 **Architecture:** 继续使用现有 `ParallelSpec(ulysses_degree, ring_degree)` 二维 mesh；LTX2 video self 由 Ulysses 外层 head all-to-all 与 Ring 内层 K/V rotation 自然组合，`v2a` 仍在完整 CP group 合并 partial out/LSE。新增代码仅限 Stage2 demo 的纯配置解析和验收工具；optkit 本体只更新过期注释与术语。
 
@@ -884,7 +884,7 @@ tar -xf /Users/chenzeyang/MTGIT/optkit-workspace/TDD/LTX/ltx_ring_validation.tar
 
 Expected: 本地四组 npy、MP4、日志齐全。`ltx_ring_validation.tar` 和运行产物作为验收证据保留在 TDD 工作区，不进入 git 提交。
 
-- [ ] **Step 7: 运行视频/音频质量门禁**
+- [ ] **Step 7: 运行视频/音频质量门禁**（默认矩阵已运行；纯 Ring 默认 Sage 音频未过，匹配原生 attention 诊断通过，等待产品策略后才能完成）
 
 Run:
 

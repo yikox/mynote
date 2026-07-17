@@ -38,7 +38,7 @@
 ## 3. 成熟度
 
 - Qwen / FLUX 系（t2i / 编辑 / Fill / Inpaint / Kontext / FLUX2-Klein）+ Step1X-Edit 均已在 4×RTX5090 全矩阵实跑（baseline / sage+fp8+compile / +dicache / ulysses4），稳态零重编。
-- LTX2 已完成基础 sage/fp8/compile、只切 video 的 Ulysses、双流 DiCache，以及纯 Ring / Ring + Ulysses 组合实跑。`u2/r2` 逐帧视频与音频数值门禁通过（主观听音未验收）；默认 FP8 + Sage 组合下纯 Ring `u1/r2` 仍有音频数值漂移风险，Sage 分块近似是待模型级匹配实验确认的主要假设。六路 attention 不能按单流拼接处理：video self 走组合并行，`v2a` 在完整 CP group 合并 partial output/log-sum-exp。
+- LTX2 已完成基础 sage/fp8/compile、只切 video 的 Ulysses、双流 DiCache，以及纯 Ring / Ring + Ulysses 组合实跑。`u2/r2` 逐帧视频与音频数值门禁通过（主观听音未验收）；默认 FP8 + Sage 组合下纯 Ring `u1/r2` 仍有音频数值漂移风险。匹配的原生 attention 全模型实验通过相对门禁，结合微测试确认 Sage 分块近似是主要贡献者，但不证明是唯一来源；当前不自动改变内核选择。六路 attention 不能按单流拼接处理：video self 走组合并行，`v2a` 在完整 CP group 合并 partial output/log-sum-exp。
 - Wan t2v/ti2v/VACE 部分路径标注「盲写，待真实权重验证」（M4 收口项）。
 - 已知遗留：**Qwen t2i + ulysses4 + true CFG → latent NaN**（根因 = fp8 动态激活量化在 CFG 两分支 txt 长度不一致时退化，见 [optimization-components](optimization-components.md) §2 与 `../bugs/`）；Qwen edit 系不受影响。
 

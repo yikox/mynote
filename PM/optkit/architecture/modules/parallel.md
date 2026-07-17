@@ -36,7 +36,7 @@ flowchart LR
 - **内层 kernel 选择**：内层支持 `return_lse`（sage 支持）直接复用；否则退回 `native_attention_kernel`（原生 flash 出 LSE）→ **保证关 sage 也能跑 ring**。
 - **`cp_wrappers.py` 只做 ring**：到达 wrapper 时 q/k/v 已被外置 Ulysses scatter 过 head，直接调 `ring_attention`，不走 diffusers `_templated_context_parallel_attention` 的 degree 路由（误走会双重 scatter 维度全错）。
 - 限制：cross-mode 透传；**不支持 RegionE**（config 报错）；**已知数值漂移**——Qwen ring 路径 SSIM 偏低（ring4=0.70、u2r2=0.58，而 ulysses4=0.88；flux-kontext ring4≈ulysses4 正常）→ Qwen 专属 ring（RoPE/attention）问题，排查中。
-- LTX2 实测风险：默认 FP8 + SageAttention 下纯 Ring `u1/r2` 逐帧视频通过、运行正常，但音频 cosine 低于 Ulysses 控制线；P2P 与 AllGather 逐项一致，attention 微测试显示 Sage 分块近似误差明显大于 native。Sage 分块近似是当前主要假设，尚待匹配的模型级 Sage/native 实验确认；该问题是质量风险，不是通信正确性失败。
+- LTX2 实测风险：默认 FP8 + SageAttention 下纯 Ring `u1/r2` 逐帧视频通过、运行正常，但音频 cosine 低于 Ulysses 控制线；P2P 与 AllGather 逐项一致，attention 微测试显示 Sage 分块近似误差明显大于 native。匹配的原生 attention 全模型实验中纯 Ring 以 `0.822073 >= 0.796239` 通过相对门禁，确认 Sage 分块近似是主要贡献者，但不证明是唯一来源。该问题是 Sage 与 Ring 的质量交互风险，不是通信正确性失败；当前不自动改变内核选择。
 
 ## 5. Ring + Ulysses 组合
 

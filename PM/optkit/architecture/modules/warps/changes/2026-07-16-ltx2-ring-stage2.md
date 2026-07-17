@@ -9,7 +9,7 @@ Last updated: 2026-07-17
 - 影响模块：序列并行、`TDD/LTX` Stage2 demo
 - 关联实现：`optkit_v2/warps/transformers/transformer_ltx2.py`、`optkit_v2/components/parallel/`、`TDD/LTX/ltx2.3_demo_opt_stage2.py`
 - 用户确认：2026-07-16；V2 中 Ring 与 Ulysses 是两个可独立配置且可同时启用的并行维度，不引入或区分“USP”路径
-- 实施状态：已落地，质量验证收口中（`u2/r2` 逐帧视频与音频数值门禁通过、主观听音未验收；纯 Ring `u1/r2` 默认 FP8 音频数值门禁未过）
+- 实施状态：已落地，质量验证收口中（`u2/r2` 逐帧视频与音频数值门禁通过、主观听音未验收；纯 Ring `u1/r2` 默认 FP8 + Sage 音频数值门禁未过，匹配的原生 attention 对照已通过并确认 Sage 分块近似为主要贡献者，产品策略待确认）
 - 实施计划：`2026-07-16-ltx2-ring-stage2-implementation-plan.md`
 
 ## 1. 结论
@@ -180,6 +180,7 @@ Out of scope：改变公共并行算法；新增特殊并行模式；MagCache；
 | 2026-07-16 | 不修改公共契约与并行算法 | 现有三种拓扑的 attention 级数值验证已通过 |
 | 2026-07-16 | Stage2 使用全部 torchrun rank，要求 degree 乘积等于 world size | 避免 demo 中出现未参与 CP 的 rank 和不一致 collective |
 | 2026-07-17 | 保留原音频门禁，不用 `fp8_row` 的混杂相对结果宣称修复 | rowwise 两组没有匹配的 single-row 参考，且 Ulysses↔Ring 直接 cosine 从默认 FP8 的 0.816554 降至 0.723803 |
+| 2026-07-17 | 不自动把纯 Ring 改为关闭 SageAttention | 匹配的原生 attention 对照虽通过，但自动回退会改变用户开启 Sage 后的公开语义，并使纯 Ring timed 从约 29.95 秒变为约 32.25 秒；需单独确认产品策略 |
 
 ## 11. 实施与验收结果
 
@@ -204,4 +205,4 @@ Out of scope：改变公共并行算法；新增特殊并行模式；MagCache；
 
 ### 11.3 根因边界
 
-attention 微测试证明 P2P 与 AllGather 逐项一致，`v2a` 跨 rank 输出一致，排除了传输与 rank divergence。代表形状下 Sage Ring 对 full-KV 的 relative L2 约 4.3%，native 约 0.3%；Sage 分块近似经 30 步双流扩散放大是当前主要假设，但尚无匹配的模型级 Sage/native 实验确认因果。`fp8_row` 对照没有缩小 Ulysses 与纯 Ring 的直接音频差异，因此当前不修改公共 Ring 算法，也不放宽质量阈值；若继续修正，必须先做同量化、同 attention 后端的匹配 single/control/candidate 模型级实验。
+attention 微测试证明 P2P 与 AllGather 逐项一致，`v2a` 跨 rank 输出一致，排除了传输与 rank divergence。代表形状下 Sage Ring 对 full-KV 的 relative L2 约 4.3%，native 约 0.3%。随后完成同量化、同原生 attention 后端的 single/control/candidate 全模型实验：single、`u2/r1`、`u1/r2` timed 分别为 46.36、37.25、32.25 秒；控制音频 cosine 为 `0.797239`，阈值为 `0.796239`，纯 Ring 为 `0.822073`，通过门禁。该模型级对照结合微测试确认 Sage 分块近似与 Ring 多轮合并的交互是主要贡献者，但关闭 Sage 会影响六路 attention，不能证明 video self 是唯一贡献位置。`fp8_row` 对照没有缩小拓扑间直接差异。当前不修改公共 Ring 算法、不自动改变内核选择，也不放宽质量阈值；下一步由产品设计确认纯 Ring 风险说明、自动回退或仅推荐 `u2/r2`。

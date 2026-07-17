@@ -76,13 +76,13 @@ Last updated: 2026-07-17
 | 重复 apply_warp | RuntimeError | 同一 transformer 已 warp | 复用 `pipe._optkit_ctx`，勿二次调用 |
 | CP + true CFG latent NaN | 全黑图 | CFG 两分支 txt 长度不一致（CP all_to_all split sizes 变化） | 负 prompt pad 同长 / `true_cfg_scale=1.0` |
 | 机器重启后失联 | pod 清盘只留 /app/czy5 | — | `am key-register` 重注公钥 + `restore_env.sh` + 重传 /app/optkit |
-| LTX2 纯 Ring 音频 cosine 偏低 | 视频正常、音频数组有限但相对 single 门禁失败 | P2P/AllGather 与跨 rank 一致性已排除通信错误；Sage 分块近似误差可能经 30 步双流扩散放大 | 不放宽阈值；先做同量化、同 attention 后端的 single/control/candidate 匹配实验。`fp8_row` 没有缩小拓扑间直接差异，不能当修复 |
+| LTX2 纯 Ring 音频 cosine 偏低 | 视频正常、音频数组有限但默认 Sage 相对 single 门禁失败 | P2P/AllGather 与跨 rank 一致性已排除通信错误；匹配的原生 attention 全模型实验通过相对门禁，结合微测试确认 Sage 分块近似是主要贡献者 | 不放宽阈值；默认推荐已通过的 `u2/r2`。是否让纯 Ring 自动回退原生 attention 属于产品语义变更，需单独确认；`fp8_row` 不能当修复 |
 
 ## 调查结论
 
 - **CP 数值已验证**：重构后 ulysses/ring 真机忠实；v1/v2 量化产物不可混用。
 - **V2 不区分组合模式名**：Ring 与 Ulysses 是两个正交 degree，可独立或同时启用；二维 mesh 为 `(ring, ulysses)`，执行顺序是 Ulysses 外层 head all-to-all、Ring 内层 K/V rotation。
-- **LTX2 Ring 真机边界**：u2/r2 在 4×RTX5090 下 timed 约 28.4 秒并通过逐帧视频/音频数值门禁（主观听音未验收）；纯 Ring u1/r2 timed 约 29.95 秒，逐帧视频通过但默认 FP8 音频 cosine `0.792696 < 0.804666`。attention 代表形状中 Sage Ring 对 full-KV relative L2 约 4.3%，native 约 0.3%；P2P 与 AllGather 逐项相同。Sage 分块近似是当前主要假设，不是已确认根因。
+- **LTX2 Ring 真机边界**：u2/r2 在 4×RTX5090 下 timed 约 28.4 秒并通过逐帧视频/音频数值门禁（主观听音未验收）；纯 Ring u1/r2 timed 约 29.95 秒，逐帧视频通过但默认 FP8 + Sage 音频 cosine `0.792696 < 0.804666`。attention 代表形状中 Sage Ring 对 full-KV relative L2 约 4.3%，native 约 0.3%；P2P 与 AllGather 逐项相同。匹配的原生 attention 全模型实验中，u1/r2 timed 约 32.25 秒，音频 `0.822073 >= 0.796239` 通过相对门禁。这确认 Sage 分块近似是主要贡献者，但不证明是唯一来源，也不自动授权改变内核选择。
 - **质量实验必须匹配控制变量**：更换 FP8 dtype 后，旧 single 不能继续作为匹配 reference。若没有 single-row，只能报告 rowwise 拓扑间直接距离，不能因为控制组下降更多而宣称候选通过。
 - **ring 关 sage 缺口已修**：加 `native_attention_kernel`，ring 关 sage 也能跑（SSIM 0.99）。
 - **DiCache/MagCacheContext 已迁入 v2 正本**：切断最后 v1 依赖；magcache cfg+校准接线完成；v1↔v2 逐位一致。
