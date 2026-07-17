@@ -2,7 +2,7 @@
 
 - 状态：accepted（描述当前已落地基线）
 - 代码根：`optkit_v2/`
-- 最近核对：2026-06-24（按仓库实际目录与注册表核对）
+- 最近核对：2026-07-17（补入 LTX2 与 Ring + Ulysses 组合实测状态）
 - 来源：由 `v2-architecture.md` 导读重组为模块化设计文档；原导读保留
 
 ## 1. 系统范围与定位
@@ -73,9 +73,9 @@ sequenceDiagram
 | --- | --- | --- | --- |
 | 核心框架 | [core-framework](modules/core-framework.md) | `config/` `core/` `apply.py` | Spec 容器、Context 冻结契约、HOOK_ORDER 顺序源、component 基类、apply 编排 |
 | 优化组件 | [optimization-components](modules/optimization-components.md) | `components/{sage,quant,compile,cache}` `runtime/lora.py` | Sage 后端替换、FP8/INT8 量化、区域编译、DiCache/MagCache 步级缓存、LoRA 热切换 |
-| 序列并行 | [parallel](modules/parallel.md) | `components/parallel/` | Ulysses / Ring / USP 序列并行，统一切分契约，不均匀序列切分 |
+| 序列并行 | [parallel](modules/parallel.md) | `components/parallel/` | Ulysses、Ring 及二者组合，统一切分契约，不均匀序列切分 |
 | RegionE | [regione](modules/regione.md) | `components/cache/regione/` | 区域感知编辑加速（空间 region partition + 时间 AVDCache），三处协作 |
-| 模型 warp | [warps](modules/warps.md) | `warps/transformers/` `warps/pipelines/` | transformer/pipeline 两层 warp，13 个已注册 pipeline，新增模型路径 |
+| 模型 warp | [warps](modules/warps.md) | `warps/transformers/` `warps/pipelines/` | transformer/pipeline 两层 warp，14 个已注册 pipeline（含 LTX2），新增模型路径 |
 
 ## 5. 跨模块顺序契约（HOOK_ORDER）
 

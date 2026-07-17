@@ -1,6 +1,6 @@
 # LTX2 Stage2 Ring + Ulysses 并行设计
 
-Last updated: 2026-07-16
+Last updated: 2026-07-17
 
 - 状态：accepted
 - 级别：L2 模块变更
@@ -9,7 +9,7 @@ Last updated: 2026-07-16
 - 影响模块：序列并行、`TDD/LTX` Stage2 demo
 - 关联实现：`optkit_v2/warps/transformers/transformer_ltx2.py`、`optkit_v2/components/parallel/`、`TDD/LTX/ltx2.3_demo_opt_stage2.py`
 - 用户确认：2026-07-16；V2 中 Ring 与 Ulysses 是两个可独立配置且可同时启用的并行维度，不引入或区分“USP”路径
-- 实施状态：pending
+- 实施状态：已落地，质量验证收口中（`u2/r2` 逐帧视频与音频数值门禁通过、主观听音未验收；纯 Ring `u1/r2` 默认 FP8 音频数值门禁未过）
 - 实施计划：`2026-07-16-ltx2-ring-stage2-implementation-plan.md`
 
 ## 1. 结论
@@ -179,3 +179,29 @@ Out of scope：改变公共并行算法；新增特殊并行模式；MagCache；
 | 2026-07-16 | LTX2 `v2a` 保持完整 CP group partial out/LSE merge，不走 Ring | Q 复制、KV 分片；通信短 audio out/LSE 比轮转长 video KV 更合适 |
 | 2026-07-16 | 不修改公共契约与并行算法 | 现有三种拓扑的 attention 级数值验证已通过 |
 | 2026-07-16 | Stage2 使用全部 torchrun rank，要求 degree 乘积等于 world size | 避免 demo 中出现未参与 CP 的 rank 和不一致 collective |
+| 2026-07-17 | 保留原音频门禁，不用 `fp8_row` 的混杂相对结果宣称修复 | rowwise 两组没有匹配的 single-row 参考，且 Ulysses↔Ring 直接 cosine 从默认 FP8 的 0.816554 降至 0.723803 |
+
+## 11. 实施与验收结果
+
+### 11.1 已落地内容
+
+- Stage2 demo 新增 Ring degree、Ulysses degree 与 P2P/AllGather rotation 解析；默认行为保持 Ulysses-only。
+- demo 启动时要求 `ulysses_degree × ring_degree == world_size`，错误配置在加载模型前失败。
+- LTX2 warp 的六路 attention 角色不变；`attn1` 进入 Ulysses 外层 + Ring 内层，`v2a` 继续完整 CP group 的 partial output/log-sum-exp 稳定合并。
+- V2 产品代码没有新增模式、配置字段、hook、`attn_mode` 或并行算法；只清理旧术语并补全注释。
+
+### 11.2 真实权重矩阵
+
+统一使用 768×512、121 帧、30 步、seed 0、Sage、默认 FP8、compile warmup + timed：
+
+| 拓扑 | timed | 视频 SSIM（对 single） | 音频 cosine（对 single） | 结果 |
+| --- | ---: | ---: | ---: | --- |
+| u2/r1 | 30.34s | 0.905051 | 0.805666 | 控制组成功 |
+| u1/r2 p2p | 29.95s | 0.923510 | 0.792696 | 运行/逐帧视频通过；音频未过 0.804666 阈值 |
+| u2/r2 p2p | 28.48s | 0.914866 | 0.815392 | 运行、逐帧视频、音频数值门禁通过 |
+
+视频门禁按每一帧相对控制组同帧比较，而不是只看均值：`u1/r2` 与 `u2/r2` 均为 0 个失败帧，最小逐帧差值分别为 `+0.014905`（第 31 帧）与 `+0.006138`（第 100 帧）。三种拓扑都没有 Traceback、NCCL 错误、OOM 或 NaN/Inf，MP4 中帧无花屏。组合路径的运行、逐帧视频与音频数值门禁通过，但没有主观听音，不能宣称已验收爆音、中断或音画错位；纯 Ring 的运行支持已落地，但不能标记为默认 FP8 音频质量完成。
+
+### 11.3 根因边界
+
+attention 微测试证明 P2P 与 AllGather 逐项一致，`v2a` 跨 rank 输出一致，排除了传输与 rank divergence。代表形状下 Sage Ring 对 full-KV 的 relative L2 约 4.3%，native 约 0.3%；Sage 分块近似经 30 步双流扩散放大是当前主要假设，但尚无匹配的模型级 Sage/native 实验确认因果。`fp8_row` 对照没有缩小 Ulysses 与纯 Ring 的直接音频差异，因此当前不修改公共 Ring 算法，也不放宽质量阈值；若继续修正，必须先做同量化、同 attention 后端的匹配 single/control/candidate 模型级实验。

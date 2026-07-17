@@ -1,6 +1,6 @@
 # optkit 知识总结
 
-Last updated: 2026-06-30
+Last updated: 2026-07-17
 
 ## 验证过的命令
 
@@ -13,6 +13,7 @@ Last updated: 2026-06-30
 - 质量度量：`cd test && python quality_metric.py && python generate_reports.py`。
 - 开关方式（环境变量覆盖代码默认）：`OPTKIT_SAGE / OPTKIT_FP8 / OPTKIT_COMPILE / OPTKIT_DICACHE / OPTKIT_REGIONE / OPTKIT_PARALLEL`（1/0）；参数 `OPTKIT_MODEL / OPTKIT_INPUT / OPTKIT_STEPS / OPTKIT_SEED / OPTKIT_THRESHOLD`。
 - 性能测试：`OPTKIT_RUNS=2`，**compile 计时取第二遍**（第一遍含编译开销）。
+- LTX2 Stage2：`torchrun --nproc_per_node=N TDD/LTX/ltx2.3_demo_opt_stage2.py`；通过 `OPTKIT_ULYSSES_DEGREE`、`OPTKIT_RING_DEGREE`、`OPTKIT_RING_ROTATE_METHOD=p2p|allgather` 配置，两 degree 乘积必须等于 world size。compile 开时必须 warmup + timed，两趟性能只取 timed。
 
 ## 架构与结构
 
@@ -62,6 +63,7 @@ Last updated: 2026-06-30
 - RegionE + Ulysses 必须 `ulysses_anything=True`（Qwen txt/img 序列不保证整除 cp_size）。
 - RegionE + compile 强制 `dynamic=True`（partial step 变长序列，否则 dynamo 反复重编译）。
 - `cp_degree (= ulysses×ring) <= world_size`。
+- LTX2 只切 video，audio/text 复制；video self 才进入 Ulysses/Ring。`v2a` 是 audio Q 全量、video K/V 分片，必须在完整 CP group 合并 partial output 与 log-sum-exp，禁止简单相加局部输出，也不走 Ring。
 
 ## 排查
 
@@ -74,10 +76,14 @@ Last updated: 2026-06-30
 | 重复 apply_warp | RuntimeError | 同一 transformer 已 warp | 复用 `pipe._optkit_ctx`，勿二次调用 |
 | CP + true CFG latent NaN | 全黑图 | CFG 两分支 txt 长度不一致（CP all_to_all split sizes 变化） | 负 prompt pad 同长 / `true_cfg_scale=1.0` |
 | 机器重启后失联 | pod 清盘只留 /app/czy5 | — | `am key-register` 重注公钥 + `restore_env.sh` + 重传 /app/optkit |
+| LTX2 纯 Ring 音频 cosine 偏低 | 视频正常、音频数组有限但相对 single 门禁失败 | P2P/AllGather 与跨 rank 一致性已排除通信错误；Sage 分块近似误差可能经 30 步双流扩散放大 | 不放宽阈值；先做同量化、同 attention 后端的 single/control/candidate 匹配实验。`fp8_row` 没有缩小拓扑间直接差异，不能当修复 |
 
 ## 调查结论
 
 - **CP 数值已验证**：重构后 ulysses/ring 真机忠实；v1/v2 量化产物不可混用。
+- **V2 不区分组合模式名**：Ring 与 Ulysses 是两个正交 degree，可独立或同时启用；二维 mesh 为 `(ring, ulysses)`，执行顺序是 Ulysses 外层 head all-to-all、Ring 内层 K/V rotation。
+- **LTX2 Ring 真机边界**：u2/r2 在 4×RTX5090 下 timed 约 28.4 秒并通过逐帧视频/音频数值门禁（主观听音未验收）；纯 Ring u1/r2 timed 约 29.95 秒，逐帧视频通过但默认 FP8 音频 cosine `0.792696 < 0.804666`。attention 代表形状中 Sage Ring 对 full-KV relative L2 约 4.3%，native 约 0.3%；P2P 与 AllGather 逐项相同。Sage 分块近似是当前主要假设，不是已确认根因。
+- **质量实验必须匹配控制变量**：更换 FP8 dtype 后，旧 single 不能继续作为匹配 reference。若没有 single-row，只能报告 rowwise 拓扑间直接距离，不能因为控制组下降更多而宣称候选通过。
 - **ring 关 sage 缺口已修**：加 `native_attention_kernel`，ring 关 sage 也能跑（SSIM 0.99）。
 - **DiCache/MagCacheContext 已迁入 v2 正本**：切断最后 v1 依赖；magcache cfg+校准接线完成；v1↔v2 逐位一致。
 - **稳态零重编有效**：开 compile 项 warmup 内有重编（fp8 权重类型 guard + cfg cond/uncond 两种序列长），run2~4 稳态零重编；4 跑丢首跑取后 3 均值方案有效。
@@ -93,7 +99,7 @@ Last updated: 2026-06-30
 - ADR-002：同两 component 在不同 hook 需相反顺序 → 按「注册点」排序（`HOOK_ORDER` 唯一事实源），废弃全局 Phase。
 - ADR-003：顺序敏感的 pipe 变换 → 延迟到 `on_pipe_ready` 统一按序 fold（quant→compile→regione 固定）。
 - ADR-004：RegionE 与 Ring attention 禁止共存，config 层报错（算法不兼容）。
-- ADR-005：CP 切分单位=自注意力序列，下沉到 transformer 级，self/cross 两模式，支持不均匀切分。
+- ADR-005：CP 切分单位=自注意力序列，下沉到 transformer 级；原始 self/cross 两类已由 LTX2 扩展为 self/cross/v2a 三类，支持不均匀切分。
 
 ## 环境与运行约束
 
