@@ -11,3 +11,4 @@
 ---
 
 ###  代码 pipeline 化 skill
+ - 测试和分析当前 skill 的需求
