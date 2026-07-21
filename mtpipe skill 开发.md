@@ -10,4 +10,4 @@
 
 ---
 
-### 代码pipeline 化skill
+### 代码pipeline 化 skill
