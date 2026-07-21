@@ -2,17 +2,18 @@
 
 ## 一、基础信息
 
-| 项目 | 详情 |
-|------|------|
-| **名称** | LTX-2.3 |
-| **开发者** | Lightricks（以色列，Facetune / LTX Studio 母公司） |
-| **发布时间** | 2026 年 3 月 |
-| **架构** | Diffusion Transformer (DiT)，**220 亿参数** |
-| **许可证** | **Apache 2.0**（可商用、修改、自托管） |
-| **来源** | HuggingFace: `Lightricks/LTX-2.3`；魔搭有镜像；Diffusers 格式: `diffusers/LTX-2.3-Diffusers` |
-| **蒸馏版** | `diffusers/LTX-2.3-Distilled-Diffusers`（8 步，CFG=1） |
-| **模态** | T2V、I2V、T2AV、I2AV（同步音视频） |
-| **排名** | 2026 年与 HunyuanVideo、Wan2.2 并称开源视频生成三强 |
+| 项目         | 详情                                                                                         |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| **名称**     | LTX-2.3                                                                                      |
+| **开发者**   | Lightricks（以色列，Facetune / LTX Studio 母公司）                                           |
+| **发布时间** | 2026 年 3 月                                                                                 |
+| **架构**     | Diffusion Transformer (DiT)，**220 亿参数**                                                  |
+| **许可证**   | **Apache 2.0**（可商用、修改、自托管）                                                       |
+| **来源**     | HuggingFace: `Lightricks/LTX-2.3`；魔搭有镜像；Diffusers 格式: `diffusers/LTX-2.3-Diffusers` |
+| **蒸馏版**   | `diffusers/LTX-2.3-Distilled-Diffusers`（8 步，CFG=1）                                       |
+| **模态**     | T2V、I2V、T2AV、I2AV（同步音视频）                                                           |
+| **排名**     | 2026 年与 HunyuanVideo、Wan2.2 并称开源视频生成三强                                          |
+|              |                                                                                              |
 
 **核心亮点**：
 
