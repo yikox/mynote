@@ -2,4 +2,4 @@
   	- 代码拆分
     - 
 - 如何起框架去做测试
-- profile
+- profiler
