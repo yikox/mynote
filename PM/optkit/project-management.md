@@ -1,6 +1,6 @@
 # optkit 项目管理
 
-Last updated: 2026-07-17
+Last updated: 2026-07-21
 
 ## 概述
 
@@ -23,6 +23,7 @@ Last updated: 2026-07-17
 
 ## 进行中 / 活跃任务
 
+- optkit-autotest 独立仓库迁移（L3）：仓库边界、双历史导入、manifest/bundle 契约、下游 CI、shadow/rollback 与验收设计已确认并落文档；下一步先评审书面设计，再编写逐文件实施计划。实施前必须完成现有 release P1 作为 legacy 基线。
 - LTX2 Stage2 Ring + Ulysses：demo 配置、V2 术语清理和三种拓扑真实权重验证已完成；Stage2 实现本身未改变并行执行契约。2026-07-17 后续审阅仅收紧未实现的数据并行子组配置：`cp_degree=1` 或等于 `world_size`。匹配的 single、`u2/r1`、`u1/r2` 原生 attention 全模型实验显示，纯 Ring 以 `0.822073 >= 0.796239` 通过音频门禁，结合微测试确认 Sage 分块近似是默认纯 Ring 漂移的主要贡献者，但不是唯一来源的证明。下一步需确认是保留风险说明、纯 Ring 自动回退原生 attention，还是仅推荐已通过默认门禁的 `u2/r2`；不能通过放宽阈值收口。
 - 2026-06-30 - 已完成：review `origin/master...v2` 分支差异；复核后 auto_test 单 cell OOM/RuntimeError 作为 error cell 继续执行是既有策略，CLI/调度器退出码属于策略确认/可改进点；v1 noopt 基线配置语义为待确认真问题。
 - M4 收口：Wan t2v/ti2v/VACE「盲写」warp 的真实权重验证；性能基线报告归档。
@@ -32,9 +33,10 @@ Last updated: 2026-07-17
 
 | ID | 日期 | 需求 | 状态 | 优先级 | 模块/范围 | 下一步 / 备注 |
 | --- | --- | --- | --- | --- | --- | --- |
+| REQ-20260721-autotest-repo-split | 2026-07-21 | 将 auto_test 与有效 workflows 代码迁入独立 `optkit-autotest`，通过 manifest/bundle 与 optkit CI 解耦 | designed | 高 | auto-test + optkit packaging/CI + workflows + AIMaster/OBS | L3 Design: `architecture/changes/2026-07-21-optkit-autotest-repository-migration.md`（accepted）；先审阅文档并完成 legacy release 基线，再写实施计划；尚未创建仓库或切流 |
 | REQ-20260716-ltx2-ring-stage2 | 2026-07-16 | LTX2 Stage2 支持纯 Ring 及 Ring + Ulysses 组合 | verifying | 高 | LTX2 warp + parallel + `TDD/LTX` Stage2 demo | 配置与三种拓扑已落地；`u2/r2` 约 28.4 秒并通过逐帧视频/音频数值门禁（主观听音未验收）。纯 Ring 默认 Sage 音频 `0.792696 < 0.804666`，关闭 Sage 后以 `0.822073 >= 0.796239` 通过匹配门禁，Sage 分块近似是主要贡献者。待确认产品回退/推荐策略，不修改阈值 |
-| REQ-20260624-autotest-v1v2-modular | 2026-06-24 | autotest 改造为模块化测试引擎，支持分别测 v1 / v2，各有 full 与 smoke | implementing | 中 | `auto_test/`（不动 optkit/optkit_v2 本体） | Design: architecture/modules/auto-test/changes/2026-06-24-v1v2-modular-engine.md（accepted）；TDD 实施中；矩阵清单与判断器逻辑见设计「开放问题」，本轮收口 v2 full |
-| REQ-20260702-autotest-workflow-align | 2026-07-02 | auto_test 与 optkit-auto-test workflow 契约对齐：workflow 收敛为「4 卡机 + test.sh + done.flag」单一路径、删 impact 死代码；auto_test.tar 按 workflow-id 版本化解 OBS 覆盖竞态 | implementing | 高 | auto-test + workflows 仓库（外部）+ optkit CI | Design: architecture/modules/auto-test/changes/2026-07-02-workflow-autotest-align.md（accepted，超时 11h/固定名留 1 月/机型不变）；P0 已完成并合 master；P2 观测性 2026-07-07 完成并合入 master（5dbf9a6，merge 6c24d1b 已推送，CI 将端到端实测）；余 P1 release 验证 |
+| REQ-20260624-autotest-v1v2-modular | 2026-06-24 | autotest 改造为模块化测试引擎，支持分别测 v1 / v2，各有 full 与 smoke | implementing | 中 | `auto_test/`（不动 optkit/optkit_v2 本体） | 已完成能力随 REQ-20260721 迁入新仓库；未完成的矩阵与判断器扩展不再继续堆入 optkit，待迁移稳定后在 `optkit-autotest` 收口 |
+| REQ-20260702-autotest-workflow-align | 2026-07-02 | auto_test 与 optkit-auto-test workflow 契约对齐：workflow 收敛为「4 卡机 + test.sh + done.flag」单一路径、删 impact 死代码；auto_test.tar 按 workflow-id 版本化解 OBS 覆盖竞态 | implementing | 高 | auto-test + workflows 仓库（外部）+ optkit CI | P0/P2 已落地；剩余 P1 release 验证作为 REQ-20260721 阶段 A 的 legacy 基线，完成前不切新链路 |
 
 **REQ-20260624-autotest-v1v2-modular 详述**
 
@@ -71,6 +73,7 @@ Last updated: 2026-07-17
 | 变更设计: auto-test 双引擎模块化 | `architecture/modules/auto-test/changes/2026-06-24-v1v2-modular-engine.md` | accepted | autotest 三层(判断器/适配器/执行本体)+engine⟂profile；REQ-20260624-autotest-v1v2-modular。auto-test 为候选模块，未入基线 |
 | 变更设计: workflow 契约对齐 | `architecture/modules/auto-test/changes/2026-07-02-workflow-autotest-align.md` | accepted | workflow 收敛单一路径 + tar 版本化 + done.flag 权威完成判定；REQ-20260702-autotest-workflow-align；P0/P2 已落地合 master，余 P1 release 验证 |
 | 变更设计: LTX2 Stage2 Ring + Ulysses | `architecture/modules/warps/changes/2026-07-16-ltx2-ring-stage2.md` | accepted | 复用 V2 正交组合；`v2a` 保持完整 CP group LSE merge；公共契约不变；REQ-20260716-ltx2-ring-stage2 |
+| 架构变更: optkit-autotest 独立仓库迁移 | `architecture/changes/2026-07-21-optkit-autotest-repository-migration.md` | accepted | L3；auto_test + 有效 workflows 合并到团队级新仓库；manifest/bundle 下游 CI；shadow/legacy 回滚；REQ-20260721-autotest-repo-split |
 
 > 原导读 `v2-architecture.md` 保留为面向新同学的代码导读；上表为模块化基线设计文档（由 pm-document-architecture 维护）。
 
@@ -102,6 +105,7 @@ Last updated: 2026-07-17
 
 ## Recent Updates
 
+- 2026-07-21 - accepted L3 设计：确认 `auto_test/` 与 workflows 当前有效的 optkit 专用编排合并到团队级 `optkit-autotest`；optkit 仅保留产品、impact、wheel/manifest 和下游触发。迁移采用 legacy→shadow→downstream，基线为 optkit `c8f9b049` 与 workflows 本地 `ae1df739`，要求连续 3 次 smoke、一次三机型 full、零机器泄漏和回滚演练后才清理旧代码。Design: `architecture/changes/2026-07-21-optkit-autotest-repository-migration.md`。
 - 2026-07-17 - 将 `v2` 合并回 `master`：先将本地 `master` 快进到远端 `e2c647d`，再以非快进合并提交 `c8f9b04` 合入 `v2@ba9d1b7` 并推送 `origin/master`。唯一冲突位于 `optkit_v2/components/quant/backend.py`，处理时保留 master 的 `QuantDtype` 类型安全与扩展量化类型，并把 v2 的 PerRow FP8 纳入 `QuantDtype.FP8_ROW`、兼容别名 `float8_row`，未丢失任一侧能力。合并后 `auto_test` 176 passed、2 skipped，量化后端语法检查和暂存差异检查通过；远端 master 哈希已核对，`v2` 分支未删除。
 - 2026-07-17 - 完成代码质量审阅项 1、4、5（L1），提交 `ba9d1b7` 已推送 `origin/v2`：TDD 修复 CP 并行度配置与运行时 group 契约不一致，要求两个 degree 均 `>=1`，`cp_degree=1` 为 identity、启用 CP 时必须等于 `world_size`；统一清理 parallel/RegionE/transformer/pipeline 中 CP 切分下沉后的偏移注释，以及核心代码中的过程性说明和 FLUX.2-Klein 示例失效引用。`auto_test` 176 passed、2 skipped，19 个改动 Python 文件编译通过，目标 `ruff` 与 `git diff --check` 通过。根因报告：`bugs/2026-07-17-parallel-cp-degree-contract.md`。
 - 2026-07-17 - LTX2 Stage2 Ring + Ulysses 实现与远端验证：Stage2 demo 支持独立配置 `ulysses_degree`、`ring_degree` 与 P2P/AllGather rotation，要求 degree 乘积等于 torchrun world size；V2 不引入“USP”模式。真实 5090 compile=1 矩阵全部运行成功：single 39.39s、u2/r1 30.34s、u1/r2 29.95s、u2/r2 28.48s 以内，峰值约 29.86 GB。两候选逐帧视频门禁均为 0 个失败帧，u2/r2 音频数值门禁通过；纯 Ring u1/r2 默认 Sage 音频未过相对控制线。微测试排除 P2P transport、NCCL 与 rank divergence；匹配的原生 attention 全模型实验中，single/u2r1/u1r2 timed 分别为 46.36/37.25/32.25 秒，纯 Ring 音频 `0.822073 >= 0.796239` 通过相对门禁，确认 Sage 分块近似是主要贡献者。fp8_row 对照没有缩小拓扑间直接差异。设计状态保持 accepted，需求保持 verifying，待确认产品回退/推荐策略；不修改公共并行契约或质量阈值，主观听音未验收。
