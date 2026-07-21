@@ -13,7 +13,7 @@
 | **蒸馏版**   | `diffusers/LTX-2.3-Distilled-Diffusers`（8 步，CFG=1）                                       |
 | **模态**     | T2V、I2V、T2AV、I2AV（同步音视频）                                                           |
 | **排名**     | 2026 年与 HunyuanVideo、Wan2.2 并称开源视频生成三强                                          |
-|              |                                                                                              |
+
 
 **核心亮点**：
 
