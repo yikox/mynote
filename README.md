@@ -17,7 +17,6 @@
 | [工具/](./工具/工具.md)                   | 开发工具、三方库与常用软件指南        |
 | [berkshire/](./berkshire/berkshire.md)    | 投资记录与交易系统                    |
 | [PM/](./PM/PM.md)                         | 多项目管理（产品与技术）              |
-|                                           |                                       |
 
 > 本库采用「**目录 + 同名 .md 归纳**」的双轨结构：每个目录同级都有一份同名 .md 作为知识地图，串联下属笔记的主题、关系与学习路径。
 > 例外：[PM/](./PM/PM.md) 内部为项目制结构（每个项目自含 project-management.md / knowledge-summary.md），不再额外建同级归纳。
