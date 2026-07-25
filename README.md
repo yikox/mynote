@@ -9,17 +9,17 @@
 | 目录                                      | 说明                                  |
 | ----------------------------------------- | ------------------------------------- |
 | [神经网络/](./神经网络.md)                | AI、深度学习、Agent、AIGC、并行策略   |
-| [GPU编程/](./GPU编程/GPU编程.md)          | OpenGL Compute Shader、GPU 编程与调试 |
-| [编程语言/](./编程语言/编程语言.md)       | Python、Rust、Swift、CUDA 等          |
+| [GPU编程/](./GPU编程.md)                  | OpenGL Compute Shader、GPU 编程与调试 |
+| [编程语言/](./编程语言.md)                | Python、Rust、Swift、CUDA 等          |
 | [计算机系统/](./计算机系统.md)            | 操作系统、编译原理、多线程、调试      |
-| [预研/](./预研/预研.md)                   | 技术调研、模型分析、算法与论文复现    |
-| [方法论/](./方法论/方法论.md)             | 编程思维、架构设计等通识方法论        |
-| [工具/](./工具/工具.md)                   | 开发工具、三方库与常用软件指南        |
-| [berkshire/](./berkshire/berkshire.md)    | 投资记录与交易系统                    |
-| [PM/](./PM/PM.md)                         | 多项目管理（产品与技术）              |
+| [预研/](./预研.md)                        | 技术调研、模型分析、算法与论文复现    |
+| [方法论/](./方法论.md)                    | 编程思维、架构设计等通识方法论        |
+| [工具/](./工具.md)                        | 开发工具、三方库与常用软件指南        |
+| [berkshire/](./berkshire.md)              | 投资记录与交易系统                    |
+| [PM/](./PM.md)                            | 多项目管理（产品与技术）              |
 
-> 本库采用「**目录 + 同名 .md 归纳**」的双轨结构：每个目录下有一份同名 .md 作为知识地图，串联下属笔记的主题、关系与学习路径。
-> 例外：[PM/](./PM/PM.md) 内部为项目制结构（每个项目自含 project-management.md / knowledge-summary.md），不再额外建同级归纳。
+> 本库采用「**根级 .md 知识地图 + 子目录容器**」的双轨结构：根级同名 .md 归纳主题、串联下属笔记，子目录存放具体笔记。
+> 例外：[PM/](./PM.md) 内部为项目制结构（每个项目自含 project-management.md / knowledge-summary.md），不再额外建同级归纳。
 
 ---
 
@@ -53,7 +53,7 @@
 
 ## 🎮 GPU 编程
 
-- 知识地图：[GPU编程.md](./GPU编程/GPU编程.md)
+- 知识地图：[GPU编程.md](./GPU编程.md)
 - [OpenGLCS入门.md](./GPU编程/OpenGLCS入门.md) — OpenGL Compute Shader 入门
 - [GLCS同步Bug分析.md](./GPU编程/GLCS同步Bug分析.md) — GLCS 在天玑芯片上的同步 Bug 案例
 - [HuggingFace Kernels 集成.md](./GPU编程/HuggingFace%20Kernels%20集成.md) — HF 官方 GPU kernel（get_kernel + Kernel Layers）
@@ -62,7 +62,7 @@
 
 ## 💻 编程语言
 
-- 知识地图：[编程语言.md](./编程语言/编程语言.md)
+- 知识地图：[编程语言.md](./编程语言.md)
 
 ### Python
 - 知识地图：[Python.md](./编程语言/Python/Python.md)
@@ -99,7 +99,7 @@
 
 ## 🔬 预研
 
-- 知识地图：[预研.md](./预研/预研.md)
+- 知识地图：[预研.md](./预研.md)
 
 ### 扩散模型加速
 - [DiCache扩散模型缓存加速.md](./预研/DiCache扩散模型缓存加速.md) — DiCache 扩散模型缓存加速
@@ -130,14 +130,14 @@
 
 ## 💡 方法论
 
-- 知识地图：[方法论.md](./方法论/方法论.md)
+- 知识地图：[方法论.md](./方法论.md)
 - [编程思维与架构设计.md](./方法论/编程思维与架构设计.md) — 编程思维与架构设计
 
 ---
 
 ## 🛠️ 工具
 
-- 知识地图：[工具.md](./工具/工具.md)
+- 知识地图：[工具.md](./工具.md)
 - [github-cli使用指南.md](./工具/github-cli使用指南.md) — GitHub CLI 使用
 - [SQL基本语法.md](./工具/SQL基本语法.md) — SQL 基础语法
 - [Markdown规范.md](./工具/Markdown规范.md) — Markdown 写作规范
@@ -156,14 +156,14 @@
 
 ## 📈 berkshire
 
-- 知识地图：[berkshire.md](./berkshire/berkshire.md)
+- 知识地图：[berkshire.md](./berkshire.md)
 - [投资记录.md](./berkshire/投资记录.md) — 结构化投资记录（标的、策略、风控、复盘）
 
 ---
 
 ## 📋 PM
 
-- 索引：[PM.md](./PM/PM.md)
+- 索引：[PM.md](./PM.md)
 
 PM 内部为项目制结构，每个子项目自含 `project-management.md` + `knowledge-summary.md`，不再额外建同级归纳。
 
