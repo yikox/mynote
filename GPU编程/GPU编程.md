@@ -1,14 +1,14 @@
 # GPU 编程
 
-> OpenGL Compute Shader 入门与移动端 GPU 实战 Bug 排查。
+> OpenGL Compute Shader 入门、移动端 GPU 实战 Bug 排查，及 HuggingFace GPU Kernels 集成。
 
 ---
 
 ## 概览
 
-- **主题范围**：以 OpenGL Compute Shader 为主线的 GPU 通用计算实践，重点在移动端 SoC（天玑 / 骁龙 / 苹果 GPU）的兼容性踩坑。
-- **学习路径**：[OpenGLCS入门.md](./GPU编程/OpenGLCS入门.md) → [GLCS同步Bug分析.md](./GPU编程/GLCS同步Bug分析.md)。前者建立基础，后者展示真实工程问题。
-- **横向关联**：与 [神经网络](../神经网络/神经网络.md) 的"GPU 加速"主题互补——本目录偏 OpenGL 移动端，神经网络侧偏 NVIDIA / CUDA 生态。
+- **主题范围**：GPU 通用计算实践——OpenGL Compute Shader（移动端）、HuggingFace Kernels（PyTorch 后端加速）。
+- **学习路径**：[OpenGLCS入门.md](./GPU编程/OpenGLCS入门.md) → [GLCS同步Bug分析.md](./GPU编程/GLCS同步Bug分析.md)（移动端路线）；[HuggingFace Kernels 集成.md](./GPU编程/HuggingFace%20Kernels%20集成.md)（PyTorch 推理优化路线）。
+- **横向关联**：与 [神经网络](../神经网络/神经网络.md) 的"GPU 加速"主题互补——本目录偏 OpenGL 移动端，神经网络侧偏 NVIDIA / CUDA 生态。HuggingFace Kernels 是 [编程语言/Python/Torch编译架构](../编程语言/Python/Torch编译架构.md) 的运行时后端。
 
 ---
 
@@ -23,6 +23,11 @@ GLCS 是 OpenGL 4.3+ 提供的 GPGPU 能力，可在不支持 CUDA 的设备上�
 GLCS 在天玑 9000 上的同步 Bug：Compute Shader 写 SSBO / Image / Atomic / Shared Memory 时，开发者必须显式同步，否则在 Mali 类 GPU 上结果错乱。
 
 - [GLCS同步Bug分析.md](./GPU编程/GLCS同步Bug分析.md) — 天玑 9000 同步 Bug 排查
+
+### HuggingFace Kernels 推理加速
+HuggingFace 官方 GPU kernel 集成方案，两种抽象层级：`get_kernel()` 手动加载预编译 kernel，以及 Kernel Layers（drop-in 替换 `nn.Module`，支持模块融合）。CUDA / ROCm / Metal / XPU 多后端。
+
+- [HuggingFace Kernels 集成.md](./GPU编程/HuggingFace%20Kernels%20集成.md) — get_kernel() + Kernel Layers 两种集成方式，精度与量化说明
 
 ---
 
