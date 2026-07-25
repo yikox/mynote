@@ -8,24 +8,24 @@
 
 | 目录                                      | 说明                                  |
 | ----------------------------------------- | ------------------------------------- |
-| [神经网络/](./神经网络/神经网络.md)       | AI、深度学习、Agent、AIGC、并行策略   |
+| [神经网络/](./神经网络.md)                | AI、深度学习、Agent、AIGC、并行策略   |
 | [GPU编程/](./GPU编程/GPU编程.md)          | OpenGL Compute Shader、GPU 编程与调试 |
 | [编程语言/](./编程语言/编程语言.md)       | Python、Rust、Swift、CUDA 等          |
-| [计算机系统/](./计算机系统/计算机系统.md) | 操作系统、编译原理、多线程、调试      |
+| [计算机系统/](./计算机系统.md)            | 操作系统、编译原理、多线程、调试      |
 | [预研/](./预研/预研.md)                   | 技术调研、模型分析、算法与论文复现    |
 | [方法论/](./方法论/方法论.md)             | 编程思维、架构设计等通识方法论        |
 | [工具/](./工具/工具.md)                   | 开发工具、三方库与常用软件指南        |
 | [berkshire/](./berkshire/berkshire.md)    | 投资记录与交易系统                    |
 | [PM/](./PM/PM.md)                         | 多项目管理（产品与技术）              |
 
-> 本库采用「**目录 + 同名 .md 归纳**」的双轨结构：每个目录同级都有一份同名 .md 作为知识地图，串联下属笔记的主题、关系与学习路径。
+> 本库采用「**目录 + 同名 .md 归纳**」的双轨结构：每个目录下有一份同名 .md 作为知识地图，串联下属笔记的主题、关系与学习路径。
 > 例外：[PM/](./PM/PM.md) 内部为项目制结构（每个项目自含 project-management.md / knowledge-summary.md），不再额外建同级归纳。
 
 ---
 
 ## 🧠 神经网络 & AI
 
-- 知识地图：[神经网络.md](./神经网络/神经网络.md)
+- 知识地图：[神经网络.md](./神经网络.md)
 
 ### AI 应用
 - [LLM应用设计指南.md](./神经网络/LLM应用设计指南.md) — LLM Wiki 三层架构设计
@@ -56,6 +56,7 @@
 - 知识地图：[GPU编程.md](./GPU编程/GPU编程.md)
 - [OpenGLCS入门.md](./GPU编程/OpenGLCS入门.md) — OpenGL Compute Shader 入门
 - [GLCS同步Bug分析.md](./GPU编程/GLCS同步Bug分析.md) — GLCS 在天玑芯片上的同步 Bug 案例
+- [HuggingFace Kernels 集成.md](./GPU编程/HuggingFace%20Kernels%20集成.md) — HF 官方 GPU kernel（get_kernel + Kernel Layers）
 
 ---
 
@@ -88,7 +89,7 @@
 
 ## 🔧 计算机系统
 
-- 知识地图：[计算机系统.md](./计算机系统/计算机系统.md)
+- 知识地图：[计算机系统.md](./计算机系统.md)
 - [操作系统.md](./计算机系统/操作系统.md) — 操作系统原理
 - [MLIR入门.md](./计算机系统/MLIR入门.md) — MLIR 入门
 - [多线程笔记.md](./计算机系统/多线程笔记.md) — 多线程编程
@@ -108,13 +109,18 @@
 - [Sparse-Linear-Attention技术分析.md](./预研/Sparse-Linear-Attention技术分析.md) — Sparse Linear Attention 技术分析
 - [SDNQ项目分析报告.md](./预研/SDNQ项目分析报告.md) — SDNQ 项目分析
 
+### 浮点精度
+- 知识地图：[浮点精度/总览.md](./预研/浮点精度/总览.md)
+- [浮点精度/经典格式.md](./预研/浮点精度/经典格式.md) — FP64/FP32/FP16/BF16/TF32/FP8
+- [浮点精度/MX与NVFP4.md](./预研/浮点精度/MX与NVFP4.md) — MX 微缩放 + NVIDIA NVFP4
+
 ### 视频生成
 - [LTX-2.3模型总结.md](./预研/LTX-2.3模型总结.md) — LTX-2.3 同步音视频模型分析
 
 ### 图像编辑
 - 知识地图：[图像编辑.md](./预研/图像编辑/图像编辑.md)
-- [RegionE图像编辑.md](./预研/RegionE图像编辑.md) — RegionE 区域感知图像编辑
-- [FPIE泊松融合使用指南.md](./预研/图像编辑/FPIE泊松融合使用指南.md) — FPIE 泊松融合（传统图像编辑）
+- [图像编辑/RegionE图像编辑.md](./预研/图像编辑/RegionE图像编辑.md) — RegionE 区域感知图像编辑（ICLR 2026）
+- [图像编辑/FPIE泊松融合使用指南.md](./预研/图像编辑/FPIE泊松融合使用指南.md) — FPIE 泊松融合（传统图像编辑）
 
 ### Bug 诊断
 - 知识地图：[bugs.md](./预研/bugs/bugs.md)
