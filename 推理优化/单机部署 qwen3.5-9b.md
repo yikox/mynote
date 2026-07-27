@@ -76,16 +76,16 @@ Python 环境；安装前先核对 wheel、CUDA runtime 和驱动兼容性，不
 
 按每周 10–12 小时估算，共 16 周；全职学习可压缩，但阶段验收线不变。
 
-| 阶段 | 时间 | 阶段完成物 |
-| --- | ---: | --- |
-| 0. 最小部署 | 1 周 | Qwen3.5-9B W4A16 的 OpenAI-compatible API |
-| 1. 推理基准与 Profiling | 1 周 | TTFT、TPOT、吞吐、显存和并发基线 |
-| 2. CUDA 优化算子 | 3 周 | 两个接入 Qwen Block 的 CUDA Extension |
-| 3. Triton 融合算子 | 2 周 | 两个接入模型的融合 kernel 与 autotune 结果 |
-| 4. PyTorch Compiler | 2 周 | 可解释的 Qwen Block 编译图和自定义算子接入 |
-| 5. vLLM 深化 | 2 周 | 可稳定压测的单卡基线服务 |
-| 6. SGLang 与框架对照 | 2 周 | 公平的 vLLM / SGLang 选型报告 |
-| 7. 分布式推理 | 3 周 | 2+ GPU 部署、扩展效率和通信分析 |
+| 阶段                    | 时间 | 阶段完成物                                 |
+| ----------------------- | ---: | ------------------------------------------ |
+| 0. 最小部署             | 1 周 | Qwen3.5-9B W4A16 的 OpenAI-compatible API  |
+| 1. 推理基准与 Profiling | 1 周 | TTFT、TPOT、吞吐、显存和并发基线           |
+| 2. CUDA 优化算子        | 3 周 | 两个接入 Qwen Block 的 CUDA Extension      |
+| 3. Triton 融合算子      | 2 周 | 两个接入模型的融合 kernel 与 autotune 结果 |
+| 4. PyTorch Compiler     | 2 周 | 可解释的 Qwen Block 编译图和自定义算子接入 |
+| 5. vLLM 深化            | 2 周 | 可稳定压测的单卡基线服务                   |
+| 6. SGLang 与框架对照    | 2 周 | 公平的 vLLM / SGLang 选型报告              |
+| 7. 分布式推理           | 3 周 | 2+ GPU 部署、扩展效率和通信分析            |
 
 ## 阶段 0：最小部署
 
