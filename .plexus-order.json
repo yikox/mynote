@@ -29,6 +29,18 @@
       "n:第三章 DeepSeek-V4-Flash 原生混合精度三级存储部署",
       "n:第二章 llama.cpp 部署 Qwen3.5-9B",
       "n:量化版本、GGUF 与 TorchAO"
+    ],
+    "预研": [
+      "n:bugs",
+      "n:图像编辑",
+      "n:浮点精度",
+      "n:DiCache扩散模型缓存加速",
+      "n:LTX-2.3模型总结",
+      "n:SDNQ项目分析报告",
+      "n:SeaCache论文复现笔记",
+      "n:Sparse-Linear-Attention技术分析",
+      "n:SVDQuant",
+      "n:Triton-distributed序列并行Attention研究"
     ]
   }
 }
