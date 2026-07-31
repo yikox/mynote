@@ -18,13 +18,16 @@
 原型开关和验收命令：
 
 ```bash
+ROOT=/home/yiko/workspace/deepseek-v4-flash-serve
+PY=/home/yiko/workspace/qwen35-agent-serve/.venv/bin/python
+cd "$ROOT"
 export KT_MXFP4_MMAP=1
 export KT_MXFP4_BACKEND=avx2
 export KT_KERNEL_CPU_VARIANT=avx2
 bash scripts/run_under_24g.sh env \
   LD_LIBRARY_PATH="$ROOT/.deps/sysroot/usr/lib/x86_64-linux-gnu:/usr/local/cuda-12.6/lib64" \
   PYTHONPATH="$ROOT/run/python" \
-  python scripts/validate_mxfp4_mmap.py
+  "$PY" "$ROOT/scripts/validate_mxfp4_mmap.py"
 ```
 
 `run_under_24g.sh` 内部使用 `MemoryHigh=22G`、`MemoryMax=24G`、`MemorySwapMax=0`、`OOMPolicy=stop`。在 transient unit 内实读到 `memory.max=25769803776`、`memory.high=23622320128`、`memory.swap.max=0`。4 专家合成 Safetensors 结果：`qlen=1` 相对误差 `0.004596`，`qlen=4` 相对误差 `0.002769`，输出 `MXFP4_MMAP_VALIDATION=PASS`，CPU 变体 AVX2，RSS 增量约 `117.5MiB`，Swap 峰值 `0B`。
@@ -151,7 +154,16 @@ OOMPolicy=stop
 仅 CPU 专家 owned buffer ≈ 11008 × 15MiB = 161.25GiB
 ```
 
-即使少量专家放进 16GB 显存，剩余量仍远超 24GB。原版启动参数无法解决这个问题；必须修改权重生命周期和 scale 策略。固定 `v0.6.3` 源码已下载并核对，归档 SHA256 为 `dd0c9e382c5d9f02ba0b01a991395de06703af066006214b15d930a3715666ef`；源码确认 TP 包装器在单 CPU 池时也会复制全部专家。补丁仍须用合成权重运行验证，不能用源码阅读代替验收。
+即使少量专家放进 16GB 显存，剩余量仍远超 24GB。原版启动参数无法解决这个问题；必须修改权重生命周期和 scale 策略。固定 `v0.6.3` 源码已下载、核对并完成 AVX2/CUDA 编译，归档 SHA256 为 `dd0c9e382c5d9f02ba0b01a991395de06703af066006214b15d930a3715666ef`；源码确认 TP 包装器在单 CPU 池时也会复制全部专家。
+
+本次 opt-in 补丁的实际边界：
+
+- `BufferB` 在 mmap 模式只保存权重只读指针和 raw `uint8` UE8M0 scale 指针，`scale_at()` 在 AVX2 内核内按字节解码，不再启动时扩成 FP32。
+- mmap 模式下 buffer 需求降为 scale 元数据，不复制每个专家的完整 weight/scale owned buffer；直接路径和单池 TP 路径均覆盖。
+- Python 保留连续 raw scale tensor 和 loader 生命周期；为了避免未实现的 GPU 回迁，mmap 模式强制 `threadpool_count=1`、`kt-num-gpu-experts=0`，动态专家迁移关闭。
+- 默认 `KT_MXFP4_MMAP` 未开启时仍走原版复制/scale 转换路径，并已通过同一合成模型回归。
+
+合成模型通过不等于完整 159.6GB 模型已经可服务：仍未验证全模型 header、长上下文 KV、Prefill/Decode 吞吐和 OpenAI API。
 
 CPU 没有 AVX-512。RAM 命中的专家需要对比两条执行路径：
 
@@ -383,8 +395,8 @@ OOMPolicy=stop
 ### 阶段 1.5：24GB 内存实现门禁
 
 - 基于固定版本源码做最小补丁：长期有效的只读权重映射、冷专家不复制、UE8M0 scale 在 AVX2 内核中按组即时解码。
-- 用合成的 MXFP4 小模型验证数值一致性、mmap 生命周期和 LRU 回收。
-- 在 systemd 24GB transient unit 内做逐层压力测试。
+- 用合成的 MXFP4 小模型验证数值一致性和 mmap 生命周期；第一版不实现用户态 LRU，改由 cgroup 限制文件页缓存。
+- 在 systemd 24GB transient unit 内验证硬限制、无 Swap 和最小 CPU 执行路径。
 - 证明 RSS、file cache 和 scale cache 有明确上限后，才允许下载 148.67GiB 正式权重。
 
 实施时做了一个收敛：第一轮不先开发自定义 expert pack 和用户态 LRU，而是直接保留官方 Safetensors 的只读映射，让 cgroup 对已触碰的 file cache 施加 24GB 硬边界。原因是这条路径改动最小，足以先回答“能否启动、数值是否正确、普通 mmap 的 token/s 是否可接受”。只有基准确认随机读取是主要瓶颈后，才进入连续 pack、显式预读和热专家晋升。
@@ -405,7 +417,11 @@ export KT_KERNEL_CPU_VARIANT=avx2
 - 对小文件或单分片做短时速度探测。
 - 选择可信且实际更快的源。
 - 固定 revision，并计算预计完成时间和最终磁盘占用。
-- 只有预计时间合理、且阶段 1.5 通过时才开始 148.67GiB 下载。
+- 阶段 1.5 原型现已通过，但完整 SGLang 依赖门禁未通过，因此仍不开始 148.67GiB 下载。
+
+2026-08-01 的官方端点实测：ModelScope SDK 可列出 `deepseek-ai/DeepSeek-V4-Flash` 的 46 个 Safetensors 分片，权重合计 `159617149040` bytes（约 `148.655GiB`），全仓库文件合计 `159630045338` bytes；Hugging Face `config.json` 请求 12 秒超时。ModelScope `config.json` 返回 200，8MiB Range 读取分片约 `7.27MB/s`；这只是短时 Range 样本，按该瞬时速度粗算全量约 6.1 小时，不作为下载承诺。正式下载前仍需固定 revision、重算文件清单和校验。
+
+完整 SGLang V4 门禁当前结果：机器 CUDA Toolkit 为 12.6（官方教程要求 12.8+）；现有环境 `flashinfer-python=0.6.6` 且缺 `flashinfer-cubin`（教程要求两者同版本且 ≥0.6.9）；`transformers=5.3.0`（V4 需要 4.57.1）；`sglang`、`tilelang` 均未安装。因此本轮只完成 Kernel 原型，不宣称 SGLang 服务可启动。
 
 ### 阶段 3：权重重排
 
@@ -436,7 +452,7 @@ export KT_KERNEL_CPU_VARIANT=avx2
 
 ## 当前状态
 
-截至 2026-07-31：
+截至 2026-08-01：
 
 - 远端 SSH 已恢复，GPU 基本空闲，现有 Qwen llama.cpp 服务处于停止状态。
 - WSL 已限制为 30GB，Swap 已设为 0；重启后验收通过。
@@ -446,9 +462,10 @@ export KT_KERNEL_CPU_VARIANT=avx2
 - 当前驱动上 PyTorch cu128、CUDA 与 AVX2 Kernel 联合烟雾测试通过；完整 SGLang V4 栈尚未验收。
 - 官方模型元数据已确认总量 148.667GiB、46 个 Safetensors 分片。
 - `ktransformers v0.6.3` 源码归档已下载并校验；原版 KT-Kernel 全量复制专家权重的 24GB 阻塞已从源码确认。
-- MXFP4 mmap/UE8M0 即时解码补丁已写入远端固定版本源码；Python 语法检查通过，合成权重测试脚本与 24GB cgroup 包装器已准备，但补丁尚未编译和运行验收，因此当前不能称为可用服务。
+- MXFP4 mmap/UE8M0 即时解码补丁已写入远端固定版本源码，并以 CUDA/SM89 + AVX2 编译成功；mmap 路径和默认路径在 24GB transient cgroup 中均通过合成权重数值回归，误差约 0.46%/0.28%，Swap 峰值为 0。
 - 官方 V4 权重尚未下载。
-- 下一步先完成固定源码的 AVX2/SM89 构建，再依次跑 Decode、Prefill、mmap 生命周期和 cgroup 24GB 测试。通过后才进入完整 SGLang 依赖与官方模型下载测速。任何后续实际改动、参数和测量结果都应回写本章，替换计划值而不是追加过时过程记录。
+- 完整 SGLang V4 仍被 CUDA/FlashInfer/Transformers/SGLang/TileLang 版本门禁挡住；当前结果只能称为“24GB 受限下的 MXFP4 mmap Kernel 原型”，不能称为 Agent 可用服务。
+- 后续顺序：先决定是否为 SGLang 单独准备 CUDA 12.8+ 与兼容依赖环境；门禁通过后再下载官方权重、做全量 header 分析；之后才实现 expert pack、显式预读、RAM/GPU 晋升和真实 Prefill/Decode/API 验收。任何后续实际改动、参数和测量结果都应回写本章，替换计划值而不是追加过时过程记录。
 
 ## 参考
 
