@@ -351,10 +351,22 @@ OOMPolicy=stop
 
 ### 阶段 1.5：24GB 内存实现门禁
 
-- 基于固定版本源码做最小补丁：长期有效的只读权重映射、冷专家不复制、scale 按活跃专家转换。
+- 基于固定版本源码做最小补丁：长期有效的只读权重映射、冷专家不复制、UE8M0 scale 在 AVX2 内核中按组即时解码。
 - 用合成的 MXFP4 小模型验证数值一致性、mmap 生命周期和 LRU 回收。
 - 在 systemd 24GB transient unit 内做逐层压力测试。
 - 证明 RSS、file cache 和 scale cache 有明确上限后，才允许下载 148.67GiB 正式权重。
+
+实施时做了一个收敛：第一轮不先开发自定义 expert pack 和用户态 LRU，而是直接保留官方 Safetensors 的只读映射，让 cgroup 对已触碰的 file cache 施加 24GB 硬边界。原因是这条路径改动最小，足以先回答“能否启动、数值是否正确、普通 mmap 的 token/s 是否可接受”。只有基准确认随机读取是主要瓶颈后，才进入连续 pack、显式预读和热专家晋升。
+
+固定源码中的 opt-in 开关为：
+
+```bash
+export KT_MXFP4_MMAP=1
+export KT_MXFP4_BACKEND=avx2
+export KT_KERNEL_CPU_VARIANT=avx2
+```
+
+第一版有意限制为 `threadpool_count=1`、`kt-num-gpu-experts=0`，并禁用动态专家迁移。默认不开开关时，KT-Kernel 原行为保持不变。
 
 ### 阶段 2：下载门禁
 
@@ -395,16 +407,17 @@ OOMPolicy=stop
 
 截至 2026-07-31：
 
-- 远端 SSH 当前无响应；最后一次可观测时 GPU 基本空闲，现有 Qwen llama.cpp 服务处于停止状态。
+- 远端 SSH 已恢复，GPU 基本空闲，现有 Qwen llama.cpp 服务处于停止状态。
 - WSL 已限制为 30GB，Swap 已设为 0；重启后验收通过。
 - cgroup v2 的 `MemoryHigh=22G`、`MemoryMax=24G`、`MemorySwapMax=0` 已用 transient user unit 验收。
 - 独立目录 `/home/yiko/workspace/deepseek-v4-flash-serve/` 已创建。
 - 隔离环境已创建，`kt-kernel 0.6.3.post1` 已安装；完整依赖尚未安装。
 - 当前驱动上 PyTorch cu128、CUDA 与 AVX2 Kernel 联合烟雾测试通过；完整 SGLang V4 栈尚未验收。
 - 官方模型元数据已确认总量 148.667GiB、46 个 Safetensors 分片。
-- 原版 KT-Kernel 全量复制专家权重的 24GB 阻塞已确认，阶段 1.5 尚未实现。
+- `ktransformers v0.6.3` 源码归档已下载并校验；原版 KT-Kernel 全量复制专家权重的 24GB 阻塞已从源码确认。
+- MXFP4 mmap/UE8M0 即时解码补丁已写入远端固定版本源码；Python 语法检查通过，合成权重测试脚本与 24GB cgroup 包装器已准备，但补丁尚未编译和运行验收，因此当前不能称为可用服务。
 - 官方 V4 权重尚未下载。
-- 当前 SSH 暂时无响应；恢复后从阶段 1.5 的固定版本源码与小模型内存测试继续。任何后续实际改动、参数和测量结果都应回写本章，替换计划值而不是追加过时过程记录。
+- 下一步先完成固定源码的 AVX2/SM89 构建，再依次跑 Decode、Prefill、mmap 生命周期和 cgroup 24GB 测试。通过后才进入完整 SGLang 依赖与官方模型下载测速。任何后续实际改动、参数和测量结果都应回写本章，替换计划值而不是追加过时过程记录。
 
 ## 参考
 
