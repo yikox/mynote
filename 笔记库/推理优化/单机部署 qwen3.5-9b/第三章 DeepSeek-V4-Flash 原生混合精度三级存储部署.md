@@ -1,13 +1,13 @@
 # 第三章：DeepSeek-V4-Flash 原生混合精度三级存储部署
 
-> 状态：方案已确定，尚未开始下载模型。先完成内存边界、运行环境和下载速度门禁，再进入 160GB 权重准备。
+> 状态：阶段 0 已完成，WSL 上限 30GB、Swap 0、服务 cgroup 24GB 已验收；`kt-kernel` 的 AVX2/CUDA 最小烟雾测试通过。官方权重尚未下载，当前先解决原版内核会把全部专家复制进内存的硬阻塞。
 
 ## 本章目标
 
 在现有单机上探索 DeepSeek-V4-Flash 官方原生混合精度权重的极限部署：
 
 ```text
-官方 DeepSeek-V4-Flash（约 160GB）
+官方 DeepSeek-V4-Flash（159,630,045,338 bytes，约 148.67GiB）
 ├── 路由专家：MXFP4
 ├── 其余大部分权重：FP8
 ├── NVMe：完整冷权重
@@ -48,13 +48,17 @@
 | CPU | Intel Core i5-13600KF，20 逻辑处理器 |
 | CPU 指令集 | AVX2、AVX-VNNI 可用；AVX-512 不可用 |
 | Windows 内存 | 32GB，2×16GB DDR5-6400 |
-| WSL 当前内存 | 15GiB，当前未显式设置 memory |
-| WSL 目标上限 | 30GB |
+| WSL 当前内存 | `MemTotal: 30800524 kB`，约 29.4GiB 可见 |
+| WSL 上限 | 30GB，已生效 |
+| WSL Swap | 0，已生效 |
 | 服务内存硬限制 | 24GB |
 | GPU | NVIDIA RTX 4070 Ti SUPER，16376MiB |
 | GPU 架构 | Ada，Compute Capability 8.9 |
 | 驱动 | Windows 560.94 |
 | 驱动报告 CUDA | 12.6 |
+| CUDA Toolkit | 12.6，`nvcc 12.6.20` |
+| 已验证 PyTorch | 2.10.0+cu128，CUDA 可用 |
+| 已验证 KT-Kernel | 0.6.3.post1，自动选择 AVX2 |
 | 主板 | MSI MAG B760M MORTAR WIFI II |
 | SSD | ZHITAI TiPlus7100 1TB NVMe，健康 |
 | WSL 文件系统可用空间 | 约 780GB |
@@ -75,7 +79,7 @@
 └── Windows、WSL 内核及其他进程：使用剩余空间
 ```
 
-不能使用 `ulimit -v 24G`：原生模型会 mmap 约 160GB 文件，虚拟地址空间远大于实际驻留内存。正确限制方式是 cgroup v2 / systemd：
+不能使用 `ulimit -v 24G`：原生模型会 mmap 约 148.67GiB 文件，虚拟地址空间远大于实际驻留内存。正确限制方式是 cgroup v2 / systemd：
 
 ```ini
 MemoryHigh=22G
@@ -95,7 +99,28 @@ OOMPolicy=stop
 - SGLang 能继续提供 OpenAI-compatible API。
 - 只新增缺失的 NVMe 专家层，不重新实现完整模型与服务协议。
 
-当前官方 V4 路线要求 CUDA 12.8+，而机器驱动目前只报告 CUDA 12.6。环境升级是启动前的硬门禁；没有通过时不下载 160GB 权重。
+官方 V4 教程对完整 SGLang 路线要求 CUDA 12.8+、FlashInfer 0.6.9+。但 `kt-kernel 0.6.3.post1` 的预编译 wheel 自带静态 CUDA runtime；本机现有 `torch 2.10.0+cu128` 已能在驱动 560.94 上识别 RTX 4070 Ti SUPER，并成功同时加载 AVX2 原生扩展、执行轻量 CUDA 计算。因此暂不升级驱动或 Toolkit；完整 SGLang、FlashInfer 和 TileLang 仍需单独验收，不能把 Kernel 导入成功等同于服务可启动。
+
+### 原版运行时为何无法落在 24GB
+
+已安装的 0.6.3 Python wrapper 与官方当前 AVX2 MXFP4 C++ 源码共同表明，现有路径不是 SSD 按需执行：
+
+1. Python 用 safetensors mmap 暂时拿到每个专家的指针。
+2. C++ 为每个专家分配 owned buffer。
+3. `load_weights()` 将所有 MXFP4 权重从 mmap `memcpy` 到 owned buffer。
+4. 原始 UE8M0/BF16 scale 在 AVX2 BufferB 中扩成 FP32。
+5. Python 随后释放 mmap 句柄。
+
+官方源码注释明确说明，旧实现曾直接指向 mmap，但 mmap 释放后发生 use-after-free，所以新实现改成完整复制。按当前结构粗算：
+
+```text
+每个专家 MXFP4 权重 = 3 × 4096 × 2048 × 4 bit = 12MiB
+每个专家 FP32 scale = 3 × 4096 × 2048 / 32 × 4 byte = 3MiB
+专家数量 = 43 × 256 = 11008
+仅 CPU 专家 owned buffer ≈ 11008 × 15MiB = 161.25GiB
+```
+
+即使少量专家放进 16GB 显存，剩余量仍远超 24GB。原版启动参数无法解决这个问题；必须修改权重生命周期和 scale 策略。固定 v0.6.3 tag 的完整源码与 wheel 二进制行为还要在阶段 1.5 用合成权重复核，当前不把源码阅读代替运行验证。
 
 CPU 没有 AVX-512。RAM 命中的专家需要对比两条执行路径：
 
@@ -119,9 +144,21 @@ ExpertStore
 ├── GPUExpertCache
 ├── RAMExpertCache
 └── NVMeExpertStore
+    ├── 4KiB 对齐的只读专家块
+    ├── 原生 MXFP4 权重与 UE8M0 scale
+    └── io_uring / pread 到固定 staging buffer
 ```
 
 缓存键必须是 `(layer_id, expert_id)`。每层都有独立的一组 256 个专家，不能只按 expert_id 做全局缓存。
+
+最小修改边界：
+
+- C++ 不再为所有专家分配并复制 weight buffer。
+- 冷专家权重保留在只读 pack，不依赖可被提前释放的临时 mmap。
+- 只为当前层被路由到的专家准备 weight/scale staging。
+- UE8M0 scale 不在启动时全量扩成 FP32；只转换当前活跃专家，并进入有上限的 RAM LRU。
+- 每层完成后对冷块显式回收，避免 cgroup 把隐式 page cache 算进 24GB 后失控。
+- 热专家晋升到 RAM/GPU 时复制到 owned buffer；冷专家绝不常驻。
 
 ## 内存和显存预算
 
@@ -148,6 +185,8 @@ ExpertStore
 
 初始上下文只设 4096。确定公共权重、Kernel 工作区和实际 KV 占用后，再决定每层能放多少 GPU 专家。
 
+按模型结构粗算，原生路由专家文件约 137GiB，仓库其余内容约 11.6GiB。若这部分大多必须常驻显存，则 16GB 显存只能留下约 4GiB 给 KV Cache、工作区和专家，表中的 1～3GB GPU 专家预算可能需要降为 0。正式下载前先读取全部 Safetensors header，精确拆分公共权重、路由专家和 scale 体积。
+
 ## 权重来源和布局
 
 唯一主来源：
@@ -158,7 +197,7 @@ deepseek-ai/DeepSeek-V4-Flash
 
 下载前比较 Hugging Face 官方仓库与 ModelScope 官方镜像的实际速度；只有确认仓库、revision、文件大小和校验信息一致时才允许换源。
 
-官方仓库约 160GB、46 个 Safetensors 分片。原始分片适合完整加载，不适合 Decode 时按专家随机读取。需要生成一个不改数值的部署布局：
+ModelScope 官方镜像元数据已核对：74 个文件合计 `159630045338` bytes，即 `148.667GiB`；其中有 46 个 Safetensors 分片，单分片大多约 3.57～3.59GB。Hugging Face 远端链路当前不可达，正式下载前仍需做同 revision 校验和大文件短时测速。原始分片适合完整加载，不适合 Decode 时按专家随机读取。需要生成一个不改数值的部署布局：
 
 ```text
 models/native/
@@ -172,7 +211,7 @@ models/native/
 
 每个专家块连续保存 gate、up、down 权重及 MXFP4 scales，并按 4KiB 或更大边界对齐。manifest 记录官方 revision、原 tensor key、offset、length、dtype、shape 和 checksum。
 
-转换过程需要同时保留原始与重排权重，预计临时占用 320～340GB；当前 780GB 可用空间通过容量门禁。发布最终 pack 前必须重读并逐 tensor 校验，使用 `.partial` 后原子改名。
+转换过程需要同时保留原始与重排权重，按实测仓库大小计算约 297.34GiB，再加索引、校验和临时空间；按 340GiB 做容量预算。当前约 780GB 可用空间通过容量门禁。发布最终 pack 前必须重读并逐 tensor 校验，使用 `.partial` 后原子改名。
 
 ## Prefill 数据流
 
@@ -185,17 +224,17 @@ Prefill 使用按层、按专家批处理：
 5. 记录本次请求的专家访问频率。
 6. Prefill 完成后，重新生成 Decode 阶段的 GPU/RAM 热专家表。
 
-长输入不能采用逐 token 权重读取。完整读取 160GB 权重的纯 SSD 理论下限约为：
+长输入不能采用逐 token 权重读取。完整读取 148.67GiB 权重的纯 SSD 理论下限约为：
 
 ```text
-160GB / 3.7GB/s ≈ 43 秒
+148.67GiB / 3.45GiB/s ≈ 43 秒
 ```
 
 这只是 I/O 下限，不包含模型计算。
 
 ## Decode 数据流
 
-每个 token 粗略激活 43 层 × 6 个专家，原生专家权重读取量约 3.25GB/token。
+每个 token 粗略激活 43 层 × 6 个专家。按每个专家约 12MiB 权重和 0.75MiB 原生 scale 计算，完全冷读约 `3.21GiB/token`。
 
 每层执行：
 
@@ -217,7 +256,7 @@ Prefill 使用按层、按专家批处理：
 SSD 实测 3.7GB/s，完全冷读的乐观上限：
 
 ```text
-3.7GB/s / 3.25GB/token ≈ 1.14 token/s
+3.45GiB/s / 3.21GiB/token ≈ 1.07 token/s
 ```
 
 预期区间：
@@ -277,12 +316,45 @@ deepseek-v4-flash-native
 - 确认 cgroup v2 与 systemd `MemoryHigh/MemoryMax/MemorySwapMax` 可用。
 - 建立独立目录，不碰第一、二章目录。
 
+已完成并验收：
+
+```ini
+# C:\Users\yikox\.wslconfig
+[wsl2]
+memory=30GB
+swap=0
+networkingMode=mirrored
+dnsTunneling=false
+firewall=true
+
+[experimental]
+hostAddressLoopback=true
+```
+
+原配置备份为 `C:\Users\yikox\.wslconfig.codex-backup-20260731`。执行 `wsl.exe --shutdown` 后重新连接，WSL 可见约 29GiB、Swap 为 0。systemd user transient unit 已验证下列属性真实生效：
+
+```ini
+MemoryHigh=22G
+MemoryMax=24G
+MemorySwapMax=0
+OOMPolicy=stop
+```
+
 ### 阶段 1：环境门禁
 
 - 验证当前 NVIDIA 驱动、CUDA Toolkit、编译器和 Python。
 - 核对 KTransformers 当前固定 release/commit 对 CUDA、Ada SM89 和 V4 的要求。
-- 先构建最小 Kernel smoke test。
-- CUDA 12.8 路线不通过时停止，不下载权重。
+- 优先验证官方预编译 Kernel，只有预编译路径失败才构建源码。
+- 完整 SGLang/FlashInfer 路线不通过时停止，不下载权重。
+
+当前结果：清华 PyPI 镜像下载 `kt-kernel 0.6.3.post1` 的 10.8MiB wheel 约 1 秒；模块成功加载 `_kt_kernel_ext_avx2`。在同一进程中，PyTorch CUDA 计算结果为 `341.500153`，GPU 为 RTX 4070 Ti SUPER。官方 PyPI 直连仅约 15KB/s，已停止并清理失败下载。
+
+### 阶段 1.5：24GB 内存实现门禁
+
+- 基于固定版本源码做最小补丁：长期有效的只读权重映射、冷专家不复制、scale 按活跃专家转换。
+- 用合成的 MXFP4 小模型验证数值一致性、mmap 生命周期和 LRU 回收。
+- 在 systemd 24GB transient unit 内做逐层压力测试。
+- 证明 RSS、file cache 和 scale cache 有明确上限后，才允许下载 148.67GiB 正式权重。
 
 ### 阶段 2：下载门禁
 
@@ -290,7 +362,7 @@ deepseek-v4-flash-native
 - 对小文件或单分片做短时速度探测。
 - 选择可信且实际更快的源。
 - 固定 revision，并计算预计完成时间和最终磁盘占用。
-- 只有预计时间合理时才开始 160GB 下载。
+- 只有预计时间合理、且阶段 1.5 通过时才开始 148.67GiB 下载。
 
 ### 阶段 3：权重重排
 
@@ -323,11 +395,20 @@ deepseek-v4-flash-native
 
 截至 2026-07-31：
 
-- 远端 SSH 已恢复。
-- GPU 当前基本空闲。
-- 现有 Qwen llama.cpp 服务处于停止状态，未占用显存。
-- WSL 尚未改为 30GB。
-- V4 服务目录尚未创建。
-- CUDA 12.8 环境尚未验收。
+- 远端 SSH 当前无响应；最后一次可观测时 GPU 基本空闲，现有 Qwen llama.cpp 服务处于停止状态。
+- WSL 已限制为 30GB，Swap 已设为 0；重启后验收通过。
+- cgroup v2 的 `MemoryHigh=22G`、`MemoryMax=24G`、`MemorySwapMax=0` 已用 transient user unit 验收。
+- 独立目录 `/home/yiko/workspace/deepseek-v4-flash-serve/` 已创建。
+- 隔离环境已创建，`kt-kernel 0.6.3.post1` 已安装；完整依赖尚未安装。
+- 当前驱动上 PyTorch cu128、CUDA 与 AVX2 Kernel 联合烟雾测试通过；完整 SGLang V4 栈尚未验收。
+- 官方模型元数据已确认总量 148.667GiB、46 个 Safetensors 分片。
+- 原版 KT-Kernel 全量复制专家权重的 24GB 阻塞已确认，阶段 1.5 尚未实现。
 - 官方 V4 权重尚未下载。
-- 下一步从阶段 0 开始；任何后续实际改动、参数和测量结果都应回写本章，替换计划值而不是追加过时过程记录。
+- 当前 SSH 暂时无响应；恢复后从阶段 1.5 的固定版本源码与小模型内存测试继续。任何后续实际改动、参数和测量结果都应回写本章，替换计划值而不是追加过时过程记录。
+
+## 参考
+
+- [DeepSeek-V4-Flash 官方模型](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash)
+- [KTransformers：DeepSeek-V4-Flash 教程](https://github.com/kvcache-ai/ktransformers/blob/main/doc/en/DeepSeek-V4-Flash.md)
+- [KT-Kernel README](https://github.com/kvcache-ai/ktransformers/blob/main/kt-kernel/README.md)
+- [AVX2 MXFP4 内核源码](https://github.com/kvcache-ai/ktransformers/blob/main/kt-kernel/operators/avx2/mxfp4-moe.hpp)
