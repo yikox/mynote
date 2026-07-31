@@ -26,8 +26,8 @@
     "笔记库/推理优化/单机部署 qwen3.5-9b": [
       "n:llama.cpp",
       "n:第一章 最小部署计划",
-      "n:第三章 DeepSeek-V4-Flash 原生混合精度三级存储部署",
       "n:第二章 llama.cpp 部署 Qwen3.5-9B",
+      "n:第三章 DeepSeek-V4-Flash 原生混合精度三级存储部署",
       "n:量化版本、GGUF 与 TorchAO"
     ],
     "预研": [

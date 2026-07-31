@@ -1,6 +1,37 @@
 # 第三章：DeepSeek-V4-Flash 原生混合精度三级存储部署
 
-> 状态：阶段 1.5 实施中。WSL 上限 30GB、Swap 0、服务 cgroup 24GB 已验收；`kt-kernel` 的 AVX2/CUDA 最小烟雾测试通过；MXFP4 文件映射补丁已写入固定版本源码，尚待编译和合成权重验收。官方权重尚未下载。
+> 状态：阶段 1.5 原型门禁已通过，但还不是完整可用服务。WSL 上限 30GB、Swap 0、服务 cgroup 24GB 已验收；固定 `v0.6.3` 源码已用 CUDA/SM89 + AVX2 编译；MXFP4 mmap/UE8M0 原型与默认路径均通过合成权重数值回归。官方权重尚未下载；完整 SGLang V4 环境门禁未通过。
+
+## 2026-08-01 SSH 构建与验收结果
+
+本次只在远端构建和测试，不下载约 148.67GiB 官方权重。
+
+远端目录：`/home/yiko/workspace/deepseek-v4-flash-serve/`
+
+固定源码与构建方式：
+
+- `ktransformers v0.6.3` 源码归档 SHA256：`dd0c9e382c5d9f02ba0b01a991395de06703af066006214b15d930a3715666ef`。
+- 编译脚本：`scripts/bootstrap_mmap_kernel.sh`；使用项目私有 sysroot，补齐 `pkgconf`、HWLOC、NUMA、Python 3.12 headers，不改系统包。
+- 编译选项：`CPUINFER_CPU_INSTRUCT=AVX2`、关闭 AMX/AVX-512、`CPUINFER_USE_CUDA=1`、`CPUINFER_CUDA_ARCHS=89`、CUDA Toolkit 12.6。
+- 产物：`kt_kernel_ext.cpython-312-x86_64-linux-gnu.so`，CPU 变体为 AVX2；链接最终使用 NUMA 共享库。
+
+原型开关和验收命令：
+
+```bash
+export KT_MXFP4_MMAP=1
+export KT_MXFP4_BACKEND=avx2
+export KT_KERNEL_CPU_VARIANT=avx2
+bash scripts/run_under_24g.sh env \
+  LD_LIBRARY_PATH="$ROOT/.deps/sysroot/usr/lib/x86_64-linux-gnu:/usr/local/cuda-12.6/lib64" \
+  PYTHONPATH="$ROOT/run/python" \
+  python scripts/validate_mxfp4_mmap.py
+```
+
+`run_under_24g.sh` 内部使用 `MemoryHigh=22G`、`MemoryMax=24G`、`MemorySwapMax=0`、`OOMPolicy=stop`。在 transient unit 内实读到 `memory.max=25769803776`、`memory.high=23622320128`、`memory.swap.max=0`。4 专家合成 Safetensors 结果：`qlen=1` 相对误差 `0.004596`，`qlen=4` 相对误差 `0.002769`，输出 `MXFP4_MMAP_VALIDATION=PASS`，CPU 变体 AVX2，RSS 增量约 `117.5MiB`，Swap 峰值 `0B`。
+
+随后将 `KT_MXFP4_MMAP=0` 做默认路径回归，误差同样为 `0.004596/0.002769` 并通过。说明补丁是 opt-in，当前默认 MXFP4 行为未被破坏；这不是全模型吞吐或服务可用性证明。
+
+本轮没有实现用户态 LRU、连续 expert pack、GPU 专家迁移或 SGLang API；第一版只验证“官方 Safetensors 只读映射 + raw UE8M0 scale 即时解码 + cgroup 文件页缓存上限”这条最小路径。
 
 ## 本章目标
 
