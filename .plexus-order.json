@@ -27,7 +27,8 @@
       "n:llama.cpp",
       "n:第一章 最小部署计划",
       "n:第二章 llama.cpp 部署 Qwen3.5-9B",
-      "n:量化版本、GGUF 与 TorchAO"
+      "n:量化版本、GGUF 与 TorchAO",
+      "n:第三章 DeepSeek-V4-Flash 原生混合精度三级存储部署"
     ],
     "预研": [
       "n:bugs",

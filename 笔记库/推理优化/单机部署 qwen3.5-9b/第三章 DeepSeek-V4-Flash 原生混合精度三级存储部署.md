@@ -22,7 +22,7 @@
 |---|---|
 | 远端 | `yiko@192.168.31.107` |
 | CPU | Intel Core i5-13600KF，14 核 / 20 线程，支持 AVX2、AVX-VNNI；无 AVX-512/AMX |
-| GPU | NVIDIA RTX 4070 Ti SUPER，16 GiB 显存，Ada SM89 |
+| GPU | NVIDIA RTX 4070 Ti SUPER，16 GiB 显存，Ada SM89；原生 FP8 Tensor Core，可存储/软件解码 MXFP4，但不具备原生 MXFP4 block-scaled Tensor Core MMA |
 | 主机内存 | 32 GB DDR5；WSL 可见 30 GB |
 | 服务内存上限 | systemd transient unit：`MemoryHigh=22G`、`MemoryMax=24G`、`MemorySwapMax=0` |
 | Swap | 0；不能把 swap 当作模型内存 |
@@ -33,6 +33,12 @@
 | CPU 权重路径 | `KT_MXFP4_MMAP=1` + `KT_MXFP4_BACKEND=avx2` |
 
 当前权重已经下载到远端，模型不是“等待下载”的状态。远端服务目前没有运行，`30000` 端口不提供可用推理入口；这是有意保留的安全基线，不在未验收的混合路径上覆盖稳定配置。
+
+### SM89 的精度边界
+
+这里必须区分“能保存 4 bit 数据”和“Tensor Core 原生执行 MXFP4”。SM89 可以把 DeepSeek 的 E2M1 + UE8M0 权重放在显存或主存，也可以在自定义 CUDA kernel 中解包、应用 scale，再调用 Ada 的 FP8/FP16 Tensor Core；但它没有 Blackwell 的原生 MXFP4 block-scaled MMA 指令。CUDA 的 FP4 类型/转换接口在非目标架构上会走软件 emulation，不能把它当作硬件 MXFP4 吞吐。
+
+因此本章后文将“GPU 内 MXFP4”统一解释为：**MXFP4 存储 + CUDA 融合解码 + FP8/FP16 Tensor Core GEMM**。真正的原生 MXFP4 Tensor Core 路径需要 Blackwell SM100/SM101 或 GeForce Blackwell SM120，不能在当前 SM89 上直接复现。
 
 ## 3. 基线实验与失败边界
 
@@ -102,7 +108,7 @@ KT_MXFP4_MMAP=1 currently requires 0 GPU experts
 flowchart LR
     A[请求 / Prefill / Decode] --> B[GPU Dense + Attention + Router]
     B --> C{按 layer, expert 拆分}
-    C -->|热点命中| D[GPU Hot Expert Store\nFP8 POC / 原生 MXFP4]
+    C -->|热点命中| D[GPU Hot Expert Store\nFP8 POC / MXFP4软件解码 + FP8/FP16 MMA]
     C -->|冷专家| E[CPU Cold Expert Store\nSafetensors mmap + AVX2]
     E --> F[Pinned Buffer\n双缓冲异步传输]
     F --> G[GPU Merge]
@@ -118,7 +124,8 @@ flowchart LR
 - GPU 专家缓存不是“每层前 N 个专家”，而是全局的 `(layer, expert)` 热点集合；同一个 expert id 在不同层必须视为不同缓存对象。
 - 第一版使用 Ada 可执行的 FP8 GPU 权重作为工程 POC，避免一开始同时解决 CUDA MXFP4 解码、scale 格式和融合 GEMM 三个问题。
 - FP8 POC 的权重转换只针对选中的热点专家，不能把 149 GiB 全量转换到内存或显存。
-- 第二版再实现原生 MXFP4 CUDA kernel：E2M1 nibble 解包、UE8M0 group scale、权重布局转换和 GEMM 尽量融合。
+- 第二版可以实现 GPU 内 MXFP4 软件路径：E2M1 nibble 解包、UE8M0 group scale、权重布局转换和 GEMM 尽量融合；输出应进入 FP8/FP16 Tensor Core MMA，不能称为“原生 MXFP4 Tensor Core”。
+- 如果软件解码路径不比 FP8 cache 更快，保留 FP8 作为主路径；不要为了保留 4 bit 存储而牺牲实际 token/s。
 
 当前模型装载后约使用 13.45 GiB 显存，理论余量约 2.6 GiB；必须预留 KV、workspace、通信和碎片空间，首轮 GPU 专家缓存建议从 **1.0 GiB** 开始，最高不超过 **1.5–2.0 GiB**，而不是把 16 GiB 全部吃满。
 
@@ -151,7 +158,7 @@ flowchart LR
 | GPU 专家格式 | 单专家近似大小 | 1.5 GiB 可放置数量（估算） |
 |---|---:|---:|
 | FP8 | 约 25 MB + scale | 约 50–60 个 layer-expert 槽位 |
-| 原生 MXFP4 | 约 12.6 MB + scale | 约 100–115 个 layer-expert 槽位 |
+| GPU 内 MXFP4 存储 + 软件解码 | 约 12.6 MB + scale | 约 100–115 个 layer-expert 槽位 |
 
 实际数量要扣除 CUDA workspace、KV 和 allocator 碎片，以 `nvidia-smi` 与 allocator 峰值为准。Go/No-Go 建议如下：
 
@@ -169,7 +176,7 @@ flowchart LR
 
 - 输入：静态 hot list、原始 MXFP4 tensor、GPU budget。
 - 第一版：启动时逐个转换热点专家到 FP8 GPU tensor，建立 `(layer, expert) -> device pointer`。
-- 第二版：GPU 端直接读取 E2M1/UE8M0，避免中间 FP8 副本。
+- 第二版：GPU 端直接读取 E2M1/UE8M0，在 kernel 内解码并喂给 FP8/FP16 MMA；这是软件融合路径，不是 SM89 原生 MXFP4 MMA。
 - 提供显存水位、加载失败、cache hit/miss 和 kernel 时间指标。
 
 ### 模块 C：CPUColdExpertStore
@@ -235,11 +242,11 @@ flowchart LR
 
 **继续条件**：无数值崩溃、无 OOM，decode ≥2 token/s；低于此值说明纯缓存收益不足。
 
-### 阶段 2：原生 MXFP4 CUDA kernel
+### 阶段 2：GPU 内 MXFP4 软件解码 + FP8/FP16 Tensor Core kernel
 
-- 实现 E2M1 + UE8M0 的 CUDA 解码和融合 GEMM。
-- 与 FP8 POC 对比精度、显存占用和 kernel 时间。
-- 保留 FP8 作为 fallback，不因原生 kernel 失败而破坏 CPU 基线。
+- 实现 E2M1 + UE8M0 的 CUDA 解码和融合 GEMM，底层计算使用 SM89 已支持的 FP8/FP16 Tensor Core。
+- 与 FP8 POC 对比精度、显存占用、解码开销和 kernel 时间；明确记录“软件解码”与“原生 MMA”差异。
+- 保留 FP8 作为 fallback，不因自定义软件解码路径失败而破坏 CPU 基线。
 
 **继续条件**：混合路径稳定 ≥5 token/s；否则先修复 dispatch/布局，不进入推测解码。
 
@@ -282,9 +289,10 @@ ssh yiko@192.168.31.107 \
 - KTransformers 0.6.3 源码和 MXFP4 mmap/UE8M0 AVX2 路径已编译；合成权重数值回归通过。
 - `N=0` CPU mmap 服务曾成功启动并通过健康检查/API 测试，但解码只有约 0.3–0.4 token/s。
 - `N=1` GPU 专家因当前 `KT_MXFP4_MMAP=1` 后端显式限制失败，已回滚；这证明需要新的 GPU loader/kernel/dispatch，不能靠启动参数解决。
+- 已确认当前 Ada SM89 没有原生 MXFP4 block-scaled Tensor Core MMA；后续 GPU 路径必须采用 FP8/FP16 Tensor Core，或在其前面增加 MXFP4 软件解码。
 - 当前远端推理服务已停止，端口 30000 不作为现成连接入口；混合方案尚未部署。
 
-下一步唯一正确顺序是：**路由统计 → FP8 热点缓存 POC → 混合 dispatch → 原生 MXFP4 CUDA kernel → 流水线/推测解码 → 128K/16K Agent 验收**。如果真实路由命中率不足 50%，或 GPU 热点缓存完成后仍低于 2 token/s，应停止在这台机器上继续堆叠复杂度，并把结论记录为“硬件/带宽边界不满足 10–20 token/s”。
+下一步唯一正确顺序是：**路由统计 → FP8 热点缓存 POC → 混合 dispatch → MXFP4 软件解码 + FP8/FP16 MMA → 流水线/推测解码 → 128K/16K Agent 验收**。如果真实路由命中率不足 50%，或 GPU 热点缓存完成后仍低于 2 token/s，应停止在这台机器上继续堆叠复杂度，并把结论记录为“硬件/带宽边界不满足 10–20 token/s”。
 
 ## 参考
 
@@ -292,3 +300,6 @@ ssh yiko@192.168.31.107 \
 - [KTransformers：DeepSeek-V4-Flash 教程](https://github.com/kvcache-ai/ktransformers/blob/main/doc/en/DeepSeek-V4-Flash.md)
 - [KT-Kernel README](https://github.com/kvcache-ai/ktransformers/blob/main/kt-kernel/README.md)
 - [AVX2 MXFP4 MoE 内核](https://github.com/kvcache-ai/ktransformers/blob/main/kt-kernel/operators/avx2/mxfp4-moe.hpp)
+- [NVIDIA CUDA Math API：FP4 在非目标架构上使用 emulation](https://docs.nvidia.com/cuda/archive/12.9.2/pdf/CUDA_Math_API.pdf)
+- [NVIDIA PTX ISA：MXFP4/block-scaled 指令的目标架构](https://docs.nvidia.com/cuda/archive/12.9.2/parallel-thread-execution/index.html)
+- [NVIDIA CUTLASS：Blackwell SM100/SM120 窄精度 GEMM](https://docs.nvidia.com/cutlass/latest/media/docs/cpp/blackwell_functionality.html)
