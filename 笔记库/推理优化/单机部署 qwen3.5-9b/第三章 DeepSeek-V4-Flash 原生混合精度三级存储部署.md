@@ -294,6 +294,137 @@ ssh yiko@192.168.31.107 \
 
 下一步唯一正确顺序是：**路由统计 → FP8 热点缓存 POC → 混合 dispatch → MXFP4 软件解码 + FP8/FP16 MMA → 流水线/推测解码 → 128K/16K Agent 验收**。如果真实路由命中率不足 50%，或 GPU 热点缓存完成后仍低于 2 token/s，应停止在这台机器上继续堆叠复杂度，并把结论记录为“硬件/带宽边界不满足 10–20 token/s”。
 
+## 12. 实现清单：先实现哪些内容
+
+本节是实际开发顺序。目标是先做出一个可测量、可回滚的 `HybridMoE` 最小闭环，而不是一次性实现完整的三级存储、动态缓存和 128K 上下文。
+
+### 12.1 第一批必须实现的模块
+
+#### A. RouterStats：路由统计
+
+- 在 Router 输出处记录 `(layer, expert_id)`、top-k、请求类型和 token 位置。
+- 采用低开销采样或环形缓冲，不能让文本日志阻塞 decode。
+- 离线生成静态 hot list，计算不同 GPU 预算下的命中率、路由熵和跨请求稳定性。
+- 先覆盖 100–500 个编码 Agent 请求：读代码、改代码、测试失败、工具调用和长上下文续写。
+
+门槛：命中率低于 50% 时停止扩大 GPU 缓存；达到 70% 后才进入混合 kernel 阶段。
+
+#### B. HotExpertStore：GPU 热点专家缓存
+
+- 只加载静态 hot list，不使用每层均匀的 `--kt-num-gpu-experts=N`。
+- GPU 预算从 1 GiB 开始，保留 KV、workspace 和 allocator 碎片空间。
+- 启动时一次只转换一个专家，不能把完整 149 GiB 权重转换到内存或显存。
+- 正确性 POC 可以先用 FP16；通过后比较 FP8 与 FP16 的真实 decode 性能。
+- 内部维护 `(layer, expert_id) -> device pointer`，不额外暴露复杂公共接口。
+
+#### C. HybridMoE：GPU/CPU 分发与合并
+
+对外只保留一个核心入口：
+
+```python
+output = hybrid_moe(
+    hidden_states,
+    expert_ids,
+    routing_weights,
+    layer_id,
+)
+```
+
+内部流程固定为：
+
+1. 查询 hot map；
+2. 将请求拆成 GPU hit 和 CPU miss；
+3. GPU hit 执行 GPU GEMM；
+4. CPU miss 复用现有 MXFP4 mmap + AVX2 路径；
+5. 按原始 token/expert 索引合并结果。
+
+第一版可以用 PyTorch 算子验证数值正确性，但最终不能逐专家调用 Python `matmul`；性能版需要 grouped GEMM 或 CUDA 扩展。
+
+#### D. GPU 专家计算路径
+
+当前 SM89 的正确目标是：
+
+```text
+MXFP4 权重
+  → CUDA 解码 E2M1 + UE8M0
+  → FP8/FP16 Tensor Core GEMM
+```
+
+实现顺序：
+
+1. FP16 GPU 热点专家：只用于验证权重转换、索引和输出合并；
+2. FP8 GPU 热点专家：作为第一条性能路径；
+3. MXFP4 GPU 存储 + 融合软件解码：只有 FP8 不够快时再实现。
+
+第三步不能称为原生 MXFP4 Tensor Core，只能称为 MXFP4 软件解码路径。
+
+#### E. CPU/GPU 异步流水线
+
+- 预分配 pinned activation/output buffer；
+- 使用双缓冲；
+- CPU 冷专家计算与 GPU 热专家计算重叠；
+- GPU miss 不允许同步读取 SSD；
+- 分别测量 prefill 和单 token decode。
+
+### 12.2 实施阶段
+
+#### 阶段 A：路由与基准
+
+- [ ] 固定编码请求集；
+- [ ] 实现 `RouterStats`；
+- [ ] 记录 TTFT、prefill、decode、GPU hit、CPU miss、GPU/CPU 峰值；
+- [ ] 复现当前 `0.3–0.4 token/s` 的 `N=0` 基线。
+
+通过后得到 hot list 和命中率曲线。
+
+#### 阶段 B：混合正确性
+
+- [ ] 只放 1–2 个热点专家进 GPU；
+- [ ] 先使用 FP16 GPU 权重；
+- [ ] CPU 冷专家保持原 mmap 路径；
+- [ ] 与 `N=0` 输出做固定 prompt 对比；
+- [ ] 验证 tensor 生命周期、索引合并和服务回滚。
+
+这一阶段不追求速度，只验证数值和内存安全。
+
+#### 阶段 C：FP8 热点缓存
+
+- [ ] GPU cache 从 1 GiB 开始；
+- [ ] 比较 FP8/FP16 grouped GEMM；
+- [ ] 记录每层 hit/miss 和 kernel 时间；
+- [ ] 验证无 OOM、无隐式全量权重复制。
+
+继续条件：稳定达到至少 2 token/s。
+
+#### 阶段 D：异步 dispatch
+
+- [ ] pinned 双缓冲；
+- [ ] CUDA stream；
+- [ ] CPU/GPU overlap；
+- [ ] prefill 和 decode 分开调参。
+
+继续条件：混合路径稳定达到 5 token/s，才考虑推测解码。
+
+#### 阶段 E：Agent canary
+
+- [ ] 使用独立 systemd unit 和 `30001` 端口；
+- [ ] 验收 streaming、tool calling、JSON 输出；
+- [ ] 做 30 分钟单并发 soak；
+- [ ] 通过后再切换 pi endpoint。
+
+### 12.3 暂时不要实现
+
+- SSD 逐 token 按需加载；
+- 全量 MXFP4 → FP8/FP16 转换；
+- 动态 LRU 专家晋升；
+- 128K 上下文；
+- speculative decoding；
+- 多并发 batching；
+- 删除 `KT_MXFP4_MMAP` 后端保护；
+- 假设 SM89 存在原生 MXFP4 MMA。
+
+在阶段 D 之前，任何优化都必须以“命中率、decode token/s、CPU miss 时间、显存峰值”四个指标为依据。若热点命中率不足 50%，或完成 GPU 缓存后仍低于 2 token/s，应停止继续堆叠复杂度。
+
 ## 参考
 
 - [DeepSeek-V4-Flash 官方模型](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash)
