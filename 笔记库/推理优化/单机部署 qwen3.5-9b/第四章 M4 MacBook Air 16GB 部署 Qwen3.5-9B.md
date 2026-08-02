@@ -1,6 +1,6 @@
 > 本章将 M4 MacBook Air、16GB 统一内存作为独立部署目标，整理 Qwen3.5-9B 在 Apple Silicon 上的可行配置和现实边界。
 >
-> 状态：方案总结，未在本章记录的环境中完成实机复测。文中的速度和内存数字属于工程估算，不能替代 M4 实测。
+> 状态：已完成 M4 MacBook Air 16GB 上的实机部署和第 4 节 API 验收。以下速度为本机短请求实测值；长上下文、持续运行和并发仍需单独压测。
 
 ## 结论
 
@@ -128,42 +128,85 @@ python -m mlx_vlm.generate \
 
 ## 4. 暴露为 Agent 可调用的本地 API
 
-按材料中的 MLX-VLM 服务方案，可以启动 OpenAI-compatible 接口：
+### 4.0 本次实测配置与结果
+
+本次实验使用 Apple Silicon 原生 Python 3.12、`mlx-vlm==0.6.8` 和本地 ModelScope 下载的 `mlx-community/Qwen3.5-9B-4bit`。模型目录为：
+
+```text
+/Users/zyc/qwen35/models/Qwen3.5-9B-4bit
+```
+
+服务绑定 `127.0.0.1:8080`，以 Bearer API key 保护，启动参数为：
+
+```text
+--max-kv-size 8192
+--max-tokens 2048
+--prefill-step-size 2048
+--log-level INFO
+```
+
+服务运行在 tmux 会话 `qwen35-api` 中，日志位于 `/Users/zyc/qwen35/logs/server.log`。本次验收结果：
+
+| 项目 | 结果 |
+| --- | --- |
+| `/health` | HTTP 200，模型已加载 |
+| 非流式 `/v1/chat/completions` | 通过 |
+| SSE 流式响应 | 通过 |
+| OpenAI Python SDK | 通过 |
+| Prefill | 约 16～22 token/s（短请求） |
+| Decode | 约 18～19 token/s（短请求） |
+| 峰值统一内存 | 约 6.73 GB（短请求） |
+
+当前 `mlx-vlm` 版本会把本地绝对路径作为模型 ID 返回。因此 Agent 请求中的 `model` 必须写成上面的绝对路径；写成 `qwen3.5-9b` 或 `mlx-community/Qwen3.5-9B-4bit` 会被当作 Hugging Face 仓库名重新查找，不能作为本次服务的别名。
+
+按材料中的 MLX-VLM 服务方案，可以启动 OpenAI-compatible 接口（本次实测使用本地路径和 API key）：
 
 ```bash
 mlx_vlm.server \
-  --model mlx-community/Qwen3.5-9B-4bit \
-  --port 8080
+  --host 127.0.0.1 \
+  --port 8080 \
+  --model /Users/zyc/qwen35/models/Qwen3.5-9B-4bit \
+  --max-kv-size 8192 \
+  --max-tokens 2048 \
+  --prefill-step-size 2048 \
+  --api-key "$QWEN35_API_KEY"
 ```
 
-启动后先检查健康状态，再调用 Chat Completions：
+启动后先检查健康状态，再调用 Chat Completions。健康检查和推理请求都要带 Bearer key：
 
 ```bash
-curl http://127.0.0.1:8080/health
+export QWEN35_API_KEY="$(< /Users/zyc/qwen35/config/api_key)"
+
+curl http://127.0.0.1:8080/health \
+  -H "Authorization: Bearer $QWEN35_API_KEY"
 
 curl http://127.0.0.1:8080/v1/chat/completions \
+  -H "Authorization: Bearer $QWEN35_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "mlx-community/Qwen3.5-9B-4bit",
+    "model": "/Users/zyc/qwen35/models/Qwen3.5-9B-4bit",
     "messages": [{"role": "user", "content": "写一个简短的 C++ 线程池设计说明"}],
     "max_tokens": 512,
-    "temperature": 0.6
+    "temperature": 0.6,
+    "chat_template_kwargs": {"enable_thinking": false}
   }'
 ```
 
 Python 客户端的核心配置：
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
     base_url="http://127.0.0.1:8080/v1",
-    api_key="not-needed",
+    api_key=os.environ["QWEN35_API_KEY"],
 )
 response = client.chat.completions.create(
-    model="mlx-community/Qwen3.5-9B-4bit",
+    model="/Users/zyc/qwen35/models/Qwen3.5-9B-4bit",
     messages=[{"role": "user", "content": "解释 torch.compile 的基本工作流程"}],
     max_tokens=512,
+    extra_body={"chat_template_kwargs": {"enable_thinking": False}},
 )
 print(response.choices[0].message.content)
 ```
@@ -175,6 +218,35 @@ pip install openai
 ```
 
 实际接入 Pi、Cursor 或其他 Agent 时，应先用 `curl` 和 OpenAI SDK 验证模型 ID、流式响应、错误返回和工具调用字段；不同版本的 MLX-VLM CLI/API 可能有参数差异，正式固定脚本前应以当前安装版本的 `--help` 和接口响应为准。
+
+### 4.1 Pi Agent 接入
+
+已在 `/Users/zyc/.pi/agent/models.json` 增加 `qwen35-mlx` provider，核心字段如下：
+
+```json
+{
+  "baseUrl": "http://127.0.0.1:8080/v1",
+  "api": "openai-completions",
+  "apiKey": "$QWEN35_API_KEY",
+  "authHeader": true,
+  "model": "/Users/zyc/qwen35/models/Qwen3.5-9B-4bit",
+  "contextWindow": 8192,
+  "maxTokens": 2048
+}
+```
+
+Pi 的实际验收命令：
+
+```bash
+export QWEN35_API_KEY="$(< /Users/zyc/qwen35/config/api_key)"
+pi --offline --no-session --no-tools \
+  --provider qwen35-mlx \
+  --model /Users/zyc/qwen35/models/Qwen3.5-9B-4bit \
+  --thinking off \
+  -p "只回复：Pi 通过"
+```
+
+返回 `Pi 通过`，说明 Pi → OpenAI-compatible API → MLX-VLM → Qwen3.5-9B 的最小链路已打通。
 
 ## 5. 推荐请求参数与速度预期
 
@@ -207,7 +279,7 @@ pip install openai
 
 ## 7. 本章状态与后续验收
 
-当前结论是“方案可行、配置边界清晰”，不是“本机实测完成”。后续实机验收应至少记录：
+当前结论是“方案可行、已完成本机最小 API 验收”。本次短请求已经验证加载、鉴权、非流式、流式和 OpenAI SDK；后续仍应记录：
 
 1. 模型冷启动时间、首次下载后的缓存位置和磁盘占用；
 2. 4K、8K、16K 输入下的 TTFT、Decode token/s、峰值统一内存和 Swap；
