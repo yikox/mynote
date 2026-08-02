@@ -19,6 +19,19 @@
       "n:编程语言",
       "n:计算机系统"
     ],
+    "笔记库/工具": [
+      "n:三方库",
+      "n:apple-container-1.0",
+      "n:Computer Use测试桌面应用GUI的实践",
+      "n:github-cli使用指南",
+      "n:Hexo使用指南",
+      "n:Linux常用命令",
+      "n:Markdown规范",
+      "n:Python常用技巧",
+      "n:SQL基本语法",
+      "n:VSCode-SFTP使用指南",
+      "n:常用软件安装"
+    ],
     "笔记库/推理优化": [
       "n:单机部署 qwen3.5-9b",
       "n:大模型基础与 AI 应用架构"
