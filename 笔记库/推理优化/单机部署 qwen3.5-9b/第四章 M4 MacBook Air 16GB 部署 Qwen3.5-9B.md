@@ -169,19 +169,19 @@ mlx_vlm.server \
   --max-kv-size 8192 \
   --max-tokens 2048 \
   --prefill-step-size 2048 \
-  --api-key "$QWEN35_API_KEY"
+  --api-key "$QWEN35_MLX_API_KEY"
 ```
 
 启动后先检查健康状态，再调用 Chat Completions。健康检查和推理请求都要带 Bearer key：
 
 ```bash
-export QWEN35_API_KEY="$(< /Users/zyc/qwen35/config/api_key)"
+export QWEN35_MLX_API_KEY="$(< /Users/zyc/qwen35/config/api_key)"
 
 curl http://127.0.0.1:8080/health \
-  -H "Authorization: Bearer $QWEN35_API_KEY"
+  -H "Authorization: Bearer $QWEN35_MLX_API_KEY"
 
 curl http://127.0.0.1:8080/v1/chat/completions \
-  -H "Authorization: Bearer $QWEN35_API_KEY" \
+  -H "Authorization: Bearer $QWEN35_MLX_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "/Users/zyc/qwen35/models/Qwen3.5-9B-4bit",
@@ -200,7 +200,7 @@ from openai import OpenAI
 
 client = OpenAI(
     base_url="http://127.0.0.1:8080/v1",
-    api_key=os.environ["QWEN35_API_KEY"],
+    api_key=os.environ["QWEN35_MLX_API_KEY"],
 )
 response = client.chat.completions.create(
     model="/Users/zyc/qwen35/models/Qwen3.5-9B-4bit",
@@ -227,7 +227,7 @@ pip install openai
 {
   "baseUrl": "http://127.0.0.1:8080/v1",
   "api": "openai-completions",
-  "apiKey": "$QWEN35_API_KEY",
+  "apiKey": "$QWEN35_MLX_API_KEY",
   "authHeader": true,
   "model": "/Users/zyc/qwen35/models/Qwen3.5-9B-4bit",
   "contextWindow": 8192,
@@ -238,7 +238,7 @@ pip install openai
 Pi 的实际验收命令：
 
 ```bash
-export QWEN35_API_KEY="$(< /Users/zyc/qwen35/config/api_key)"
+export QWEN35_MLX_API_KEY="$(< /Users/zyc/qwen35/config/api_key)"
 pi --offline --no-session --no-tools \
   --provider qwen35-mlx \
   --model /Users/zyc/qwen35/models/Qwen3.5-9B-4bit \
@@ -246,7 +246,7 @@ pi --offline --no-session --no-tools \
   -p "只回复：Pi 通过"
 ```
 
-返回 `Pi 通过`，说明 Pi → OpenAI-compatible API → MLX-VLM → Qwen3.5-9B 的最小链路已打通。
+本机已通过 `/Users/zyc/.config/qwen35/load-mlx-key.zsh` 生成持久环境文件，并在 `~/.zshrc` 自动加载 `QWEN35_MLX_API_KEY`。它与远端服务使用的 `QWEN35_API_KEY` 分开，避免互相覆盖。新开 zsh 会话后实测返回 `持久环境通过`，说明 Pi → OpenAI-compatible API → MLX-VLM → Qwen3.5-9B 的最小链路已打通。
 
 ## 5. 推荐请求参数与速度预期
 
