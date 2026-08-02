@@ -42,6 +42,11 @@
       "n:SVDQuant",
       "n:Triton-distributed序列并行Attention研究"
     ],
+    "预研/浮点精度": [
+      "n:MX与NVFP4",
+      "n:总览",
+      "n:经典格式"
+    ],
     "inbox": [
       "n:DeepSeek-V4-Flash 结构图与 MoE 原理",
       "n:三省六部制任务管理 App 构想",
