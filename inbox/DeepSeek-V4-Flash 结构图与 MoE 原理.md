@@ -2,6 +2,18 @@
 >
 > 更新：2026-08-02
 
+## 0. 例图：标准 Transformer 结构图
+
+![经典 Transformer 结构例图](<DeepSeek-V4-Flash 结构图与 MoE 原理/Transformer 结构例图.png>)
+
+这张图是本笔记的**表达方式例图**，不是 DeepSeek‑V4‑Flash 本身的结构。它提供了三种值得沿用的画法：
+
+- 用圆角彩色模块区分 Embedding、Attention、FFN、Norm 和输出层；
+- 用黑色回路表示残差连接；
+- 用 `N×` 表示重复堆叠的层，并在需要时展开其中一层。
+
+V4‑Flash 的实际模块要替换为 `mHC + Hybrid Attention + MoE`：不能把例图中的 Encoder、Masked Multi‑Head Attention 或普通 Feed Forward 直接当成 V4‑Flash 的结构。
+
 ## 1. 一句话理解模型
 
 DeepSeek‑V4‑Flash 是一个 **43 层、全层采用 MoE 的 Decoder-only 模型**。每一层都包含：
