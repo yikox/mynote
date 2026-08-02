@@ -4,7 +4,7 @@
 
 ## 0. V4‑Flash 43 层结构图
 
-![DeepSeek‑V4‑Flash 43 层结构图](<DeepSeek-V4-Flash 结构图与 MoE 原理/assets/deepseek-v4-flash-architecture.svg>)
+![DeepSeek‑V4‑Flash 43 层结构图](<DeepSeek-V4-Flash (assets/deepseek-v4-flash-architecture.svg)
 
 这张图是本笔记的主图，后续内容按图中的数据流展开：
 
