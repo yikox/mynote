@@ -1,0 +1,303 @@
+<svg id="deepseekV4Architecture" viewBox="0 0 1500 1260" role="img" aria-labelledby="deepseekV4ArchitectureDesc"><style>
+#deepseekV4Architecture {
+  --dsv4-pink: #f1d6d3;
+  --dsv4-mint: #d4e5c9;
+  --dsv4-lavender: #e2ddef;
+  --dsv4-blue: #b9dcf0;
+  --dsv4-gold: #f3dfb3;
+  --dsv4-cyan: #16b9df;
+  --dsv4-green: #cfe7c9;
+  --dsv4-paper: #ffffff;
+  --dsv4-group: #f2f3f2;
+  --dsv4-border: #1f1f1f;
+  --dsv4-line: #242424;
+  --dsv4-fg: #202020;
+  --dsv4-muted: #444444;
+  --viz-series-1: var(--dsv4-pink);
+  --viz-series-2: var(--dsv4-mint);
+  --viz-series-3: var(--dsv4-lavender);
+  --viz-series-4: var(--dsv4-blue);
+  --viz-series-5: var(--dsv4-gold);
+  --viz-series-6: var(--dsv4-cyan);
+  --line: var(--dsv4-border);
+  --muted-line: var(--dsv4-line);
+  --fg: var(--dsv4-fg);
+  --muted-fg: var(--dsv4-muted);
+  --surface: var(--dsv4-paper);
+  --soft: var(--dsv4-group);
+}
+#deepseekV4Architecture .panel {
+  fill: var(--surface);
+  fill-opacity: .74;
+  stroke: var(--line);
+  stroke-width: 2;
+}
+#deepseekV4Architecture .group {
+  fill: var(--soft);
+  fill-opacity: 1;
+  stroke: var(--line);
+  stroke-width: 2;
+}
+#deepseekV4Architecture .box { stroke: var(--line); stroke-width: 2; }
+#deepseekV4Architecture .label {
+  fill: var(--fg);
+  font-size: 16px;
+  font-weight: 500;
+  text-anchor: middle;
+}
+#deepseekV4Architecture .label-small {
+  fill: var(--muted-fg);
+  font-size: 13px;
+  font-weight: 400;
+  text-anchor: middle;
+}
+#deepseekV4Architecture .section {
+  fill: var(--fg);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: .02em;
+}
+#deepseekV4Architecture .caption {
+  fill: var(--muted-fg);
+  font-size: 12px;
+  font-weight: 400;
+}
+#deepseekV4Architecture .wire {
+  fill: none;
+  stroke: var(--muted-line);
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  marker-end: url(#arrow);
+}
+#deepseekV4Architecture .wire-soft {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  marker-end: url(#arrow);
+}
+#deepseekV4Architecture .residual {
+  fill: none;
+  stroke: var(--line);
+  stroke-opacity: 1;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  marker-end: url(#arrow-accent);
+}
+#deepseekV4Architecture .legend-text {
+  fill: var(--muted-fg);
+  font-size: 12px;
+}
+</style>
+    <title id="deepseekV4ArchitectureDesc">DeepSeek V4 Flash architecture diagram</title>
+    <defs>
+      <linearGradient id="grad-input" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="var(--viz-series-1)" stop-opacity="1"/>
+        <stop offset="100%" stop-color="var(--viz-series-1)" stop-opacity="1"/>
+      </linearGradient>
+      <linearGradient id="grad-mhc" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="var(--viz-series-3)" stop-opacity="1"/>
+        <stop offset="100%" stop-color="var(--viz-series-3)" stop-opacity="1"/>
+      </linearGradient>
+      <linearGradient id="grad-attn" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="var(--viz-series-5)" stop-opacity="1"/>
+        <stop offset="100%" stop-color="var(--viz-series-5)" stop-opacity="1"/>
+      </linearGradient>
+      <linearGradient id="grad-moe" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="var(--viz-series-4)" stop-opacity="1"/>
+        <stop offset="100%" stop-color="var(--viz-series-4)" stop-opacity="1"/>
+      </linearGradient>
+      <linearGradient id="grad-cache" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="var(--viz-series-6)" stop-opacity="1"/>
+        <stop offset="100%" stop-color="var(--viz-series-6)" stop-opacity="1"/>
+      </linearGradient>
+      <linearGradient id="grad-output" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="var(--dsv4-green)" stop-opacity="1"/>
+        <stop offset="100%" stop-color="var(--dsv4-green)" stop-opacity="1"/>
+      </linearGradient>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--dsv4-line)"/>
+      </marker>
+      <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--dsv4-line)"/>
+      </marker>
+    </defs>
+
+    <rect class="panel" x="32" y="32" width="430" height="1160" rx="28"/>
+    <rect class="panel" x="490" y="32" width="978" height="1160" rx="28"/>
+
+    <text class="section" x="62" y="72">完整主干</text>
+    <text class="caption" x="62" y="94">43 个 Block 叠加显示，右侧展开一个 Block</text>
+
+    <rect class="box" x="112" y="120" width="270" height="54" rx="14" fill="url(#grad-input)"/>
+    <text class="label" x="247" y="143">输入 Token IDs</text>
+    <text class="label-small" x="247" y="162">B × S</text>
+    <path class="wire" d="M247 174 V198"/>
+
+    <rect class="box" x="102" y="200" width="290" height="66" rx="14" fill="url(#grad-input)"/>
+    <text class="label" x="247" y="227">Embedding</text>
+    <text class="label-small" x="247" y="248">V=129280 · D=4096</text>
+    <path class="wire" d="M247 266 V290"/>
+
+    <rect class="box" x="102" y="292" width="290" height="66" rx="14" fill="url(#grad-mhc)"/>
+    <text class="label" x="247" y="319">mHC Expand</text>
+    <text class="label-small" x="247" y="340">1 路 → 4 路隐藏流</text>
+    <path class="wire" d="M247 358 V385"/>
+
+    <rect x="82" y="392" width="330" height="192" rx="18" fill="var(--viz-series-3)" opacity=".08" stroke="var(--line)"/>
+    <rect x="90" y="384" width="330" height="192" rx="18" fill="var(--viz-series-3)" opacity=".10" stroke="var(--line)"/>
+    <rect x="98" y="376" width="330" height="192" rx="18" fill="var(--viz-series-3)" opacity=".12" stroke="var(--line)"/>
+    <rect class="box" x="106" y="368" width="330" height="192" rx="18" fill="url(#grad-mhc)" fill-opacity=".72"/>
+    <text class="label" x="271" y="407" style="font-size:20px">43 × Decoder Block</text>
+    <text class="label-small" x="271" y="432">同一模板，参数按层独立</text>
+    <rect x="136" y="454" width="270" height="34" rx="10" fill="url(#grad-attn)" class="box"/>
+    <text class="label-small" x="271" y="476">mHC + Hybrid Attention</text>
+    <rect x="136" y="496" width="270" height="34" rx="10" fill="url(#grad-moe)" class="box"/>
+    <text class="label-small" x="271" y="518">Router + MoE FFN</text>
+    <text class="caption" x="271" y="548" text-anchor="middle">2 Sliding · 21 CSA · 20 HCA</text>
+    <path class="wire" d="M271 560 V590"/>
+
+    <rect class="box" x="102" y="594" width="290" height="60" rx="14" fill="url(#grad-mhc)"/>
+    <text class="label" x="247" y="619">mHC Head</text>
+    <text class="label-small" x="247" y="640">4 路 → 1 路</text>
+    <path class="wire" d="M247 654 V683"/>
+
+    <rect class="box" x="132" y="687" width="230" height="48" rx="14" fill="url(#grad-mhc)"/>
+    <text class="label" x="247" y="717">Final RMSNorm</text>
+    <path class="wire" d="M247 735 V764"/>
+
+    <rect class="box" x="102" y="768" width="290" height="66" rx="14" fill="url(#grad-mhc)"/>
+    <text class="label" x="247" y="795">LM Head</text>
+    <text class="label-small" x="247" y="816">4096 → 129280 logits</text>
+    <path class="wire" d="M247 834 V862"/>
+
+    <rect class="box" x="122" y="866" width="250" height="58" rx="14" fill="url(#grad-output)"/>
+    <text class="label" x="247" y="900">下一 Token 分布</text>
+
+    <rect class="box" x="88" y="956" width="334" height="72" rx="14" fill="url(#grad-cache)"/>
+    <text class="label" x="255" y="984">KV / Compressor State</text>
+    <text class="label-small" x="255" y="1007">local window + compressed cache</text>
+    <path class="wire-soft" d="M428 462 H446 V992 H422"/>
+
+    <rect class="box" x="86" y="1060" width="338" height="72" rx="14" fill="var(--soft)" fill-opacity=".58"/>
+    <text class="label-small" x="255" y="1087">可选：MTP-1 speculative predictor</text>
+    <text class="label-small" x="255" y="1109">不计入主干 43 层</text>
+
+    <text class="section" x="522" y="72">单层 Block 展开</text>
+    <text class="caption" x="522" y="94">每层都执行相同的控制流，但 Attention 类型和权重随层变化</text>
+
+    <rect class="box" x="832" y="112" width="290" height="52" rx="14" fill="url(#grad-input)"/>
+    <text class="label" x="977" y="134">hᵢ</text>
+    <text class="label-small" x="977" y="153">[B,S,4,D]</text>
+    <path class="wire" d="M977 164 V190"/>
+
+    <rect class="box" x="802" y="192" width="350" height="58" rx="14" fill="url(#grad-mhc)"/>
+    <text class="label" x="977" y="217">mHC attn_pre</text>
+    <text class="label-small" x="977" y="237">4 路 → 1 路，产生 post / comb</text>
+    <path class="wire" d="M977 250 V278"/>
+
+    <rect class="box" x="852" y="280" width="250" height="48" rx="14" fill="url(#grad-mhc)"/>
+    <text class="label" x="977" y="310">Attention RMSNorm</text>
+
+    <path class="residual" d="M832 138 H594 V614 H802"/>
+    <text class="caption" x="520" y="370" transform="rotate(-90 520 370)">mHC residual stream</text>
+
+    <rect class="group" x="548" y="350" width="850" height="262" rx="20"/>
+    <text class="caption" x="574" y="378">Attention type selected by compress_ratio</text>
+
+    <path class="wire" d="M977 328 V388 H694 V404"/>
+    <path class="wire" d="M977 328 V388 H977 V404"/>
+    <path class="wire" d="M977 328 V388 H1260 V404"/>
+
+    <rect class="box" x="590" y="406" width="208" height="88" rx="14" fill="url(#grad-attn)"/>
+    <text class="label" x="694" y="430">ratio = 0</text>
+    <text class="label-small" x="694" y="453">Sliding-only</text>
+    <text class="label-small" x="694" y="474">window = 128</text>
+
+    <rect class="box" x="872" y="406" width="210" height="88" rx="14" fill="url(#grad-attn)"/>
+    <text class="label" x="977" y="430">ratio = 4</text>
+    <text class="label-small" x="977" y="453">CSA · overlap m=4</text>
+    <text class="label-small" x="977" y="474">Indexer top-k = 512</text>
+
+    <rect class="box" x="1156" y="406" width="210" height="88" rx="14" fill="url(#grad-attn)"/>
+    <text class="label" x="1261" y="430">ratio = 128</text>
+    <text class="label-small" x="1261" y="453">HCA · non-overlap</text>
+    <text class="label-small" x="1261" y="474">无 Indexer</text>
+
+    <path class="wire" d="M694 494 V522 H977 V538"/>
+    <path class="wire" d="M977 494 V538"/>
+    <path class="wire" d="M1261 494 V522 H977 V538"/>
+
+    <rect class="box" x="778" y="540" width="398" height="62" rx="14" fill="url(#grad-attn)"/>
+    <text class="label" x="977" y="565">Attention Core</text>
+    <text class="label-small" x="977" y="586">MQA: 1 KV head · Partial RoPE · grouped low-rank O</text>
+    <path class="wire" d="M977 602 V630"/>
+
+    <rect class="box" x="802" y="632" width="350" height="58" rx="14" fill="url(#grad-mhc)"/>
+    <text class="label" x="977" y="657">mHC attn_post</text>
+    <text class="label-small" x="977" y="678">Attention + residual → 4 路</text>
+    <path class="wire" d="M977 690 V718"/>
+
+    <rect class="box" x="802" y="720" width="350" height="58" rx="14" fill="url(#grad-mhc)"/>
+    <text class="label" x="977" y="745">mHC ffn_pre</text>
+    <text class="label-small" x="977" y="766">4 路 → 1 路</text>
+    <path class="wire" d="M977 778 V806"/>
+
+    <rect class="box" x="852" y="808" width="250" height="48" rx="14" fill="url(#grad-mhc)"/>
+    <text class="label" x="977" y="838">FFN RMSNorm</text>
+
+    <rect class="group" x="548" y="874" width="850" height="234" rx="20"/>
+    <text class="caption" x="574" y="902">MoE routing and expert aggregation</text>
+
+    <path class="wire" d="M977 856 V925 H710"/>
+    <path class="wire" d="M977 856 V954 H1030 V1014"/>
+
+    <rect class="box" x="586" y="924" width="248" height="76" rx="14" fill="url(#grad-attn)"/>
+    <text class="label" x="710" y="950">Router</text>
+    <text class="label-small" x="710" y="972">L0–L2: hash lookup</text>
+    <text class="label-small" x="710" y="990">L3–L42: √Softplus score</text>
+
+    <path class="wire" d="M834 962 H864"/>
+    <rect class="box" x="866" y="924" width="168" height="76" rx="14" fill="url(#grad-attn)"/>
+    <text class="label" x="950" y="950">Top-6 / 256</text>
+    <text class="label-small" x="950" y="974">normalize × 1.5</text>
+
+    <path class="wire" d="M1034 962 H1056"/>
+    <rect class="box" x="1058" y="914" width="190" height="78" rx="14" fill="url(#grad-moe)"/>
+    <text class="label" x="1153" y="940">Routed Experts</text>
+    <text class="label-small" x="1153" y="963">6 selected · clamped SwiGLU</text>
+
+    <rect class="box" x="1058" y="1008" width="190" height="62" rx="14" fill="url(#grad-moe)"/>
+    <text class="label" x="1153" y="1034">Shared Expert ×1</text>
+    <text class="label-small" x="1153" y="1055">每个 Token 都执行</text>
+
+    <path class="wire" d="M1248 952 H1282 V980"/>
+    <path class="wire" d="M1248 1039 H1282 V980"/>
+    <rect class="box" x="1284" y="944" width="90" height="72" rx="14" fill="url(#grad-output)"/>
+    <text class="label-small" x="1329" y="971">weighted</text>
+    <text class="label-small" x="1329" y="989">sum +</text>
+    <text class="label-small" x="1329" y="1007">shared</text>
+
+    <path class="residual" d="M802 661 H650 V1138 H802"/>
+    <text class="caption" x="620" y="785" transform="rotate(-90 620 785)">FFN residual stream</text>
+
+    <path class="wire" d="M1329 1016 V1132 H977"/>
+    <rect class="box" x="802" y="1134" width="350" height="58" rx="14" fill="url(#grad-mhc)"/>
+    <text class="label" x="977" y="1159">mHC ffn_post</text>
+    <text class="label-small" x="977" y="1180">MoE + residual → hᵢ₊₁</text>
+
+    <g transform="translate(62 1160)">
+      <circle cx="0" cy="0" r="6" fill="var(--viz-series-3)"/>
+      <text class="legend-text" x="14" y="4">GPU 主干</text>
+      <circle cx="112" cy="0" r="6" fill="var(--viz-series-5)"/>
+      <text class="legend-text" x="126" y="4">GPU 热点专家</text>
+      <circle cx="250" cy="0" r="6" fill="var(--viz-series-1)"/>
+      <text class="legend-text" x="264" y="4">CPU/RAM 冷专家</text>
+      <circle cx="404" cy="0" r="6" fill="var(--viz-series-2)"/>
+      <text class="legend-text" x="418" y="4">SSD 权重源</text>
+    </g>
+  </svg>
