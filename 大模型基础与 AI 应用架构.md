@@ -58,7 +58,7 @@
 - 复杂度：自注意力 `O(n²·d)`，长序列下是主要瓶颈（→ 见 KV Cache / FlashAttention 等优化）。
 
 > 接下来进入 **KV Cache**：理解自回归推理中 K/V 的复用机制。
-> 
+
 ### KV Cache
 
 ### RAG
