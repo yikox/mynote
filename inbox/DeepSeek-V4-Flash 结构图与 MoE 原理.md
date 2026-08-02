@@ -2,17 +2,20 @@
 >
 > 更新：2026-08-02
 
-## 0. 例图：标准 Transformer 结构图
+## 0. V4‑Flash 43 层结构图
 
-![经典 Transformer 结构例图](<DeepSeek-V4-Flash 结构图与 MoE 原理/Transformer 结构例图.png>)
+![DeepSeek‑V4‑Flash 43 层结构图](<DeepSeek-V4-Flash 结构图与 MoE 原理/assets/deepseek-v4-flash-architecture.svg>)
 
-这张图是本笔记的**表达方式例图**，不是 DeepSeek‑V4‑Flash 本身的结构。它提供了三种值得沿用的画法：
+这张图是本笔记的主图，后续内容按图中的数据流展开：
 
-- 用圆角彩色模块区分 Embedding、Attention、FFN、Norm 和输出层；
-- 用黑色回路表示残差连接；
-- 用 `N×` 表示重复堆叠的层，并在需要时展开其中一层。
+- 左侧：Embedding → mHC Expand → 43 个 Decoder Block → mHC Head → LM Head；
+- 右侧：一个 Decoder Block 的完整展开；
+- 上半部分：`compress_ratio=0/4/128` 对应三种 Attention；
+- 下半部分：Router、Top‑6/256 Routed Expert、Shared Expert 和加权合并；
+- 黑色回路：mHC 在 Attention 和 MoE/FFN 前后的残差流；
+- 底部图例：当前单机部署中 GPU、CPU/RAM、SSD 的职责。
 
-V4‑Flash 的实际模块要替换为 `mHC + Hybrid Attention + MoE`：不能把例图中的 Encoder、Masked Multi‑Head Attention 或普通 Feed Forward 直接当成 V4‑Flash 的结构。
+阅读方法是先看左侧的 43 层重复关系，再沿右侧单层从上到下追踪一个 Token。后文的 Prefill、Decode、MoE 路由和存储分层都对应这张图中的具体模块。
 
 ## 1. 一句话理解模型
 
