@@ -49,7 +49,8 @@
       "n:第二章 llama.cpp 部署 Qwen3.5-9B",
       "n:第三章 DeepSeek-V4-Flash 原生混合精度三级存储部署",
       "n:量化版本、GGUF 与 TorchAO",
-      "n:llama.cpp"
+      "n:llama.cpp",
+      "n:第四章 M4 MacBook Air 16GB 部署 Qwen3.5-9B"
     ],
     "预研": [
       "n:bugs",
