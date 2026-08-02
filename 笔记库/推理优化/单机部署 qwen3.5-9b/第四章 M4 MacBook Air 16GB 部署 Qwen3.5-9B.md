@@ -153,9 +153,13 @@ python -m mlx_vlm.generate \
 | 非流式 `/v1/chat/completions` | 通过 |
 | SSE 流式响应 | 通过 |
 | OpenAI Python SDK | 通过 |
-| Prefill | 约 16～22 token/s（短请求） |
-| Decode | 约 18～19 token/s（短请求） |
-| 峰值统一内存 | 约 6.73 GB（短请求） |
+| 空闲后首个请求 | 12.6 秒；模型/Metal 预热阶段 Prefill 约 1.3 token/s |
+| 稳态短请求 Prefill | 约 49～67 token/s（24 token 输入） |
+| 稳态短请求 Decode | 非流式约 12～14 token/s；流式约 13～14 token/s |
+| 128 token 流式输出 | TTFT 约 0.55～0.62 秒，总 Decode 约 10.7 token/s |
+| 长输入 Prefill | 371/1427/5651 token 分别约 3.5/13.2/48.8 秒 |
+| 峰值统一内存 | 约 8.95 GB（5651 token 输入） |
+| 测试时系统 Swap | 已使用约 6.53 GB；需在低负载环境复测确认影响 |
 
 当前 `mlx-vlm` 版本会把本地绝对路径作为模型 ID 返回。因此 Agent 请求中的 `model` 必须写成上面的绝对路径；写成 `qwen3.5-9b` 或 `mlx-community/Qwen3.5-9B-4bit` 会被当作 Hugging Face 仓库名重新查找，不能作为本次服务的别名。
 
@@ -256,7 +260,7 @@ pi --offline --no-session --no-tools \
 | 代码/确定性任务 | 0～0.3 | 1024～2048 | 按需开启 |
 | 摘要/信息提取 | 0 | 256～1024 | 关闭 |
 
-材料给出的短上下文 Decode 速度预期是约 15～25 token/s，但这是基于硬件带宽、模型大小和同类 MLX 推理的估算，实际会受上下文、Thinking、图片、温度和机身降频影响。应分别测量 Prefill/首 token 延迟和 Decode token/s，不要把一次短 prompt 的数字当成长 Agent 循环的稳定吞吐。
+本次 API 实测的短请求 Decode 约 12～14 token/s，明显低于此前 15～25 token/s 的工程估算；输出变长时速度会下降，256 token 非流式输出约 14.3 token/s，128 token 流式输出约 10.7 token/s。真正影响 Agent 体感的是 Prefill：约 1.4K 输入 token 首 token 约 13 秒，约 5.6K 输入 token 首 token 约 49 秒。不要把短 prompt 的 Decode 数字当成长 Agent 循环的稳定吞吐。
 
 ## 6. 适用范围与不适用范围
 
@@ -279,7 +283,7 @@ pi --offline --no-session --no-tools \
 
 ## 7. 本章状态与后续验收
 
-当前结论是“方案可行、已完成本机最小 API 验收”。本次短请求已经验证加载、鉴权、非流式、流式和 OpenAI SDK；后续仍应记录：
+当前结论是“方案可行、已完成本机最小 API 验收，并确认长上下文会明显变慢”。本次基准已经覆盖冷/稳态短请求、输出长度、输入长度、Thinking 开关、流式 TTFT 和 Swap 观察；后续仍应记录：
 
 1. 模型冷启动时间、首次下载后的缓存位置和磁盘占用；
 2. 4K、8K、16K 输入下的 TTFT、Decode token/s、峰值统一内存和 Swap；
@@ -288,7 +292,7 @@ pi --offline --no-session --no-tools \
 5. Thinking 开关、单张图片输入和持续 30 分钟单并发运行后的温度/降频；
 6. 发生内存压力时的安全降级顺序：关闭后台应用 → 降低上下文 → 降低输出预算 → 切换 4B 模型。
 
-在完成上述实测前，本章最准确的定位是：**M4 16GB 上 Qwen3.5-9B 4-bit 的个人本地助手部署基线**，而不是 128K/16K 的高负载编码 Agent 服务。
+本章最准确的定位是：**M4 16GB 上 Qwen3.5-9B 4-bit 的个人本地助手部署基线**。要改善 Agent 体感，应优先限制每轮输入到 2K～4K token、关闭默认 Thinking、使用流式输出，并在关闭大型应用或重启后再评估 Swap；它仍不是 128K/16K 的高负载编码 Agent 服务。
 
 ## 参考
 
