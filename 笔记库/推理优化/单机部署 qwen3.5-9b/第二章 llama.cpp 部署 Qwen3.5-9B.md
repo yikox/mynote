@@ -1,450 +1,887 @@
-> 状态：执行前计划稿。远端机器当前不可连接，本章中的容量、速度和兼容性均为待验证假设。执行时在本文件上直接更正方案、命令和数据；完成后删除失效候选与过程记录，只保留最终可复现路径、实测结果和明确限制。
+# 第二章：使用 llama.cpp 部署 Qwen3.5-9B
+
+> 状态：已完成一轮可用性验收。当前 `llama-server` 以 128K 总上下文运行，OpenAI 兼容 API、结构化输出、流式响应、工具调用、110K 长上下文和 Pi Code Agent 均已通过实测。
 
 ## 优缺点
 
 ### 优点
 
-- GGUF 的模型表示更紧凑。Qwen3.5-9B Q4_K_M 约 6 GB，比第一章使用的约 11 GB 选择性 W4A16 checkpoint 更容易在 16 GB 显存中同时容纳模型、128K KV Cache 和运行时缓冲区。
-- llama.cpp 对消费级硬件和单请求推理友好，能够精确控制 GPU 层数、KV Cache 类型、物理 Prefill 批次和服务 Slot 数量。
-- 支持 CPU、CUDA 以及 CPU/GPU 混合执行；模型超过显存时仍有降级运行路径。
-- `llama-server` 依赖少，可直接提供 OpenAI 风格的 `/v1/chat/completions`、流式响应、API Key 和工具调用。
-- `llama-bench` 与服务端使用同一个推理运行时，适合分别测量 Prompt Processing 与 Token Generation，建立 vLLM 的对照基线。
-- 本章可以复用现有 Ollama/GGUF 资产；确认内容一致时不重复下载模型。
+- Q4_K_M GGUF 的最终文件为 5,530,618,176 bytes，在 16GB 显卡上同时容纳模型、128K Q8 KV Cache 和计算缓冲区没有压力。
+- llama.cpp 对单机、单请求、消费级 GPU 很合适。权重层、KV 精度、上下文、物理批次和并发 Slot 都能直接控制。
+- `llama-server` 原生提供 OpenAI 风格的 Chat Completions、SSE 流式输出、JSON Schema、API Key 和 Function Calling，能直接接入 Pi Code Agent。
+- Qwen3.5-9B 的 32 层中只有 8 层是全注意力，另外 24 层是 Gated DeltaNet。长上下文下，随长度线性增长的全注意力 KV Cache 比纯全注意力模型少，因此 128K Q8 KV 能完整放在 GPU。
+- 模型、源码、服务和第一章 vLLM 目录相互独立；切换路线不需要删除第一章产物。
+- 同一长前缀能够复用 Slot 缓存。本次第二次提交相同 110K 请求时，服务命中 110,001 个缓存 token。
 
 ### 局限
 
-- GGUF Q4_K_M 与第一章 W4A16 不是同一个权重表示，结果只能作为另一条部署路线，不能混入 vLLM 性能基线。
-- llama.cpp 的 OpenAI API 是实用兼容，不保证所有字段和边界行为与 OpenAI/vLLM 完全一致；Pi Code Agent 的工具调用必须单独验收。
-- 工具调用依赖 GGUF 内置 Chat Template 与 `--jinja` 解析。模型能普通聊天，不代表工具调用格式一定正确。
-- Q4 权重和量化 KV Cache 都可能损失质量。尤其不应为了容量直接使用 Q4 KV；编码 Agent 首选 Q8 KV。
-- 单请求和本地部署是它的优势；高并发、Paged KV Cache 和大规模 GPU Serving 仍以 vLLM/SGLang 为主要对照。
-- CPU/GPU 混合卸载首先解决“能否运行”，通常会降低 Decode 速度。本章的 9B 模型应优先完整放入 GPU。
-- llama.cpp 更新较快，Qwen3.5 的 Gated DeltaNet、工具解析或 CUDA Kernel 可能随版本变化，因此必须记录源码 commit，而不能只写“最新版”。
+- Q4_K_M 是 llama.cpp 的混合 K-quant 权重量化，不是第一章的 W4A16。两章是不同权重表示和不同运行时，不能当成完全同条件的性能对比。
+- 当前派生 GGUF 只保留文本主模型，删除了视觉权重和旧格式 MTP 张量：不支持图片/视频，也不支持内置 MTP speculative decoding。
+- 当前为 `PARALLEL=1`，只有一个 Slot。并发请求会排队，目标是本地编码 Agent，不是高并发 Serving。
+- 128K 是输入与输出共享的总窗口，不是“128K 输入再加 16K 输出”。
+- 本次验证了请求可设置 `max_tokens=16384`，但模型只实际生成了 17 tokens；尚未做连续生成完整 16K token 的耗时与稳定性压力测试。
+- 长上下文验收使用低熵重复文本和首尾双针检索，证明容量、Prefill 和基本检索链路可用，不等价于复杂代码仓库、多轮工具历史的长期质量评测。
+- 工具调用基线采用 Thinking Off。开启 Thinking 后需要重新验收工具调用、流式格式和 token 预算。
+- 当前使用 `nohup + PID` 管理，没有 systemd 开机自启、崩溃自动拉起和日志轮转。
+- 服务监听 `0.0.0.0:8080`，虽然生成 API 有 Bearer Key，但 LAN 上仍是明文 HTTP，且 `/health`、`/v1/models` 可公开读取。日常从 Mac 使用时应走仅绑定本机回环地址的 SSH 隧道。
+- 构建未嵌入 Web UI；本章只交付 API 服务。
 
-## 本章目标与完成定义
+## 本章目标与最终结论
 
-在不破坏第一章 vLLM 服务的前提下，新增一套独立的 llama.cpp 服务：
+最终链路为：
 
 ```text
-Pi Code Agent（Mac，经 SSH 隧道）
-  → OpenAI-compatible API
-  → llama-server（WSL2，CUDA）
-  → Qwen3.5-9B GGUF Q4_K_M
-  → RTX 4070 Ti SUPER 16 GB
+Pi Code Agent（Mac）
+  → 127.0.0.1:18080
+  → SSH Local Forward
+  → WSL2 127.0.0.1:8080
+  → llama-server
+  → Qwen3.5-9B text-only GGUF Q4_K_M
+  → RTX 4070 Ti SUPER 16GB
 ```
 
-目标配置：
+最终配置：
 
-| 项目 | 目标值 |
+| 项目 | 实际值 |
 | --- | --- |
-| 模型 | Qwen3.5-9B，GGUF Q4_K_M |
-| 服务端 | llama-server，CUDA 后端 |
+| 模型 | Qwen3.5-9B 文本主模型，GGUF Q4_K_M |
+| llama.cpp | `e1a1abb78746c025f5e9039f590e37ccdb758ae7` |
+| 服务端 | `llama-server`，CUDA |
 | 总上下文 | 131072 tokens |
-| 最大输出 | 16384 tokens，由客户端请求控制 |
-| 最大输入 | 约 114688 tokens（总窗口减去最大输出） |
-| 并发 | 单 Slot、单活跃请求 |
-| KV Cache | K/V 均为 Q8_0，验证不通过时退回 F16 |
-| GPU 放置 | 所有可卸载语言模型层进入 GPU |
-| 多模态 | 关闭，不加载 mmproj |
-| 工具调用 | 使用 GGUF Chat Template 与 `--jinja` |
-| 监听端口 | 8080，与第一章 vLLM 的 8000 并存 |
-| API 模型别名 | `qwen3.5-9b-gguf` |
+| Pi 最大输出 | 16384 tokens |
+| Pi 可预期输入上限 | 约 110592 tokens，已包含 4096 safety tokens |
+| 并发 | 单 Slot |
+| KV Cache | K/V 均为 Q8_0 |
+| GPU 放置 | `--n-gpu-layers all`，KV 也在 GPU |
+| CPU offload | 未使用 |
+| 多模态 | 关闭 |
+| Thinking | Pi 默认 Off |
+| 远端端口 | 8080 |
+| 本机隧道端口 | 18080 |
+| API 模型 ID | `qwen3.5-9b-gguf` |
 
-以下条件全部通过，才把本章标记为完成：
+这台机器不需要把 Prefill、Decode、模型层或 KV Cache 放入 CPU。128K 配置完成长请求后总显存约 8.4GiB，仍有约 8GiB 余量；CPU offload 只会增加 PCIe/内存传输并降低 Decode 速度。
 
-- 固定 llama.cpp commit、构建命令、GGUF 来源、文件大小和 SHA-256。
-- 启动日志确认 CUDA 后端可用，计划卸载的层确实位于 GPU。
-- 128K 总窗口在单 Slot 下可以启动，并通过分阶段长上下文测试。
-- 普通、流式、结构化 JSON 和工具调用完整往返均通过。
-- Pi Code Agent 能经独立模型配置完成一次读取文件或执行安全测试工具的闭环。
-- 记录 TTFT、Prompt Processing tokens/s、Decode tokens/s、峰值显存和峰值主内存。
-- 服务停止、启动和机器重启后的恢复方式可重复。
-- 第一章 vLLM 服务、模型、端口和脚本没有被覆盖或删除。
+## 机器规格
+
+| 项目 | 实测 |
+| --- | --- |
+| 系统 | Ubuntu 24.04.1 LTS，WSL2 kernel `6.18.33.2-microsoft-standard-WSL2` |
+| CPU | Intel Core i5-13600KF，WSL 分配 20 vCPU |
+| 内存 | 15GiB |
+| Swap | 4GiB |
+| GPU | NVIDIA GeForce RTX 4070 Ti SUPER |
+| 显存 | 16,376MiB |
+| NVIDIA Driver | 560.94 |
+| CUDA Toolkit | 12.6 |
+| CMake | 3.28.3 |
+| GCC | 13.3.0 |
+| GPU 架构 | Ada，Compute Capability 8.9 |
+
+最终服务空闲时进程 RSS 约 1.48GiB；系统仍有约 13GiB 可用内存。128K 服务完成长请求后，整卡显存占用为 8,421MiB。
 
 ## 部署方案的选择
 
-### 1. 保留第一章，新增独立对照服务
+### 1. 保留第一章，建立独立服务目录
 
-工作目录计划使用：
-
-```text
-/home/yiko/workspace/qwen35-llamacpp-serve
-```
-
-第一章继续保留：
+第一章目录保留：
 
 ```text
 /home/yiko/workspace/qwen35-agent-serve
 ```
 
-两个服务不共享虚拟环境、PID 文件、日志或启动脚本。llama.cpp 使用 8080，vLLM 继续使用 8000。实际切换 Pi 前先并行验收，不能直接替换已工作的入口。
+第二章使用：
 
-### 2. 模型选择 Q4_K_M，不使用当前 W4A16
+```text
+/home/yiko/workspace/qwen35-llamacpp-serve
+```
 
-计划首选 Qwen3.5-9B Q4_K_M：
+两套服务不共享源码、PID、日志和启动脚本。第一章 vLLM 使用 8000，第二章 llama.cpp 使用 8080。
 
-- 大小和输出质量之间较平衡；
-- 预计能完整进入 16 GB 显存；
-- 能给 128K Q8 KV Cache 和 CUDA 工作区留下空间；
-- llama.cpp 对 GGUF Q4_K_M 有原生加载和 CUDA Kernel 路径。
+两套服务的模型文件都保留，但 16GB 显存不适合让它们同时驻留。本章完成后保持 llama.cpp 运行、vLLM 停止；需要回到第一章时先停止 llama.cpp，再启动 vLLM。
 
-执行时按以下顺序确定模型来源：
+### 2. 复用 Ollama 模型层，不重复下载标准 GGUF
 
-1. 检查现有 Ollama 模型和磁盘中是否已经存在可直接复用的 Qwen3.5-9B Q4_K_M GGUF。
-2. 若存在，核对基础模型、量化类型、Chat Template、文件大小和 SHA-256；确认一致后复用，不重新下载。
-3. 若不存在，先对可信 GGUF 仓库做短时速度探测，再选择来源。候选为 `bartowski/Qwen_Qwen3.5-9B-GGUF` 的 Q4_K_M；必须在下载时记录具体 revision。
-4. 远端 Hugging Face 仍不可达或速度不可接受时，从可访问的本机下载后经 SSH/SCP 传入远端；不使用来源不明的镜像。
+机器已经有 Ollama 官方模型库的 `qwen3.5:9b`：
 
-Q5_K_M、Q6_K 和 Q8_0 权重暂不作为第一轮目标。它们可以用于后续质量对照，但会缩小 128K 的显存余量。
+| 项目 | 值 |
+| --- | --- |
+| Ollama tag | `registry.ollama.ai/library/qwen3.5:9b` |
+| Ollama 显示的 model ID | `6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7` |
+| model layer SHA-256 | `dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c` |
+| model layer 大小 | 6,594,462,816 bytes |
+| Ollama 标记 | Q4_K_M，262144 原生上下文 |
 
-### 3. KV Cache 选择 Q8_0
+标准 Hugging Face GGUF 下载在该机器上只有约 1.0～1.3MB/s。现有 Ollama blob 已完整下载并通过 SHA-256 校验，因此最终选择本地重写，而不是再下载一份近 6GB 的相同量化路线。
 
-Qwen3.5-9B 只有 8 个全注意力层，128K F16 KV Cache 估算约 4 GiB；Q8 KV 估算约 2～2.5 GiB。首选：
+不能把 Ollama blob 直接软链接给原版 llama.cpp。该文件是 Ollama 使用的组合式 GGUF：
+
+- 一共 883 个 tensors；
+- `v.*` 视觉 tensors 441 个；
+- `mtp.*` 旧格式 MTP tensors 15 个；
+- 文本主模型 tensors 427 个；
+- MRoPE metadata 是 `[11,11,10]`；
+- `attention.head_count_kv` 是逐层数组；
+- 24 个 DeltaNet tensor 使用旧名 `blk.*.ssm_dt`。
+
+固定的原版 llama.cpp 需要不同的 text-only metadata 和 tensor 命名。最终转换器只针对上述固定 SHA 的 blob：
+
+1. 保留 427 个文本 tensors。
+2. 过滤 `v.*`、`mtp.*`，并防御性过滤 `mm.*`。
+3. 把 MRoPE sections 改为 `[11,11,10,0]`。
+4. 把 24 个 `blk.*.ssm_dt` 改名为 `blk.*.ssm_dt.bias`。
+5. 把逐层 KV heads metadata 折叠为 `UINT32(4)`。
+6. 保持 `block_count=32`，不伪造 llama.cpp-native MTP 第 33 层。
+7. 先写入 `.partial`，重读验证全部 metadata/tensor 约束后再原子发布。
+
+最终产物：
+
+| 项目 | 值 |
+| --- | --- |
+| 路径 | `/home/yiko/workspace/qwen35-llamacpp-serve/models/Qwen3.5-9B-Q4_K_M.gguf` |
+| 大小 | 5,530,618,176 bytes |
+| SHA-256 | `068b6bace4d4f5d18f3b3d84c48cd03304fa0e5e354da115eff26f3666023435` |
+| tensors | 427 |
+| llama-server 参数量 | 8,953,803,264 |
+| 架构 | `qwen35` |
+| 原生训练上下文 | 262144 |
+
+这应称为“由固定 Ollama model layer 本地重写得到的 text-only Q4_K_M GGUF”，不能称为 Hugging Face 下载文件或官方 llama.cpp GGUF。
+
+### 3. 使用 Q8 KV、全部 GPU、单 Slot
+
+最终组合：
 
 ```text
 权重：Q4_K_M
 K Cache：Q8_0
 V Cache：Q8_0
+上下文：131072
+并发：1
+GPU layers：all
+Flash Attention：on
 ```
 
-选择理由：
+选择 Q8 KV 是容量与质量的折中：它比 F16 KV 节省约一半空间，又比 Q4 KV 更适合长上下文检索、结构化输出和工具参数。实测 128K 仅使用约 8.4GiB 总显存，因此没有继续降低 KV 精度，也没有使用 CPU KV。
 
-- 相比 F16 约节省一半 KV 空间；
-- 比 Q4 KV 更适合需要精确结构化输出和工具调用的 Agent；
-- 模型权重已经量化，没有必要同时把关键缓存压到极低精度。
+### 4. 固定源码 commit，而不是记录“最新版”
 
-如果当前 commit、CUDA Flash Attention 或 Qwen3.5 混合缓存不支持该组合，则退回 F16 KV，并重新测量最大稳定上下文；不得无记录地更换参数。
+源码信息：
 
-### 4. 所有模型层优先进入 GPU
-
-Q4_K_M 权重预计约 6 GB，本章不计划主动把 9B 模型层放入 CPU。首选：
-
-```bash
---n-gpu-layers all
---kv-offload
+```text
+remote: https://github.com/ggml-org/llama.cpp.git
+commit: e1a1abb78746c025f5e9039f590e37ccdb758ae7
+date:   2026-07-30T21:39:46+08:00
+binary: version 1 (e1a1abb)
 ```
 
-只有完整 GPU 路径在 128K 下仍然 OOM，才按顺序调整：
+源码工作树最终为 clean，没有保留运行时兼容补丁。兼容处理全部在一次性 GGUF 重写中完成，后续能直接跟踪官方 llama.cpp。
 
-1. 降低物理 Prefill 批次 `--ubatch-size`。
-2. 确认只启用一个 Slot，关闭额外 RAM Prompt Cache。
-3. 检查 mmproj、桌面进程和遗留模型进程是否占用显存。
-4. KV 从 F16 改为 Q8，或确认 Q8 确实生效。
-5. 最后才减少 GPU 层数或把 KV 留在 CPU，并记录速度代价。
-
-### 5. llama.cpp 从源码构建并固定 commit
-
-计划使用官方仓库源码构建 CUDA 版本，而不是依赖来源和版本不明确的二进制：
-
-```bash
-cmake -B build \
-  -DGGML_CUDA=ON \
-  -DCMAKE_CUDA_ARCHITECTURES=89 \
-  -DCMAKE_BUILD_TYPE=Release
-
-cmake --build build \
-  --config Release \
-  --target llama-server llama-cli llama-bench \
-  -j
-```
-
-执行时先检查 `cmake`、C/C++ 编译器、CUDA Toolkit 和已有 llama.cpp。只有缺少依赖时才安装；不覆盖系统 CUDA 12.6。最终文档记录：
-
-- Git remote 和 commit SHA；
-- 构建器与编译器版本；
-- CMake 配置；
-- `llama-server --version`；
-- CUDA 设备识别结果。
-
-### 6. 文本 Agent 优先，不加载视觉模块
-
-本章目标是编码 Agent，不是多模态服务。使用本地 GGUF 时不提供 mmproj；通过 `--hf-repo` 下载时显式加 `--no-mmproj`，避免视觉投影器占用主内存、显存和下载时间。
-
-## 计划目录结构
+## 最终目录
 
 ```text
 /home/yiko/workspace/qwen35-llamacpp-serve/
+├── .venv-tools/
 ├── config/
-│   ├── serve.env
-│   ├── api_keys
-│   └── build-info.txt
+│   ├── api_key
+│   ├── server.env
+│   └── tools-requirements.txt
 ├── logs/
-│   ├── llama-server.log
-│   └── acceptance/
+│   └── server.log
 ├── models/
 │   └── Qwen3.5-9B-Q4_K_M.gguf
+├── run/
+│   └── llama-server.pid
 ├── scripts/
+│   ├── accept_agent_api.py
+│   ├── accept_long_context.py
+│   ├── accept_stream_json.py
+│   ├── convert-model.sh
+│   ├── convert_ollama_qwen35_text_gguf.py
+│   ├── setup-tools.sh
 │   ├── start.sh
-│   ├── stop.sh
-│   └── restart.sh
-├── src/
-│   └── llama.cpp/
-└── run/
-    └── llama-server.pid
+│   ├── status.sh
+│   └── stop.sh
+└── src/
+    └── llama.cpp/
 ```
 
-只保留运行服务需要的脚本和最终验收结果。下载探测、临时请求体和一次性调试文件放入系统临时目录，执行结束后删除。
+## 从零复现
 
-## 实际操作流程
+### 1. 登录并检查基线
 
-### 步骤 0：保护现有基线
+```bash
+ssh yiko@192.168.31.107
 
-- 确认第一章 vLLM 服务目录、进程、端口 8000 和模型文件状态。
-- 记录当前 GPU、内存、磁盘和正在运行的推理进程。
-- llama.cpp 使用新目录和 8080，不修改第一章的配置与 Pi 默认模型。
-- 若两套服务不能同时驻留显存，允许测试时停止 vLLM，但不得删除；测试结束后恢复。
-
-### 步骤 1：清点可复用资产
-
-检查：
-
-- 是否已经安装 CUDA 版 llama.cpp；
-- 是否已有可用源码目录及 commit；
-- Ollama 使用的 Qwen3.5-9B 具体 GGUF、量化类型和路径；
-- CMake、Ninja/Make、GCC/G++、Git 和 CUDA Toolkit 版本；
-- 端口 8080 是否空闲。
-
-这一阶段结束后再决定“复用”还是“下载/编译”，不能预先重复安装。
-
-### 步骤 2：探测并取得模型
-
-若需要下载：
-
-1. 先取得文件元数据和总大小。
-2. 做短时下载速度探测，估算完成时间。
-3. 速度持续不合理时，比较可信来源或改为本机下载后传输。
-4. 下载过程支持断点续传，不创建多份同名模型。
-5. 完成后记录仓库、revision、文件大小和 SHA-256。
-
-预期文件：
-
-```text
-Qwen3.5-9B-Q4_K_M.gguf
+/usr/lib/wsl/lib/nvidia-smi
+free -h
+ss -ltnp | grep -E ':(8000|8080) ' || true
+ollama show qwen3.5:9b
 ```
 
-实际文件名以最终来源为准，执行完成后更正文档。
-
-### 步骤 3：构建 llama.cpp CUDA 版本
-
-- 克隆或复用官方 `ggml-org/llama.cpp`。
-- 固定一个实际支持 Qwen3.5、Q8 KV 和工具调用的 commit。
-- 使用 Compute Capability 8.9 构建。
-- 只构建本章需要的 `llama-server`、`llama-cli`、`llama-bench`。
-- 执行最小设备检查和短 Prompt 测试，确认不是误用 CPU-only 二进制。
-
-若最新版出现 Qwen3.5 回归，允许退回经验证 commit；最终文档只保留实际使用的 commit 和选择理由。
-
-### 步骤 4：先做 8K 最小正确性测试
-
-第一次启动不直接使用 128K。先用：
-
-```text
-8K context
-Q4_K_M 权重
-Q8 KV
-全部层 GPU
-单 Slot
-Flash Attention
-```
-
-验证：
-
-- 模型能正常加载；
-- 输出不是乱码或重复字符；
-- Chat Template 正确；
-- CUDA 层卸载符合预期；
-- `/health` 与 `/v1/models` 正常；
-- 普通和流式聊天正常。
-
-最小正确性通过后再扩大上下文，避免把架构兼容、模板错误和容量问题混在一起排查。
-
-### 步骤 5：逐级扩大到 128K
-
-按单变量方式测试：
-
-```text
-8K → 32K → 64K → 96K → 128K
-```
-
-每一级记录：
-
-- 启动是否成功；
-- 空载与峰值显存；
-- 峰值主内存；
-- Prompt Processing tokens/s；
-- TTFT；
-- Decode tokens/s；
-- 是否出现 OOM、输出异常或 Cache 精度问题。
-
-计划最终启动命令如下，执行后以实际可用参数为准更正：
+创建独立目录：
 
 ```bash
 BASE=/home/yiko/workspace/qwen35-llamacpp-serve
 
-"$BASE/src/llama.cpp/build/bin/llama-server" \
-  --model "$BASE/models/Qwen3.5-9B-Q4_K_M.gguf" \
+mkdir -p \
+  "$BASE/config" \
+  "$BASE/logs/acceptance" \
+  "$BASE/models" \
+  "$BASE/run" \
+  "$BASE/scripts" \
+  "$BASE/src"
+```
+
+### 2. 取得并固定 llama.cpp
+
+网络可用时可直接执行：
+
+```bash
+BASE=/home/yiko/workspace/qwen35-llamacpp-serve
+
+git clone https://github.com/ggml-org/llama.cpp.git \
+  "$BASE/src/llama.cpp"
+
+git -C "$BASE/src/llama.cpp" checkout \
+  e1a1abb78746c025f5e9039f590e37ccdb758ae7
+```
+
+验证：
+
+```bash
+git -C "$BASE/src/llama.cpp" rev-parse HEAD
+git -C "$BASE/src/llama.cpp" status --short
+```
+
+### 3. 构建 CUDA 版本
+
+```bash
+BASE=/home/yiko/workspace/qwen35-llamacpp-serve
+cd "$BASE/src/llama.cpp"
+
+cmake -S . -B build \
+  -DGGML_CUDA=ON \
+  -DCMAKE_CUDA_ARCHITECTURES=89 \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DLLAMA_CURL=OFF \
+  -DLLAMA_BUILD_UI=OFF \
+  -DLLAMA_USE_PREBUILT_UI=OFF
+
+cmake --build build \
+  --config Release \
+  --target llama-server llama-cli \
+  --parallel 8
+```
+
+关闭 CURL 和 UI 是为了让构建不依赖额外的 Hugging Face UI 下载或 Node/npm。API、Jinja Chat Template、工具调用和 metrics 不受影响。
+
+检查二进制：
+
+```bash
+"$BASE/src/llama.cpp/build/bin/llama-server" --version
+```
+
+预期：
+
+```text
+version: 1 (e1a1abb)
+built with GNU 13.3.0 for Linux x86_64
+```
+
+### 4. 建立独立 GGUF 工具环境
+
+依赖清单固定为：
+
+```text
+numpy==2.5.1
+PyYAML==6.0.3
+requests==2.34.2
+tqdm==4.70.0
+```
+
+执行：
+
+```bash
+"$BASE/scripts/setup-tools.sh"
+```
+
+脚本使用本机 `/home/yiko/.local/bin/uv`、Python 3.12 和清华 PyPI 镜像。默认 PyPI 下载 15.9MiB NumPy 超过 90 秒仍未完成；切换镜像后约 1 秒完成，因此最终复现路径直接保留快源。
+
+### 5. 校验源模型并生成 text-only GGUF
+
+```bash
+SOURCE=/usr/share/ollama/.ollama/models/blobs/sha256-dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c
+
+stat -c '%s' "$SOURCE"
+sha256sum "$SOURCE"
+```
+
+必须得到：
+
+```text
+6594462816
+dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c
+```
+
+目标文件不存在时执行：
+
+```bash
+"$BASE/scripts/convert-model.sh"
+```
+
+转换器拒绝覆盖已有文件。转换完成后验证：
+
+```bash
+MODEL="$BASE/models/Qwen3.5-9B-Q4_K_M.gguf"
+
+stat -c '%s' "$MODEL"
+sha256sum "$MODEL"
+```
+
+必须得到：
+
+```text
+5530618176
+068b6bace4d4f5d18f3b3d84c48cd03304fa0e5e354da115eff26f3666023435
+```
+
+### 6. 创建 API Key
+
+本次为了让已有 Pi 环境无缝切换，复用了第一章 API Key，并把第二章副本权限设为 `600`。独立部署可生成新 Key：
+
+```bash
+umask 077
+openssl rand -hex 32 > "$BASE/config/api_key"
+chmod 600 "$BASE/config/api_key"
+```
+
+不要把 Key 写入脚本、命令行参数、Markdown 或 Git。
+
+### 7. 写入最终服务配置
+
+`config/server.env`：
+
+```bash
+BASE_DIR=/home/yiko/workspace/qwen35-llamacpp-serve
+MODEL_PATH=/home/yiko/workspace/qwen35-llamacpp-serve/models/Qwen3.5-9B-Q4_K_M.gguf
+MODEL_ALIAS=qwen3.5-9b-gguf
+HOST=0.0.0.0
+PORT=8080
+CTX_SIZE=131072
+PARALLEL=1
+CACHE_TYPE_K=q8_0
+CACHE_TYPE_V=q8_0
+BATCH_SIZE=2048
+UBATCH_SIZE=512
+```
+
+`start.sh` 最终启动的核心参数：
+
+```bash
+llama-server \
+  --model "$MODEL_PATH" \
   --alias qwen3.5-9b-gguf \
+  --host 0.0.0.0 \
+  --port 8080 \
   --ctx-size 131072 \
-  --n-gpu-layers all \
   --parallel 1 \
+  --n-gpu-layers all \
   --flash-attn on \
   --kv-offload \
   --cache-type-k q8_0 \
   --cache-type-v q8_0 \
   --batch-size 2048 \
   --ubatch-size 512 \
-  --cache-ram 0 \
+  --api-key-file "$BASE/config/api_key" \
   --jinja \
   --no-mmproj \
-  --host 0.0.0.0 \
-  --port 8080 \
-  --api-key-file "$BASE/config/api_keys"
+  --no-ui \
+  --metrics
 ```
 
-如果 128K 的 Prefill 峰值过高，优先把 `--ubatch-size` 从 512 降为 256 或 128；一次只调整一个参数并重新测量。
+运维脚本额外完成：
 
-### 步骤 6：创建最小运维入口
+- 检查模型、二进制和 API Key；
+- 强制 API Key 权限为 `600`；
+- 检查端口占用；
+- 验证 PID 是正整数；
+- 同时核对 `/proc/PID/exe` 和模型路径，避免 PID 复用时误杀其他进程；
+- 健康检查设置连接与总超时；
+- 启动 180 秒未健康时清理子进程和 PID；
+- 停止时先发 SIGTERM，30 秒后只对已验证的服务进程使用 SIGKILL。
 
-建立与第一章一致的最小接口：
+### 8. 启动、检查与停止
 
-```text
-start.sh
-stop.sh
-restart.sh
-```
-
-脚本只负责：
-
-- 读取最终配置；
-- 检查重复进程和端口；
-- 启动或优雅停止服务；
-- 保存 PID 与日志；
-- 在失败时返回非零状态。
-
-API Key 写入权限为 `600` 的独立文件，不写入脚本、Pi 配置或 Git。
-
-### 步骤 7：API 与 Agent 验收
-
-按以下顺序测试：
-
-1. `GET /health`。
-2. `GET /v1/models`，模型别名为 `qwen3.5-9b-gguf`。
-3. 非流式最小聊天。
-4. 流式聊天。
-5. 关闭 Thinking 的短回答。
-6. JSON 结构化输出。
-7. 强制调用一个无副作用工具。
-8. 工具结果回传后生成最终答复。
-9. 工具参数包含路径、中文、引号和多字段对象。
-10. 连续多轮 Agent 请求，确认 Chat Template 和工具消息历史没有损坏。
-
-工具调用重点检查：
-
-- `finish_reason`；
-- `tool_calls[].function.name`；
-- `tool_calls[].function.arguments` 是字符串还是 JSON 对象；
-- 流式增量格式能否被 Pi 正确拼接；
-- 错误参数是否会产生可诊断响应。
-
-### 步骤 8：长上下文与 16K 输出验收
-
-分开验证容量和生成时长：
-
-- 32K、64K、96K、112K 输入，各生成 256～1024 tokens，验证长 Prefill 与 Cache 稳定性。
-- 短输入请求允许 `max_tokens=16384`，确认服务和 Pi 接受该上限。
-- 至少执行一次长输出压力测试，记录实际停止原因、生成 tokens、耗时和显存；若完整 16K 生成耗时不适合日常 Agent，仍把 16K 保留为上限而不是默认值。
-- 最终确认输入与输出总和不超过 131072；本章不把“128K 输入 + 16K 输出”误写成 128K 总窗口。
-
-### 步骤 9：基准与效果记录
-
-使用 `llama-bench` 和真实 HTTP 请求分别记录：
-
-| 指标 | 说明 |
-| --- | --- |
-| Prompt Processing tokens/s | Prefill 内核吞吐 |
-| Token Generation tokens/s | Decode 内核吞吐 |
-| TTFT | HTTP 请求到首 token |
-| TPOT / ITL | 后续 token 间隔 |
-| 峰值显存 | 模型、KV 和工作区总成本 |
-| 峰值主内存 | mmap、服务和缓存成本 |
-| Prefix 重用 | 相同对话前缀是否减少重复 Prefill |
-| 工具调用成功率 | Agent 能否稳定解析并继续对话 |
-
-至少比较：
-
-- 8K 与 128K；
-- F16 KV 与 Q8 KV；
-- llama.cpp Q4_K_M 与第一章 vLLM W4A16 的单请求结果。
-
-比较时必须固定 Prompt、输入/输出长度、Thinking、采样参数和并发；不同量化格式的结果要注明“能力与部署对照”，不能宣称是完全同权重性能对比。
-
-### 步骤 10：接入 Pi，但不覆盖旧模型
-
-Pi 新增独立模型项：
-
-```text
-模型：qwen3.5-9b-gguf
-Base URL：http://127.0.0.1:18080/v1（SSH 隧道后）
-Context Window：131072
-Max Tokens：16384
-```
-
-SSH 隧道计划使用独立本地端口，例如：
+第一章 vLLM 正在运行时先停止它：
 
 ```bash
-ssh -N \
-  -L 127.0.0.1:18080:127.0.0.1:8080 \
-  yiko@192.168.31.107
+/home/yiko/workspace/qwen35-agent-serve/scripts/stop.sh
 ```
 
-原有 `qwen35-vllm` 配置继续保留。llama.cpp 完成工具调用和稳定性验收后，再决定是否调整默认模型。
+启动 llama.cpp：
 
-### 步骤 11：稳定性与恢复
+```bash
+"$BASE/scripts/start.sh"
+"$BASE/scripts/status.sh"
+```
 
-- 连续执行 100 个混合请求，包含普通、流式和工具调用。
-- 验证客户端取消、超时、非法 API Key 和超长上下文的错误行为。
-- 执行停止、启动、重启，确认端口、PID 和日志没有残留。
-- 若测试期间停止过 vLLM，恢复第一章服务并重新检查其 `/v1/models`。
+停止：
 
-## 预计结果与决策门
+```bash
+"$BASE/scripts/stop.sh"
+```
 
-当前仅能给出估算：
+重启：
 
-| 项目 | 计划预期 | 执行后填写 |
+```bash
+"$BASE/scripts/stop.sh"
+"$BASE/scripts/start.sh"
+```
+
+## API 验收
+
+### 最小调用
+
+```bash
+API_KEY="$(<"$BASE/config/api_key")"
+
+curl -fsS http://127.0.0.1:8080/health
+
+curl -fsS \
+  -H "Authorization: Bearer $API_KEY" \
+  http://127.0.0.1:8080/v1/models
+```
+
+关闭 Thinking 的最小 Chat Completion：
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $API_KEY" \
+  -H 'Content-Type: application/json' \
+  http://127.0.0.1:8080/v1/chat/completions \
+  --data-binary '{
+    "model": "qwen3.5-9b-gguf",
+    "messages": [
+      {"role": "user", "content": "只回复 READY"}
+    ],
+    "max_tokens": 16,
+    "temperature": 0,
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  }'
+```
+
+实测返回：
+
+```text
+READY
+```
+
+### 可重复验收脚本
+
+```bash
+"$BASE/scripts/accept_agent_api.py"
+"$BASE/scripts/accept_stream_json.py"
+"$BASE/scripts/accept_long_context.py"
+```
+
+覆盖范围：
+
+| 脚本 | 验收内容 |
+| --- | --- |
+| `accept_agent_api.py` | 模型生成 `get_weather` 工具调用、参数解析、工具结果回填、最终回答 |
+| `accept_stream_json.py` | OpenAI `json_schema`、SSE 文本增量、`finish_reason=stop`、`[DONE]` |
+| `accept_long_context.py` | 约 110K token Prefill、首尾双针检索、16K 最大输出请求、前缀缓存 |
+
+工具调用实测：
+
+```text
+finish_reason: tool_calls
+tool name: get_weather
+arguments: {"location":"上海"}
+final answer: TOOL_OK 23
+```
+
+结构化与流式实测：
+
+```text
+structured output: {"status":"JSON_OK"}
+stream content: STREAM_OK
+stream finish_reason: stop
+[DONE]: received
+```
+
+## 上下文与性能结果
+
+### 分级启动
+
+所有档位都使用 Q4_K_M、Q8_0 K/V、单 Slot、全部层 GPU，仅调整总上下文：
+
+| 总上下文 | 启动 | 短回答 | 空载整卡显存 |
+| ---: | --- | --- | ---: |
+| 8192 | 通过 | `READY` | 5,773MiB |
+| 32768 | 通过 | `CTX32_OK` | 6,307MiB |
+| 65536 | 通过 | `CTX64_OK` | 7,012MiB |
+| 98304 | 通过 | `CTX96_OK` | 7,701MiB |
+| 131072 | 通过 | `CTX128_OK` | 8,405MiB |
+
+完成 110K 长请求后显存为 8,421MiB，未发生 CUDA OOM，也未启用 CPU offload。
+
+### OpenAI 接口冷缓存吞吐
+
+通过 Mac 上的 SSH 隧道直接请求实际的 `/v1/chat/completions`。测试固定：
+
+```text
+Thinking：Off
+Prompt Cache：Off
+cache_n：0
+并发：1
+KV Cache：Q8_0
+总上下文：131072
+```
+
+输出测试使用 `ignore_eos=true`，确保实际生成达到 512 或 256 tokens，而不是用十几个 token 的短回答推算 Decode。
+
+| 场景 | API prompt | 实际输出 | Prefill | Decode | HTTP 总耗时 | 端到端输出速率 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 约 8K 输入，三次中位数 | 7,989 | 512 | 5,777.77 tok/s | 103.13 tok/s | 7.077s | 72.35 tok/s |
+| 约 32K 输入 | 31,976 | 3 | 5,308.34 tok/s | 样本太短，不采用 | 6.809s | 不采用 |
+| 约 110K 输入 | 110,004 | 256 | 4,030.55 tok/s | 72.21 tok/s | 33.932s | 7.54 tok/s |
+
+8K 的三次 Decode 分别为：
+
+```text
+103.13 tok/s
+103.41 tok/s
+101.98 tok/s
+```
+
+110K 请求中，Prefill 为 27.293s，256-token Decode 为 3.545s。表中的“端到端输出速率”把 Prefill、HTTP 和输出全部算入，因此适合描述整个请求的平均产出，不等于模型开始输出后的 Decode 速度。
+
+极短 Prompt 经 SSH 隧道的首个非空 SSE 内容为 98.7ms；没有把 HTTP 响应头或空 delta 误算成首 token。
+
+### 同口径 OpenAI 流式接口对比（客户端观测）
+
+2026-07-30 将本章 llama.cpp 与第一章保留的 vLLM 服务互斥启动，在同一台机器、同一块 GPU、同一条 Mac 到 WSL 的 SSH 链路上复测。这里比较的是两套**实际部署整体**，不是只替换推理框架的严格 A/B：
+
+| 部署 | 权重与运行时 | 上下文与 KV |
 | --- | --- | --- |
-| Q4_K_M 文件 | 约 6 GB | 待实测 |
-| 128K Q8 KV | 约 2～2.5 GiB | 待实测 |
-| 128K 是否完整 GPU | 有较大概率 | 待实测 |
-| Decode 速度 | 预计为每秒数十 tokens，随上下文下降 | 待实测 |
-| 128K TTFT | 预计为数十秒到数分钟 | 待实测 |
-| 工具调用兼容 | 存在风险 | 待实测 |
+| 本章 | llama.cpp `e1a1abb...`，本地派生 text-only Q4_K_M | 131072 总上下文，Q8_0 K/V，单 Slot |
+| 第一章 | vLLM 0.18.1，Compressed-Tensors W4A16，Marlin kernel | `max_model_len=8192`，KV `auto`，`gpu_memory_utilization=0.85` |
 
-决策门：
+两端使用完全相同的三份请求：
 
-1. **8K 普通输出异常：** 先处理模型、commit、CUDA Kernel 或 Chat Template，不继续扩大上下文。
-2. **128K OOM：** 先减小 `ubatch` 和额外缓存，再检查 KV 类型；最后才考虑 CPU 路径。
-3. **工具调用不兼容 Pi：** 固定或更换 Jinja Template；若仍不稳定，llama.cpp 只作为能力/容量基线，Agent 主入口继续使用 vLLM。
-4. **128K 可运行但 TTFT 不可接受：** 保留模型能力，将日常 Agent 窗口改为 32K/64K，并依赖上下文压缩；文档如实记录 128K 是容量上限而非交互默认值。
-5. **Q8 KV 明显损害工具调用或长上下文质量：** 退回 F16 KV，重新评估可用上下文。
+```text
+API prompt：7345 tokens
+输出：512 tokens
+temperature：0
+Thinking：Off
+ignore_eos：true
+stream：true
+并发：1
+```
 
-## 执行后的文档更正规则
+每一轮从 Prompt 的第一个字符开始使用不同 nonce。llama.cpp 显式设置 `cache_prompt=false`，三轮都返回 `cached_tokens=0`；vLLM 启动日志确认 `enable_prefix_caching=False`，因此后两轮加速不是 Prefix Cache 命中。每个请求共 7857 tokens，低于 vLLM 的 8192 上限。
 
-执行时持续更新本文件，但最终不保留命令试错流水账：
+客户端计时口径：
 
-- 把“计划预期”替换成实际版本、commit、文件哈希、参数和数据。
-- 方案发生变化时，直接更正“部署方案的选择”，并保留一句最终选择理由。
-- 删除失败源、过时命令、临时路径和已经被替代的参数。
-- 将“实际操作流程”整理为从零可复现步骤，不能要求读者先经历排错过程。
-- 结尾写明当前服务是否可用、最大稳定上下文、工具调用状态、Pi 接入状态和未解决限制。
-- 所有“通过”“可用”“支持 128K”等结论必须有对应实测记录，不能继续沿用本计划中的估算措辞。
+```text
+TTFT = 发出请求到首个非空 SSE delta
+流式 Decode 估算 = (completion_tokens - 1)
+                   / (末个非空 delta 时间 - 首个非空 delta 时间)
+HTTP 总耗时 = 发出请求到流结束
+端到端输出速率 = completion_tokens / HTTP 总耗时
+```
 
-## 参考资料
+逐轮原始数据：
+
+| 部署 | 轮次 | TTFT | 客户端流式 Decode 估算 | HTTP 总耗时 | 端到端输出速率 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| llama.cpp Q4_K_M | 1 | 1.449s | 93.35 tok/s | 6.927s | 73.92 tok/s |
+| llama.cpp Q4_K_M | 2 | 1.565s | 92.73 tok/s | 7.080s | 72.32 tok/s |
+| llama.cpp Q4_K_M | 3 | 1.577s | 92.86 tok/s | 7.084s | 72.28 tok/s |
+| vLLM W4A16 | 1 | 5.581s | 69.93 tok/s | 12.888s | 39.73 tok/s |
+| vLLM W4A16 | 2 | 1.413s | 69.95 tok/s | 8.718s | 58.73 tok/s |
+| vLLM W4A16 | 3 | 1.413s | 69.94 tok/s | 8.719s | 58.72 tok/s |
+
+三轮中位数：
+
+| 部署 | TTFT | 客户端流式 Decode 估算 | HTTP 总耗时 | 端到端输出速率 |
+| --- | ---: | ---: | ---: | ---: |
+| llama.cpp Q4_K_M | 1.565s | 92.86 tok/s | 7.080s | 72.32 tok/s |
+| vLLM W4A16 | 1.413s | 69.94 tok/s | 8.719s | 58.72 tok/s |
+
+按中位数看，vLLM 的 TTFT 少约 152ms，低约 9.7%；llama.cpp 的客户端流式输出快约 32.8%，整个请求耗时低约 18.8%。但 vLLM 明显存在冷/热两态：
+
+- 服务从启动到 `/health` 就绪约 54s；
+- 就绪后的首个 16-input / 32-output 短请求，TTFT 为 10.618s，总耗时 11.049s；
+- 首个 7345-token 长输入的 TTFT 为 5.581s，是后两轮 1.413s 的约 3.95 倍；
+- 三轮长输入的持续 Decode 都约为 69.94 tok/s，额外开销发生在首个输出之前；
+- 日志已经确认 Prefix Cache 关闭。更可能是长输入形状触发的懒编译、Triton/CUDA kernel 初始化或调度路径预热，但本次证据不足以断言具体机制。
+
+vLLM `/metrics` 对四个请求的汇总值与客户端 usage 一致：
+
+```text
+prompt_tokens_total     = 22051
+generation_tokens_total = 1568
+finished_reason=length  = 4
+Prefix cache hit rate   = 0.0%
+```
+
+运行时资源：
+
+| 部署 | `nvidia-smi` 已用 / 总显存 | 说明 |
+| --- | ---: | --- |
+| llama.cpp 128K | 8397MiB / 16376MiB | 128K Q8 KV，单 Slot |
+| vLLM 8K | 15398MiB / 16376MiB | 模型装载报告 9.48GiB，预留 3.11GiB GPU KV，面向批处理预分配 |
+
+vLLM 几乎吃满 16GB 显存是当前 `gpu_memory_utilization=0.85` 和批处理式 KV 预留共同作用的结果，不能只凭这一个数字判断框架固有的显存效率。启动日志还报告 WSL 下 `pin_memory=False`，可能影响当前 vLLM 路线的性能。
+
+这组 TTFT 包含 SSH/HTTP、排队、请求解析、聊天模板、分词、Prefill、首 token Decode、SSE 序列化和传输，**不能**用 `7345 / TTFT` 冒充服务端精确 Prefill。流式 Decode 也可能受空 token、UTF-8 缓冲或一个 delta 合并多个 token 影响，因此只称客户端估算。上一个小节的 llama.cpp `timings.prompt_ms` 和 `timings.predicted_ms` 才是服务端内部计时。
+
+对当前目标的结论：在这台 16GB 机器上做单用户、单请求编码 Agent，本章 llama.cpp 路线同时提供更长上下文、更低显存和更高持续输出速度；第一章 vLLM 仍能正常启动和完成 OpenAI 请求，但 8K 配置不满足 128K / 16K 目标。vLLM 擅长的连续批处理和多并发没有在本轮单请求实验中测试，因此不能把结果外推成两个框架的通用性能排名。
+
+### 110K 长上下文
+
+首次请求：
+
+| 指标 | 实测 |
+| --- | ---: |
+| 内容 token | 109,993 |
+| API prompt token | 110,005 |
+| completion token | 17 |
+| 总 token | 110,022 |
+| Prefill 时间 | 27.322s |
+| Prefill 吞吐 | 4,026.25 tok/s |
+| 长上下文后 Decode | 74.83 tok/s |
+| 检索结果 | `START-7F3A91 END-4C82D6`，正确 |
+
+第二次发送相同请求：
+
+```text
+cached_tokens = 110001
+cache_n       = 110001
+prompt_n      = 4
+```
+
+同时将请求的 `max_tokens` 设为 16384，服务接受请求并正确回答。这里证明的是“16K 上限可配置”，不是“已经实际生成完整 16K”。
+
+### 128K / 16K 在 Pi 中的预算
+
+服务总窗口：
+
+```text
+131072
+```
+
+如果输出上限为 16384，理论上输入与模板合计最多约：
+
+```text
+131072 - 16384 = 114688
+```
+
+Pi 0.82.1 的请求层还会保留 4096 safety tokens。为了仍允许完整的 16384 输出，估算输入上限约：
+
+```text
+131072 - 16384 - 4096 = 110592
+```
+
+本次实际 prompt 为 110,005 tokens，正好验证了这一可用边界。真实 Pi 会话还包含系统提示、工具定义和历史消息，应让 Pi 的压缩机制管理预算，不要把用户文本直接塞满 110592。
+
+短工具请求 Decode 实测约 108～115 tok/s；8K 极短回答最高约 154 tok/s。短请求数字受固定调度开销影响，不能与 110K 后约 75 tok/s 的 Decode 直接等同。
+
+本次只测量了极短 Prompt 的流式首内容时间，没有单独测量 8K/110K TTFT；也没有运行完整 16K 长输出或多并发基准。
+
+## 接入 Pi Code Agent
+
+### 1. 持久化 API Key
+
+本机文件：
+
+```text
+~/.config/qwen35/key.env
+```
+
+权限为 `600`，内容只定义：
+
+```bash
+export QWEN35_API_KEY=...
+```
+
+`~/.zshrc` 加载它：
+
+```bash
+[[ -f "$HOME/.config/qwen35/key.env" ]] \
+  && source "$HOME/.config/qwen35/key.env"
+```
+
+只有 Key 发生变化时才重新读取远端：
+
+```bash
+source ~/.config/qwen35/load-key.zsh
+```
+
+该脚本现在读取：
+
+```text
+/home/yiko/workspace/qwen35-llamacpp-serve/config/api_key
+```
+
+### 2. SSH 隧道
+
+启动：
+
+```bash
+~/.config/qwen35/start-llamacpp-tunnel.zsh
+```
+
+停止：
+
+```bash
+~/.config/qwen35/stop-llamacpp-tunnel.zsh
+```
+
+隧道使用：
+
+```text
+127.0.0.1:18080 → 192.168.31.107 → 127.0.0.1:8080
+```
+
+启动脚本使用 SSH Control Socket、`ExitOnForwardFailure` 和 keepalive，并在报告 ready 前实际请求 `/health`。
+
+### 3. `~/.pi/agent/models.json`
+
+保留原 `qwen35-vllm`，把以下条目合并到 `providers`；不要用整份示例覆盖已有配置：
+
+```json
+{
+  "qwen35-llamacpp": {
+    "baseUrl": "http://127.0.0.1:18080/v1",
+    "api": "openai-completions",
+    "apiKey": "$QWEN35_API_KEY",
+    "authHeader": true,
+    "compat": {
+      "supportsDeveloperRole": false,
+      "supportsReasoningEffort": false,
+      "supportsUsageInStreaming": false,
+      "maxTokensField": "max_tokens",
+      "requiresToolResultName": true,
+      "thinkingFormat": "qwen-chat-template",
+      "supportsStrictMode": false
+    },
+    "models": [
+      {
+        "id": "qwen3.5-9b-gguf",
+        "name": "Qwen3.5-9B Q4_K_M (LAN llama.cpp)",
+        "reasoning": true,
+        "input": ["text"],
+        "contextWindow": 131072,
+        "maxTokens": 16384,
+        "cost": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        }
+      }
+    ]
+  }
+}
+```
+
+必须保留 `"reasoning": true`，这样 Pi 才会通过 `qwen-chat-template` 显式发送 `enable_thinking=false`。若改为 `false`，Pi 不发送该字段，而 Qwen 模板可能回到默认 Thinking On。
+
+`~/.pi/agent/settings.json` 已合并：
+
+```json
+{
+  "defaultProvider": "qwen35-llamacpp",
+  "defaultModel": "qwen3.5-9b-gguf",
+  "defaultThinkingLevel": "off"
+}
+```
+
+旧会话可能恢复自己保存的 Thinking Level；此时新开会话，或显式使用：
+
+```bash
+pi \
+  --provider qwen35-llamacpp \
+  --model qwen3.5-9b-gguf \
+  --thinking off
+```
+
+当前新会话直接运行 `pi` 即可。
+
+### 4. Pi 实际验收
+
+不是只检查模型列表。本次让 Pi 在流式会话中：
+
+1. 生成一个 `bash` 工具调用；
+2. 执行无副作用的 `printf PI_TOOL_OK`；
+3. 回填工具结果；
+4. 继续生成最终回答。
+
+结果：
+
+```text
+PI_AGENT_OK
+```
+
+将 llama.cpp 停止并重新启动后，不重建 SSH 隧道再次调用 Pi：
+
+```text
+PI_RESTART_OK
+```
+
+最后不传 Provider、Model 或 Thinking 参数，使用默认配置再次完成工具调用：
+
+```text
+PI_DEFAULT_AGENT_OK
+```
+
+因此当前默认入口已经达到“Pi 可以直接作为编码 Agent 调用”的最低可用状态。
+
+## 当前状态
+
+截至本章收尾：
+
+- `llama-server` 正在远端 `0.0.0.0:8080` 运行；
+- `/health` 返回 `{"status":"ok"}`；
+- `/v1/models` 报告 `n_ctx=131072`、`n_ctx_train=262144`；
+- 本机 SSH 隧道正在 `127.0.0.1:18080` 监听；
+- Pi 默认 Provider 为 `qwen35-llamacpp`；
+- Pi 默认 Thinking 为 Off；
+- 128K Q8 KV、110K 实际 Prompt、16K 输出上限请求、工具调用、JSON Schema、SSE 和重启恢复均通过；
+- 第一章目录、模型、脚本和 API Key 均保留；vLLM 0.18.1 已于 2026-07-30 重新启动并完成同口径接口测速，随后停止；
+- vLLM 临时测速隧道已经关闭，llama.cpp 的 `127.0.0.1:18080` 隧道继续使用；
+- Ollama 原始 6,594,462,816-byte blob 保持不变；
+- llama.cpp 源码工作树 clean；
+- 没有采用 CPU 权重卸载或 CPU KV。
+
+结论：这套部署已经完成“单用户、单并发、文本编码 Agent”的第一阶段目标。它不是高并发生产服务，也还没有证明复杂项目上长期运行、Thinking On 工具调用或完整 16K 长输出的稳定性。
+
+## 后续实验
+
+按价值排序：
+
+1. 使用真实代码仓库和多轮工具历史做 32K、64K、110K 质量评测。
+2. 实际生成 4K、8K、16K 输出，记录速度曲线、停止原因和稳定性。
+3. 对 Thinking On 单独验证工具调用与 Pi 流式回放。
+4. 比较 Q8 KV 与 F16 KV 的长上下文检索和结构化输出质量。
+5. 如果继续研究 vLLM，为两端各做“每次重启后的冷首请求”和“固定预热后至少五轮”的独立基准，再测试并发 2/4，验证连续批处理优势。
+6. 如果需要无人值守运行，再加入 systemd、日志轮转和崩溃恢复。
+7. 如果需要视觉或 MTP speculative decoding，改用 llama.cpp-native 的 442-tensor GGUF，而不是扩展本章的 text-only 派生文件。
+
+## 参考
 
 - [llama.cpp 官方仓库](https://github.com/ggml-org/llama.cpp)
-- [llama.cpp CUDA 构建指南](https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md)
-- [llama-server 参数与 API](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
+- [llama.cpp CUDA 构建](https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md)
+- [llama-server](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
 - [llama.cpp Function Calling](https://github.com/ggml-org/llama.cpp/blob/master/docs/function-calling.md)
-- [Qwen3.5-9B 官方模型](https://huggingface.co/Qwen/Qwen3.5-9B)
-- [Qwen3.5-9B GGUF 候选](https://huggingface.co/bartowski/Qwen_Qwen3.5-9B-GGUF)
-- [llama.cpp 原理笔记](./llama.cpp.md)
+- [Qwen3.5-9B](https://huggingface.co/Qwen/Qwen3.5-9B)
+- [llama.cpp 对 Ollama Qwen3.5 GGUF 兼容问题的记录](https://github.com/ggml-org/llama.cpp/issues/20134)
+- [Ollama 的 llama.cpp 兼容层](https://github.com/ollama/ollama/commit/9db4bdbad6a4981ad761aa2b603e69e8fb83212c)
 - [第一章 最小部署计划](./第一章%20最小部署计划.md)
+- [llama.cpp 原理笔记](./llama.cpp.md)
