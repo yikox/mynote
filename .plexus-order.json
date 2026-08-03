@@ -19,6 +19,18 @@
       "n:编程语言",
       "n:计算机系统"
     ],
+    "预研": [
+      "n:bugs",
+      "n:图像编辑",
+      "n:浮点精度",
+      "n:DiCache扩散模型缓存加速",
+      "n:LTX-2.3模型总结",
+      "n:SDNQ项目分析报告",
+      "n:SeaCache论文复现笔记",
+      "n:Sparse-Linear-Attention技术分析",
+      "n:SVDQuant",
+      "n:Triton-distributed序列并行Attention研究"
+    ],
     "PM": [
       "n:optkit"
     ],
