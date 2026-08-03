@@ -70,6 +70,15 @@
       "n:MX与NVFP4",
       "n:经典格式"
     ],
+    "assets": [
+      "f:20260613-221705-1806.png",
+      "f:20260613-222309-f93f.png",
+      "f:20260613-231634-af45.png",
+      "f:20260613-231646-9dd1.png",
+      "f:20260616-165827-41cf.png",
+      "f:20260727-153528-97e1.png",
+      "f:deepseek-v4-flash-architecture.svg"
+    ],
     "inbox": [
       "n:DeepSeek-V4-Flash 结构图与 MoE 原理",
       "n:三省六部制任务管理 App 构想",
