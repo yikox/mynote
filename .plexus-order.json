@@ -12,6 +12,9 @@
     ],
     "PM": [
       "n:optkit"
+    ],
+    "PM/optkit": [
+      "n:architecture"
     ]
   }
 }
