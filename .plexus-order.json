@@ -88,6 +88,9 @@
     ],
     "PM/optkit": [
       "n:architecture"
+    ],
+    "PM/optkit/architecture": [
+      "n:modules"
     ]
   }
 }
