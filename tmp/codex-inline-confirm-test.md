@@ -1,0 +1,1 @@
+inline confirmation test
