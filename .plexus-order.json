@@ -7,7 +7,6 @@
       "n:inbox",
       "n:笔记库",
       "n:预研",
-      "n:PM",
       "n:tmp"
     ],
     "笔记库": [
@@ -89,15 +88,6 @@
     ],
     "inbox/DeepSeek-V4-Flash 结构图与 MoE 原理/assets": [
       "f:deepseek-v4-flash-architecture.svg"
-    ],
-    "PM": [
-      "n:optkit"
-    ],
-    "PM/optkit": [
-      "n:architecture"
-    ],
-    "PM/optkit/architecture": [
-      "n:modules"
     ]
   }
 }
