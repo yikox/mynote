@@ -1,1 +1,1 @@
-inline confirmation test
+inline confirmation changed
