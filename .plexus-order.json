@@ -6,7 +6,9 @@
       "n:berkshire",
       "n:inbox",
       "n:笔记库",
-      "n:预研"
+      "n:预研",
+      "n:PM",
+      "n:神经网络"
     ],
     "笔记库": [
       "n:GPU编程",
@@ -69,10 +71,6 @@
       "n:MX与NVFP4",
       "n:经典格式"
     ],
-    "预研/bugs": [
-      "n:bugs",
-      "n:代码诊断问题集"
-    ],
     "assets": [
       "f:20260613-221705-1806.png",
       "f:20260613-222309-f93f.png",
@@ -84,6 +82,9 @@
     ],
     "inbox": [
       "n:DeepSeek-V4-Flash 结构图与 MoE 原理",
+      "n:三省六部制任务管理 App 构想",
+      "n:剧情梳理，下饭视频",
+      "n:蜘蛛网类的知识节点",
       "n:Plexus 写作规范"
     ],
     "inbox/DeepSeek-V4-Flash 结构图与 MoE 原理": [
@@ -91,6 +92,15 @@
     ],
     "inbox/DeepSeek-V4-Flash 结构图与 MoE 原理/assets": [
       "f:deepseek-v4-flash-architecture.svg"
+    ],
+    "PM": [
+      "n:optkit"
+    ],
+    "PM/optkit": [
+      "n:architecture"
+    ],
+    "PM/optkit/architecture": [
+      "n:modules"
     ]
   }
 }
