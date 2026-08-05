@@ -5,7 +5,7 @@
       "confidence": 1,
       "createdAt": "2026-08-05T15:15:24.216Z",
       "effectiveAt": "2026-08-05T15:15:24.216Z",
-      "enabled": false,
+      "enabled": true,
       "expiresAt": null,
       "fact": "关于“笔记库/工具/提示词集合.md 的规模或结构发生了明显变化。我还不知道这是否需要拆分；你的偏好是什么？”：提示词集合 是我针对 AI 时代新增的一类，后续我觉得会复用的提示词会加入这里",
       "id": "memory-604a3052-4635-4990-b3a1-7d68b7153b51",
@@ -18,11 +18,11 @@
         "sessionId": "2026-08-02-78d9fa3e"
       },
       "supersedes": null,
-      "updatedAt": "2026-08-05T15:15:24.216Z",
-      "userConfirmed": false,
+      "updatedAt": "2026-08-05T15:15:32.146Z",
+      "userConfirmed": true,
       "workspaceId": "workspace-f86c9800-c4e6-4584-80ac-703711b1bc70"
     }
   ],
   "schemaVersion": 2,
-  "updatedAt": "2026-08-05T15:15:24.216Z"
+  "updatedAt": "2026-08-05T15:15:32.146Z"
 }
