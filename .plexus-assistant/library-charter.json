@@ -1,0 +1,96 @@
+{
+  "baselineShape": {
+    "capturedAt": "2026-08-05T03:51:06.221Z",
+    "fingerprint": "9215f828",
+    "noteCount": 94,
+    "rootNoteCount": 5,
+    "topLevel": [
+      {
+        "name": "笔记库",
+        "noteCount": 69
+      },
+      {
+        "name": "预研",
+        "noteCount": 16
+      },
+      {
+        "name": "berkshire",
+        "noteCount": 1
+      },
+      {
+        "name": "inbox",
+        "noteCount": 3
+      }
+    ]
+  },
+  "confirmedAt": "2026-08-05T05:58:12.589Z",
+  "createdAt": "2026-08-04T03:40:47.969Z",
+  "exceptions": [
+    "berkshire/ 投资记录目前内容极少，章程适用但暂不强制"
+  ],
+  "id": "library-charter-05d511fc",
+  "lastReviewedAt": "2026-08-05T05:58:12.589Z",
+  "lifecycle": [
+    "inbox 中的笔记应在一周内归类到对应领域节点下；超期时助手主动提醒",
+    "预研类笔记研究过后可能不再翻开，对长度和格式限制从宽，仅当用户主动调整时才处理",
+    "暂无定期复核机制，未来可按需引入"
+  ],
+  "naming": [
+    "文件名即标题，使用中文描述，但专有名词保留原文（如 Attention、SVDQuant、llama.cpp）",
+    "禁止强行翻译算法名、框架名、论文缩写等专有名词",
+    "命名以可读性优先，避免序号前缀（如「第一章」），除非系列笔记有明确顺序需求"
+  ],
+  "nextReviewAt": "2026-08-12T05:58:12.589Z",
+  "noteGranularity": [
+    "一篇笔记覆盖一个完整主题，翻开即能回顾全貌",
+    "当笔记过长影响阅读速度时拆分；拆分后各子笔记过短（仅两三段）或没有自然子主题时，不拆",
+    "允许「索引+子笔记」模式：父笔记为概览和目录，子笔记展开细节"
+  ],
+  "observedShape": {
+    "capturedAt": "2026-08-05T03:51:06.221Z",
+    "fingerprint": "9215f828",
+    "noteCount": 94,
+    "rootNoteCount": 5,
+    "topLevel": [
+      {
+        "name": "笔记库",
+        "noteCount": 69
+      },
+      {
+        "name": "预研",
+        "noteCount": 16
+      },
+      {
+        "name": "berkshire",
+        "noteCount": 1
+      },
+      {
+        "name": "inbox",
+        "noteCount": 3
+      }
+    ]
+  },
+  "organization": [
+    "笔记库按领域分层，形成归纳树：每个节点既是内容也是容器，可递进深度也可纵观全局",
+    "当前一级领域：笔记库（编程语言、计算机系统、神经网络、推理优化、工具、方法论）、预研（论文解读与复现）、berkshire（投资记录）、inbox（待归类）",
+    "新增笔记必须归入合适的父节点下，不应平铺在根目录"
+  ],
+  "purpose": [
+    "个人技术知识库，梳理和记录个人知识，形成可长期积累、方便回溯的知识体系",
+    "范围：前沿技术论文解读、编程语言与计算机系统等底层基础知识、好用工具记录、投资理财（待建设）",
+    "不放：生活日志、非技术类读书笔记、日记、与他人协作内容"
+  ],
+  "revision": 2,
+  "schemaVersion": 1,
+  "sourceRef": {
+    "sessionId": "2026-08-02-78d9fa3e"
+  },
+  "sourcesAndMedia": [
+    "图片统一存放在工作区根 assets/ 目录下",
+    "引用外部文章时优先摘录关键段落，同时保留链接以便回溯原文",
+    "论文笔记必须附带 arXiv 链接或代码仓库链接，确保来源可追溯"
+  ],
+  "status": "confirmed",
+  "updatedAt": "2026-08-05T05:58:12.589Z",
+  "workspaceId": "workspace-f86c9800-c4e6-4584-80ac-703711b1bc70"
+}
