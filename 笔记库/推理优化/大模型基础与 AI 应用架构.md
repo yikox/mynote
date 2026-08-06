@@ -57,7 +57,8 @@
 - 推理：自回归生成，每步只新增一个 token，因此引入 **KV Cache** 避免重复计算 K/V。
 - 复杂度：自注意力 `O(n²·d)`，长序列下是主要瓶颈（→ 见 KV Cache / FlashAttention 等优化）。
 
-## 
+## Attention
+
 
 ### 安全
 
