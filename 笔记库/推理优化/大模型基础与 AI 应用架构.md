@@ -58,7 +58,9 @@
 - 复杂度：自注意力 `O(n²·d)`，长序列下是主要瓶颈（→ 见 KV Cache / FlashAttention 等优化）。
 
 ### Attention
-
+列出有哪些 attention 
+加速的，比如 flashattention,sage attention,稀疏注意力
+效果的，比如交叉注意力，多头注意力，等等
 
 ### 安全
 
