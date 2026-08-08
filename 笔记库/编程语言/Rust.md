@@ -56,6 +56,32 @@
 
 > 小结：Rust 的强项在于「需要性能 + 需要安全」的场景；它几乎从不替代高级语言，而是作为底层库 / 组件被其它语言调用。
 
+## 常见疑问
+
+### 为什么性能方向（计算库 / 矩阵库）仍以 C++ 为主？
+
+1. **生态与惯性（最大因素）**：BLAS/LAPACK、Eigen、OpenCV、TensorFlow/PyTorch 底层、游戏引擎、浏览器、数据库、操作系统等海量代码库都是 C++，数十年沉淀；重写成本极高，且性能调优经验（SIMD、缓存、NUMA、内存布局）都写在 C++ 代码与文档里。人才储备也是 C++ 远多于 Rust。
+
+2. **"性能对标 C++"是理论值，落地有差距**：
+   - HPC 大量依赖裸指针、`reinterpret_cast`、手动对齐、union、内联汇编等"不安全"操作；在安全 Rust 里这些难以表达，只能写 `unsafe`——而一旦用 `unsafe`，内存安全优势就打折了。
+   - C++ 编译器（GCC/Clang/MSVC）对特定架构 / 指令集的代码生成调优更久，Rust 的 LLVM 后端仍在追赶，个别场景性能仍有差距。
+
+3. **领域惯例与 ABI**：矩阵 / 数值计算生态（Eigen、xtensor、cuBLAS、cuDNN、Thrust）本来就是 C++ 接口，Rust 通常只是通过 FFI 去"封装调用"它们，核心实现仍是 C++。
+
+4. **风险收益权衡**：性能关键路径看重稳定性和团队熟练度；而 HPC 代码经过严格验证，错误更多来自算法而非内存，Rust 的安全收益在此场景并不突出，切换动力不足。
+
+> 结论：Rust 更可能出现在"安全敏感的新项目 / 工具链"中（如 swc、Turbopack、TiKV），而性能计算领域因生态锁定短期仍由 C++ 主导。
+
+### CUDA 是否有 Rust 接口？
+
+有，但远不如 C++ 成熟，且分两层看：
+
+- **Host 侧（调度）**：有较成熟的绑定，如 **`cudarc`**（CUDA driver/runtime API 的 Rust 封装，也能调 cuBLAS/cuDNN）；通过 FFI 调用 C++ 库完全可行。
+- **Kernel 侧（写 GPU 内核）**：目前主流仍是 C++（配合 nvcc）；Rust 写 CUDA kernel 的路径尚不成熟：
+  - **`rust-gpu`（Embark）** 把 Rust 编译成 SPIR-V，主要面向 Vulkan 生态，**不是** CUDA 原生；
+  - 实践中常见做法是"**C++ 写 kernel + Rust 写 host**"，或用 PTX 间接控制。
+
+> 小结：Rust 在 GPU / HPC 领域处于"能用但生态早期"阶段；CUDA 官方接口仍是 C++ 为主。
 
 
 
