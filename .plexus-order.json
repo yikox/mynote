@@ -69,6 +69,15 @@
       "n:单机部署 qwen3.5-9b",
       "n:大模型基础与 AI 应用架构"
     ],
+    "笔记库/推理优化/大模型基础与 AI 应用架构": [
+      "n:DeepSeek-V4-Flash 结构图与 MoE 原理"
+    ],
+    "笔记库/推理优化/大模型基础与 AI 应用架构/DeepSeek-V4-Flash 结构图与 MoE 原理": [
+      "n:assets"
+    ],
+    "笔记库/推理优化/大模型基础与 AI 应用架构/DeepSeek-V4-Flash 结构图与 MoE 原理/assets": [
+      "f:deepseek-v4-flash-architecture.svg"
+    ],
     "笔记库/推理优化/单机部署 qwen3.5-9b": [
       "n:第一章 最小部署计划",
       "n:第二章 llama.cpp 部署 Qwen3.5-9B",
@@ -107,16 +116,9 @@
       "f:deepseek-v4-flash-architecture.svg"
     ],
     "inbox": [
-      "n:DeepSeek-V4-Flash 结构图与 MoE 原理",
       "n:Plexus 写作规范",
       "n:Plexus iOS 开发与验收指南",
       "n:Codex Agent 设置"
-    ],
-    "inbox/DeepSeek-V4-Flash 结构图与 MoE 原理": [
-      "n:assets"
-    ],
-    "inbox/DeepSeek-V4-Flash 结构图与 MoE 原理/assets": [
-      "f:deepseek-v4-flash-architecture.svg"
     ],
     "PM": [
       "n:optkit"
