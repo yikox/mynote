@@ -1,0 +1,1 @@
+sudo pmset -c sleep 0 displaysleep 10 disksleep 0 standby 0 hibernatemode 0 autopoweroff 0
