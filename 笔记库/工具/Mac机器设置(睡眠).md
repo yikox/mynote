@@ -68,5 +68,3 @@ sudo pmset -c sleep 0 displaysleep 10 disksleep 0 standby 0 hibernatemode 0 auto
 **接电源 + 屏幕打开但熄屏 + 锁屏**
 
 这样最稳定，也不需要折腾 macOS 的合盖机制。
-
-如果你愿意，我也可以进一步给你一套 **「MacBook 作为 7×24 小时远程服务器」的完整 pmset 配置**，包括**断电后的策略、断电恢复、网络唤醒和 Tailscale 保活**。
