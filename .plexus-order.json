@@ -3,7 +3,8 @@
   "parents": {
     "": [
       "n:assets",
-      "n:笔记库"
+      "n:笔记库",
+      "f:assets"
     ],
     "笔记库": [
       "n:GPU编程",
