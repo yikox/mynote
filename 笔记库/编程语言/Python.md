@@ -11,7 +11,7 @@
 - **学习路径**：
   - Python 入门：[Python基础语法.md](./Python/Python基础语法.md)
   - 工具：[Python源.md](./Python/Python源.md)
-  - PyTorch 编译：[Torch编译架构.md](./Python/Torch编译架构.md) → [Torch编译Inductor原理.md](./Python/Torch编译Inductor原理.md)
+  - PyTorch 编译：[Torch编译架构.md](./Python/Torch编译架构.md) → [Torch编译Inductor原理.md](./Python/Torch编译Inductor原理.md) → [PyTorch 2.8 生命周期](./Python/PyTorch%202.8%20torch.compile%20全流程、缓存与重编.md)
 - **核心心智模型**：`torch.compile` 是**前端 + 后端**两层架构——前端用 Dynamo 抓 Python 字节码、AOTAutograd 抓反向图；后端由 Inductor 接管 FX Graph，做算子分解 / 联合优化 / Codegen。
 
 ---
@@ -31,6 +31,7 @@
 | --- | --- |
 | [Torch编译架构.md](./Python/Torch编译架构.md) | 整体流水线：Dynamo → AOTAutograd → Inductor 的职责分工与数据格式 |
 | [Torch编译Inductor原理.md](./Python/Torch编译Inductor原理.md) | Inductor 内部：Pre-grad / Joint-graph / Codegen Pass |
+| [PyTorch 2.8 torch.compile 全流程、缓存与重编.md](./Python/PyTorch%202.8%20torch.compile%20全流程、缓存与重编.md) | 2.8 特定：生命周期、缓存、guard 与重编 |
 
 ---
 
