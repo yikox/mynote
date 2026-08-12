@@ -12,7 +12,8 @@
 ## 知识地图
 
 ### 多进程运行时
-- MPS：CUDA API 的二进制兼容替代实现，让多进程 MPI 作业透明利用 Hyper-Q
+- [MPS 短指南](./AIGC/Nvidia-MPS使用指南.md)：CUDA API 的二进制兼容替代实现，让多进程 MPI 作业透明利用 Hyper-Q
+- [MPS 官方文档译文归档](./AIGC/Nvidia-MPS使用指南/官方文档译文.md)：旧版中文译文；图片和时效以官方正文为准
 - 适用场景：多进程推理服务、多卡共享、CPU offload 之外的轻量协作
 
 - [Nvidia-MPS使用指南.md](./AIGC/Nvidia-MPS使用指南.md)

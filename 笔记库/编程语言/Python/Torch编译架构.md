@@ -1,4 +1,6 @@
-# torch.compile 架构设计详解
+> 本文边界：稳定的 `torch.compile` 全栈总览，解释 Dynamo、AOTAutograd、Inductor 的职责分工与数据流；不展开 Inductor 内部 pass，也不绑定某个 PyTorch 小版本。
+>
+> 相关笔记：[Torch编译Inductor原理.md](./Torch编译Inductor原理.md) 讲后端内部实现；[PyTorch 2.8 torch.compile 全流程、缓存与重编.md](./PyTorch%202.8%20torch.compile%20全流程、缓存与重编.md) 讲 2.8 生命周期、缓存与重编。
 
 ## 一、整体架构概览
 
