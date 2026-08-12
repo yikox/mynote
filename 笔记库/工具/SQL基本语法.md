@@ -274,7 +274,7 @@ SELECT Sname 名字,2020-Sage 出生年份,LOWER(Sdept) 专业
 FROM Student;
 ```
 
-![image-20200307125917603](/image/image-20200307125917603.png)
+> 图片缺失：原引用 `/image/image-20200307125917603.png`
 
 取消重复的行
 
@@ -743,7 +743,7 @@ FROM  Student
 GROUP BY Sdept;
 ```
 
-![image-20200318232659266](/image/image-20200318232659266.png)
+> 图片缺失：原引用 `/image/image-20200318232659266.png`
 
 **实体的完整性和参照完整性是什么**
 
@@ -920,6 +920,5 @@ DROP  VIEW  <视图名>[CASCADE];
 **查询视图与查询基本表相同**
 
 [视图](https://blog.csdn.net/chengjianghao/article/details/86477207)
-
 
 

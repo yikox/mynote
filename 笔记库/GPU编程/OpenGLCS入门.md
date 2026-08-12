@@ -20,8 +20,8 @@ IOS阵营比较特殊，苹果是的SOC是苹果自研并不对外公布，我�
 
 GPU和CPU在架构上也是完全不同的，如下图展示的一样，CPU有强大的算数逻辑单元，巨大的cache，复杂的控制器，也是因此CPU擅长逻辑控制和串行运算。而GPU有较小的cache，简单的控制器，众多高效节能的ALU，为了提高吞吐量而重度管线化，总结就是GPU适用于计算密集型和易于并发的程序。
 
-![CPU架构图](/image/cpu_struct.png)
-![GPU架构图](/image/gpu_struct.png)
+> 图片缺失：原引用 `/image/cpu_struct.png`
+> 图片缺失：原引用 `/image/gpu_struct.png`
 
 ### OpenGL ES
 
@@ -38,11 +38,11 @@ OpenGL自身是一个巨大的状态机(State Machine)，用户通过OpenGL提�
 
 下图是一个经典的着色器示意图，由六个着色器组成，三个灰色（图元装配，光栅化，测试与混合）的着色器不可编程，是由OpenGL固定好的操作，三个蓝色（顶点着色器，几何着色器，片段着色器）的着色器是可以自己编程替换的。
 
-[渲染管线图](/image/render_pipeline.png)
+> 图片缺失：原引用 `/image/render_pipeline.png`
 
 不过本文的重点不是渲染，而是计算管线，下面是一个经典的渲染管线和计算管线的对比图片
 
-[计算管线图](/image/compute_pipeline.png)
+> 图片缺失：原引用 `/image/compute_pipeline.png`
 
 该图片中左边的流程是渲染管线，右边的流程是计算管线，计算管线相较于渲染管线来说非常短，仅有一个计算着色器。与纹理，内存等资源进行交互，简单且纯粹。这也使得它能把全部的GPU资源投入到计算当中去。
 
