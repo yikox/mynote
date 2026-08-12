@@ -4,7 +4,6 @@
     "": [
       "n:assets",
       "n:berkshire",
-      "n:inbox",
       "n:笔记库",
       "n:预研"
     ],
@@ -15,7 +14,8 @@
       "n:方法论",
       "n:神经网络",
       "n:编程语言",
-      "n:计算机系统"
+      "n:计算机系统",
+      "n:inbox"
     ],
     "笔记库/编程语言": [
       "n:CUDA",
@@ -86,6 +86,14 @@
       "n:llama.cpp",
       "n:第四章 M4 MacBook Air 16GB 部署 Qwen3.5-9B"
     ],
+    "笔记库/inbox": [
+      "n:Plexus 写作规范",
+      "n:Plexus iOS 开发与验收指南",
+      "n:Codex Agent 设置",
+      "n:2026-08-10 1537",
+      "n:PyTorch 2.8 torch.compile 全流程、缓存与重编",
+      "n:TorchInductor autotune 配置固化方案"
+    ],
     "预研": [
       "n:图像编辑",
       "n:浮点精度",
@@ -114,14 +122,6 @@
       "f:20260616-165827-41cf.png",
       "f:20260727-153528-97e1.png",
       "f:deepseek-v4-flash-architecture.svg"
-    ],
-    "inbox": [
-      "n:Plexus 写作规范",
-      "n:Plexus iOS 开发与验收指南",
-      "n:Codex Agent 设置",
-      "n:2026-08-10 1537",
-      "n:PyTorch 2.8 torch.compile 全流程、缓存与重编",
-      "n:TorchInductor autotune 配置固化方案"
     ],
     "PM": [
       "n:optkit"
