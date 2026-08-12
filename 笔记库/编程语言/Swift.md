@@ -12,7 +12,7 @@
   - 入门：[Swift学习笔记.md](./Swift/Swift学习笔记.md)
   - GPU 方向：[Swift-Metal编程入门.md](./Swift/Swift-Metal编程入门.md)
   - GUI 方向：[SwiftUI实战-TodoApp.md](./Swift/SwiftUI实战-TodoApp.md)
-- **横向关联**：Metal 与 [GPU编程](../../GPU编程.md) 的 OpenGL Compute Shader 是同主题不同 API 实现；SwiftUI 与 [工具/三方库/rumps库使用.md](../../工具/三方库/rumps库使用.md) 的 macOS 菜单栏 App 是不同 UI 框架的选择。
+- **横向关联**：Metal 与 [GPU编程](../GPU编程.md) 的 OpenGL Compute Shader 是同主题不同 API 实现；SwiftUI 与 [工具/三方库/rumps库使用.md](../工具/三方库/rumps库使用.md) 的 macOS 菜单栏 App 是不同 UI 框架的选择。
 
 ---
 
