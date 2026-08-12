@@ -74,6 +74,9 @@
       "n:Nvidia-MPS使用指南",
       "n:Polygraphy使用指南"
     ],
+    "笔记库/神经网络/AIGC/Nvidia-MPS使用指南": [
+      "n:官方文档译文"
+    ],
     "笔记库/推理优化": [
       "n:单机部署 qwen3.5-9b",
       "n:大模型基础与 AI 应用架构"
@@ -87,9 +90,6 @@
     "笔记库/推理优化/单机部署 qwen3.5-9b": [
       "n:第一章 最小部署计划",
       "n:第二章 llama.cpp 部署 Qwen3.5-9B",
-      "n:从零部署与服务运维",
-      "n:API 与性能验收",
-      "n:Pi Code Agent 接入",
       "n:第三章 DeepSeek-V4-Flash 原生混合精度三级存储部署",
       "n:量化版本、GGUF 与 TorchAO",
       "n:llama.cpp",
@@ -143,15 +143,6 @@
       "f:20260613-231646-9dd1.png",
       "f:20260616-165827-41cf.png",
       "f:20260727-153528-97e1.png"
-    ],
-    "PM": [
-      "n:optkit"
-    ],
-    "PM/optkit": [
-      "n:architecture"
-    ],
-    "PM/optkit/architecture": [
-      "n:modules"
     ]
   }
 }
