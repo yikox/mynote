@@ -29,7 +29,7 @@
     "berkshire/ 投资记录目前内容极少，章程适用但暂不强制"
   ],
   "id": "library-charter-05d511fc",
-  "lastReviewedAt": "2026-08-05T05:58:12.589Z",
+  "lastReviewedAt": "2026-08-12T11:35:56.576Z",
   "lifecycle": [
     "inbox 中的笔记应在一周内归类到对应领域节点下；超期时助手主动提醒",
     "预研类笔记研究过后可能不再翻开，对长度和格式限制从宽，仅当用户主动调整时才处理",
@@ -40,21 +40,21 @@
     "禁止强行翻译算法名、框架名、论文缩写等专有名词",
     "命名以可读性优先，避免序号前缀（如「第一章」），除非系列笔记有明确顺序需求"
   ],
-  "nextReviewAt": "2026-08-12T05:58:12.589Z",
+  "nextReviewAt": "2026-08-19T11:35:56.576Z",
   "noteGranularity": [
     "一篇笔记覆盖一个完整主题，翻开即能回顾全貌",
     "当笔记过长影响阅读速度时拆分；拆分后各子笔记过短（仅两三段）或没有自然子主题时，不拆",
     "允许「索引+子笔记」模式：父笔记为概览和目录，子笔记展开细节"
   ],
   "observedShape": {
-    "capturedAt": "2026-08-05T03:51:06.221Z",
-    "fingerprint": "9215f828",
-    "noteCount": 94,
+    "capturedAt": "2026-08-12T11:35:56.513Z",
+    "fingerprint": "7ea94a45",
+    "noteCount": 100,
     "rootNoteCount": 5,
     "topLevel": [
       {
         "name": "笔记库",
-        "noteCount": 69
+        "noteCount": 72
       },
       {
         "name": "预研",
@@ -66,7 +66,7 @@
       },
       {
         "name": "inbox",
-        "noteCount": 3
+        "noteCount": 6
       }
     ]
   },
@@ -91,6 +91,6 @@
     "论文笔记必须附带 arXiv 链接或代码仓库链接，确保来源可追溯"
   ],
   "status": "confirmed",
-  "updatedAt": "2026-08-05T05:58:12.589Z",
+  "updatedAt": "2026-08-12T11:35:56.576Z",
   "workspaceId": "workspace-f86c9800-c4e6-4584-80ac-703711b1bc70"
 }
