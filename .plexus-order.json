@@ -2,7 +2,6 @@
   "version": 1,
   "parents": {
     "": [
-      "n:assets",
       "n:笔记库",
       "f:resource-dir:assets"
     ],
