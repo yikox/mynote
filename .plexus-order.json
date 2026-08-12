@@ -109,6 +109,11 @@
     "笔记库/berkshire": [
       "n:投资记录"
     ],
+    "笔记库/GPU编程": [
+      "n:GLCS同步Bug分析",
+      "n:HuggingFace Kernels 集成",
+      "n:OpenGLCS入门"
+    ],
     "笔记库/inbox": [
       "n:Plexus 写作规范",
       "n:Plexus iOS 开发与验收指南",
