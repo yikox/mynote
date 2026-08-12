@@ -1,4 +1,4 @@
-> 本文边界：这是 Qwen 双卡异步推理的项目特定 TorchInductor autotune 配置方案，不是 Python/Torch 编译栈的通用原理；现归入 [单机部署 qwen3.5-9b](./单机部署%20qwen3.5-9b.md) 实验目录。
+> 本文边界：这是 Qwen 双卡异步推理的项目特定 TorchInductor autotune 配置方案，不是 Python/Torch 编译栈的通用原理；现归入 [单机部署 qwen3.5-9b](../单机部署%20qwen3.5-9b.md) 实验目录。
 >
 > 相关笔记：[Torch编译Inductor原理.md](../../编程语言/Python/Torch编译Inductor原理.md) 解释通用 Inductor 内部实现；[PyTorch 2.8 torch.compile 全流程、缓存与重编.md](../../编程语言/Python/PyTorch%202.8%20torch.compile%20全流程、缓存与重编.md) 记录版本特定缓存与重编。
 
