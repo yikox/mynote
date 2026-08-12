@@ -123,7 +123,8 @@
       "n:Codex Agent 设置",
       "n:2026-08-10 1537",
       "n:PyTorch 2.8 torch.compile 全流程、缓存与重编",
-      "n:TorchInductor autotune 配置固化方案"
+      "n:TorchInductor autotune 配置固化方案",
+      "n:2026-08-12 2107"
     ],
     "PM": [
       "n:optkit"
