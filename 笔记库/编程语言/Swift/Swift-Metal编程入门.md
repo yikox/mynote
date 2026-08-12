@@ -394,7 +394,7 @@ do {
 2. **善用官方模板**：Xcode -> New Project -> Game / Metal
 3. **用 MTKView**：简化渲染循环，不必手动管理 DisplayLink
 4. **参考 Apple 官方文档**：  
-   - [Metal Best Practices Guide](https://developer.apple.com/documentation/metal/metal_best_practices_guide)  
+   - [Metal Best Practices Guide（Apple 官方归档）](https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/)  
    - [MetalKit](https://developer.apple.com/documentation/metalkit)
 
 ---

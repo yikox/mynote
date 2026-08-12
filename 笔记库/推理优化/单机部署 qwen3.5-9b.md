@@ -457,4 +457,4 @@ TTFT / TPOT / 吞吐端到端验证
 - [vLLM Quickstart](https://docs.vllm.ai/en/stable/getting_started/quickstart/)
 - [vLLM Parallelism and Scaling](https://docs.vllm.ai/en/stable/serving/parallelism_scaling/)
 - [SGLang](https://github.com/sgl-project/sglang)
-- [SGLang Serving Benchmark](https://docs.sglang.ai/developer_guide/bench_serving)
+- [SGLang Serving Benchmark](https://sgl-project.github.io/developer_guide/benchmark_and_profiling.html)

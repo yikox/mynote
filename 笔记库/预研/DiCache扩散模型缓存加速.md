@@ -8,7 +8,7 @@
 | **会议** | ICLR 2026                                                                   |
 | **代码** | [Bujiazi/DiCache](https://github.com/Bujiazi/DiCache)                       |
 | **论文** | [arXiv:2508.17356](https://arxiv.org/abs/2508.17356)                        |
-| **项目页** | [bujiazi.github.io/DiCache](https://bujiazi.github.io/DiCache/)             |
+| **项目页** | 原项目页已失效（2026-08-13 复核），以代码仓库为准 |
 
 ## 📑 目录
 
@@ -489,6 +489,6 @@ DiCache **正交于**注意力加速方法，可堆叠。
 ## 📚 参考链接
 
 * 论文：<https://arxiv.org/abs/2508.17356>
-* 项目页：<https://bujiazi.github.io/DiCache/>
+* 项目页：原项目页已失效（2026-08-13 复核），以代码仓库为准
 * 代码：<https://github.com/Bujiazi/DiCache>
 * OpenReview：<https://openreview.net/forum?id=kflYZjGumW>
