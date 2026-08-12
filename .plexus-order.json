@@ -4,7 +4,7 @@
     "": [
       "n:assets",
       "n:笔记库",
-      "f:assets"
+      "f:resource-dir:assets"
     ],
     "笔记库": [
       "n:GPU编程",
