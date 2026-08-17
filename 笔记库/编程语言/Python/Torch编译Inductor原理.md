@@ -1,4 +1,6 @@
-# TorchInductor 内部实现详解
+> 本文边界：TorchInductor 内部实现，从 FX Graph 到 lowering、调度与 Triton/C++ codegen；不重复全栈入口，也不把 2.8 特定缓存行为当成通用结论。
+>
+> 相关笔记：[Torch编译架构.md](./Torch编译架构.md) 讲稳定全栈职责分工；[PyTorch 2.8 torch.compile 全流程、缓存与重编.md](./PyTorch%202.8%20torch.compile%20全流程、缓存与重编.md) 讲版本特定生命周期。
 
 ## 一、整体架构概览
 

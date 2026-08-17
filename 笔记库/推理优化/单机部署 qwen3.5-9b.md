@@ -439,6 +439,14 @@ TTFT / TPOT / 吞吐端到端验证
 - 计算通信重叠；
 - Ray、multiprocessing、故障恢复和观测。
 
+## 第二章拆分笔记
+
+- [第二章 llama.cpp 部署 Qwen3.5-9B](./单机部署%20qwen3.5-9b/第二章%20llama.cpp%20部署%20Qwen3.5-9B.md)：父说明，保留设计取舍、环境、结论和状态。
+- [从零部署与服务运维](./单机部署%20qwen3.5-9b/第二章%20llama.cpp%20部署%20Qwen3.5-9B/从零部署与服务运维.md)
+- [API 与性能验收](./单机部署%20qwen3.5-9b/第二章%20llama.cpp%20部署%20Qwen3.5-9B/API%20与性能验收.md)
+- [Pi Code Agent 接入](./单机部署%20qwen3.5-9b/第二章%20llama.cpp%20部署%20Qwen3.5-9B/Pi%20Code%20Agent%20接入.md)
+- [TorchInductor autotune 配置固化方案](./单机部署%20qwen3.5-9b/TorchInductor%20autotune%20配置固化方案.md)：Qwen 项目特定的跨 GPU 调度配置。
+
 ## 参考入口
 
 - [Qwen3.5-9B](https://huggingface.co/Qwen/Qwen3.5-9B)
@@ -449,4 +457,4 @@ TTFT / TPOT / 吞吐端到端验证
 - [vLLM Quickstart](https://docs.vllm.ai/en/stable/getting_started/quickstart/)
 - [vLLM Parallelism and Scaling](https://docs.vllm.ai/en/stable/serving/parallelism_scaling/)
 - [SGLang](https://github.com/sgl-project/sglang)
-- [SGLang Serving Benchmark](https://docs.sglang.ai/developer_guide/bench_serving)
+- [SGLang Serving Benchmark](https://sgl-project.github.io/developer_guide/benchmark_and_profiling.html)

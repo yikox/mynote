@@ -477,4 +477,4 @@ $$v_{\text{pred}} = v_{i-1} \cdot (1 - \Delta t) \cdot \gamma_{i-1}$$
 
 - [FLUX.1 Kontext 论文](https://arxiv.org/abs/2506.15742)（attention 实现细节）
 - [DiT 原文](https://arxiv.org/abs/2212.09748)（RoPE 怎么嵌进 K）
-- [Δ-DiT / FORA / Learning-to-Cache](https://github.com/ali-vilab/learning-to-cache)（同类工作对比）
+- [Δ-DiT / FORA / Learning-to-Cache](https://github.com/horseee/learning-to-cache)（同类工作对比）

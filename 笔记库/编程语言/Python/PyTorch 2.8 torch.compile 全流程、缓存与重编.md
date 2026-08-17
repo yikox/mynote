@@ -1,3 +1,7 @@
+> 本文边界：只记录 PyTorch 2.8 的 `torch.compile(backend="inductor")` 生命周期、缓存与重编；其中 Qwen 项目的 `fullgraph=False`、`dynamic=True` 是具体部署背景，不替代稳定的全栈总览。
+>
+> 相关笔记：[Torch编译架构.md](./Torch编译架构.md) 讲跨版本的整体流水线；[Torch编译Inductor原理.md](./Torch编译Inductor原理.md) 讲 Inductor 内部实现。
+
 本文基于 PyTorch 2.8，聚焦 `torch.compile(backend="inductor")` 在 GPU 推理场景中的完整生命周期。当前 Qwen 项目采用 `fullgraph=False`、`dynamic=True`，因此本文也重点解释局部图、动态形状、缓存复用和重编。
 
 核心结论：`torch.compile()` 本身通常只安装一个惰性 JIT 包装器；真正的图捕获和编译发生在第一次带真实输入执行时。后续调用先验证 guards，命中后直接运行已有编译结果；全部 guard 失败才会重新捕获 FX 图。Dynamo 重编、Inductor 缓存 miss、Triton binary 重编和 autotune 重新测速是四件不同的事情。

@@ -110,7 +110,7 @@
 - 环境：rustup（Linux/macOS 一键脚本 / Windows rustup-init.exe）
 - 核心：变量可变性（`let` vs `let mut`）、类型系统、标量与复合类型
 
-- [Rust快速入门.md](./编程语言/Rust/Rust快速入门.md)
+- [Rust快速入门.md](./Rust/Rust快速入门.md)
 
 ---
 

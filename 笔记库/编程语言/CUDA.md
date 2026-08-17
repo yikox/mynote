@@ -1,5 +1,3 @@
-# CUDA
-
 > CUDA Graph：用 DAG 替代逐 kernel 提交，降低 GPU 调度开销。
 
 ---
@@ -24,11 +22,11 @@
   - 传统流：CPU 逐个提交 → 调度开销大
   - Graph 模式：一次性提交整图 → GPU 自主调度
 
-- [CUDA-Graph.md](./编程语言/CUDA/CUDA-Graph.md)
+- [CUDA-Graph.md](./CUDA/CUDA-Graph.md)
 
 ---
 
 ## 横向关联
 
-- 与 [神经网络/并行策略](../../神经网络/并行策略/) 的多卡并行互补——本目录是单卡内的图优化，神经网络侧是多卡分布式
-- 与 [神经网络/AIGC/Nvidia-MPS使用指南.md](../../神经网络/AIGC/Nvidia-MPS使用指南.md) 共享 CUDA 运行时知识
+- 与 [神经网络/并行策略](../神经网络/并行策略/) 的多卡并行互补——本目录是单卡内的图优化，神经网络侧是多卡分布式
+- 与 [神经网络/AIGC/Nvidia-MPS使用指南.md](../神经网络/AIGC/Nvidia-MPS使用指南.md) 共享 CUDA 运行时知识

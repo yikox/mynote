@@ -1,3 +1,7 @@
+> 本文边界：这是 Qwen 双卡异步推理的项目特定 TorchInductor autotune 配置方案，不是 Python/Torch 编译栈的通用原理；现归入 [单机部署 qwen3.5-9b](../单机部署%20qwen3.5-9b.md) 实验目录。
+>
+> 相关笔记：[Torch编译Inductor原理.md](../../编程语言/Python/Torch编译Inductor原理.md) 解释通用 Inductor 内部实现；[PyTorch 2.8 torch.compile 全流程、缓存与重编.md](../../编程语言/Python/PyTorch%202.8%20torch.compile%20全流程、缓存与重编.md) 记录版本特定缓存与重编。
+
 本文记录 Qwen 双卡异步推理中 TorchInductor autotune 配置固化方案。目标是在保留动态 FP8、SageAttention 和 `torch.compile` 的前提下，让单卡基线、双卡 GPU 0 和 GPU 1 对同一个 Triton kernel 使用相同 launch config，消除 reduction 累加顺序不同导致的效果分叉。
 
 核心结论：固化的不是模型、随机数或整份 Cubin，而是每个 Triton kernel 最终采用的 `XBLOCK/R0_BLOCK/num_warps/num_stages` 等调度参数。线上仍可在每张卡上独立加载或编译 binary，但不再各自测速选择配置。
