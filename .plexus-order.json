@@ -99,13 +99,13 @@
       "n:SeaCache论文复现笔记",
       "n:Sparse-Linear-Attention技术分析",
       "n:Triton-distributed序列并行Attention研究",
-      "n:bugs"
+      "n:bugs",
+      "n:图像编辑"
     ],
     "笔记库/预研/bugs": [
       "n:代码诊断问题集"
     ],
     "预研": [
-      "n:图像编辑",
       "n:浮点精度",
       "n:bugs"
     ],
