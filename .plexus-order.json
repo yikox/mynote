@@ -133,6 +133,9 @@
     ],
     "PM/optkit/architecture": [
       "n:modules"
+    ],
+    "PM/optkit/architecture/modules": [
+      "n:warps"
     ]
   }
 }
