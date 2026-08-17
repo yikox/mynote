@@ -4,7 +4,8 @@
     "": [
       "n:笔记库",
       "n:inbox",
-      "f:resource-dir:assets"
+      "n:assets",
+      "n:神经网络"
     ],
     "笔记库": [
       "n:GPU编程",
