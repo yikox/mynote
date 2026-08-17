@@ -5,7 +5,6 @@
       "n:assets",
       "n:inbox",
       "n:笔记库",
-      "n:PM",
       "n:神经网络"
     ],
     "笔记库": [
@@ -124,18 +123,6 @@
     ],
     "inbox": [
       "n:2026-08-12 2107"
-    ],
-    "PM": [
-      "n:optkit"
-    ],
-    "PM/optkit": [
-      "n:architecture"
-    ],
-    "PM/optkit/architecture": [
-      "n:modules"
-    ],
-    "PM/optkit/architecture/modules": [
-      "n:warps"
     ]
   }
 }
