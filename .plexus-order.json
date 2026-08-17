@@ -100,13 +100,13 @@
       "n:Sparse-Linear-Attention技术分析",
       "n:Triton-distributed序列并行Attention研究",
       "n:bugs",
-      "n:图像编辑"
+      "n:图像编辑",
+      "n:浮点精度"
     ],
     "笔记库/预研/bugs": [
       "n:代码诊断问题集"
     ],
     "预研": [
-      "n:浮点精度",
       "n:bugs"
     ],
     "预研/浮点精度": [
