@@ -98,7 +98,8 @@
       "n:SVDQuant",
       "n:SeaCache论文复现笔记",
       "n:Sparse-Linear-Attention技术分析",
-      "n:Triton-distributed序列并行Attention研究"
+      "n:Triton-distributed序列并行Attention研究",
+      "n:bugs"
     ],
     "预研": [
       "n:图像编辑",
@@ -110,7 +111,6 @@
       "n:经典格式"
     ],
     "预研/bugs": [
-      "n:bugs",
       "n:代码诊断问题集"
     ],
     "assets": [
