@@ -3,8 +3,9 @@
   "parents": {
     "": [
       "n:笔记库",
-      "f:resource-dir:assets",
-      "n:inbox"
+      "n:inbox",
+      "n:assets",
+      "n:神经网络"
     ],
     "笔记库": [
       "n:GPU编程",
