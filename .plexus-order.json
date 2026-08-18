@@ -124,7 +124,8 @@
       "n:Sparse-Linear-Attention技术分析",
       "n:SVDQuant",
       "n:Triton-distributed序列并行Attention研究",
-      "n:bugs"
+      "n:bugs",
+      "n:MiniMax-H3模型总结"
     ],
     "笔记库/预研/浮点精度": [
       "n:MX与NVFP4",
