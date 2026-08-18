@@ -49,8 +49,7 @@ H3 的核心不是“视频模型外接一个音频模块”，而是把多模�
 
 ### 1. H3-Encoder
 
-
-
+H3 使用 Qwen3-VL-32B 的完整预训练权重作为语义编码器，并把第 50 层的 hidden state 送入 H3-Omni-Transformer。文本主要由该编码器处理；视觉输入同时利用语义编码器和 VisualVAE，音频则通过 AudioVAE 表示。
 
 ### 2. 统一的 packed sequence
 
