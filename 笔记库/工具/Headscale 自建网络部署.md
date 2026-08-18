@@ -202,50 +202,28 @@ tailscale status | grep "exit node"
 
 ## 客户端接入
 
-### 通用流程
+完整流程（服务端命令 + Linux / macOS / Windows / iOS / Android 各平台操作）见
+[接入新机器](./Headscale%20自建网络部署/接入新机器.md)。
 
-GUI 客户端填入控制面地址 `https://hs.yiko.site` 后，会得到一个注册请求 ID，需在 VPS 上批准：
+两条最常用的：
 
 ```bash
+# 服务端：生成预授权密钥（-u 要用户 ID，不是用户名）
+sudo headscale preauthkeys create -u 1 --expiration 24h
+
+# 服务端：批准 GUI 客户端的交互注册（--user 要用户名，跟上面相反）
 sudo headscale auth register --auth-id hskey-authreq-xxxxx --user zy
 ```
 
-### macOS
+## 日常使用
 
-- 首次：App 里 `Add Account...` 旁的下拉箭头 → **Add Account Using Alternate Server** → 填控制面地址
-- 或菜单栏按住 `Option` 点图标 → Debug → Custom Login Server
-
-配置便捷别名（`~/.zshrc`）：
+便捷别名（macOS，`~/.zshrc`）：
 
 ```bash
 alias ts='/Applications/Tailscale.app/Contents/MacOS/Tailscale'
 alias vpn-on='ts set --exit-node=100.64.0.1 --exit-node-allow-lan-access=true && sleep 2 && echo "出口 IP: $(curl -s --max-time 10 ifconfig.me)"'
 alias vpn-off='ts set --exit-node= && sleep 2 && echo "出口 IP: $(curl -s --max-time 10 ifconfig.me)"'
 ```
-
-### iOS / iPadOS
-
-需 Tailscale ≥ 1.38.1，两种入口：
-
-- App 内：账户图标 → Log in → 右上角选项 → **Use custom coordination server**
-- 系统设置 → Tailscale → **ALTERNATE COORDINATION SERVER URL**
-
-注意：iPadOS 无 CLI，Exit Node 只能从 GUI 选择。接入初期若因 online 状态位收敛延迟列不出可用出口节点，没有 CLI 兜底，只能等（未实测）。
-
-### Linux
-
-```bash
-curl -fsSL https://tailscale.com/install.sh | sh
-sudo tailscale up --login-server=https://hs.yiko.site --authkey=<preauthkey>
-```
-
-preauthkey 由脚本在部署结束时输出，也可手动生成：
-
-```bash
-sudo headscale preauthkeys create -u <用户ID> --reusable --expiration 24h
-```
-
-## 日常使用
 
 查看接入设备（客户端上，状态比服务端可信）：
 
