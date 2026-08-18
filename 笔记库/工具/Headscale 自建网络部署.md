@@ -181,7 +181,7 @@ vps-exit | approved: ['0.0.0.0/0', '::/0']
 ### 结论
 
 macOS 上一律用 CLI 管理 Exit Node，不要跟 GUI 较劲。需要常驻的状态展示，见
-[SwiftBar 菜单栏状态盘](./SwiftBar%20菜单栏状态盘.md)——用 SwiftBar 把 CLI 输出挂到菜单栏，
+[Tailscale 菜单栏状态盘](./Headscale%20自建网络部署/Tailscale%20菜单栏状态盘.md)——用 SwiftBar 把 CLI 输出挂到菜单栏，
 取代官方 GUI 的展示职能。
 
 另记：`headscale nodes list` 的在线状态在节点刚启动时会短暂不准，判断设备是否真在线以客户端
@@ -210,7 +210,7 @@ alias vpn-on='ts set --exit-node=100.64.0.1 --exit-node-allow-lan-access=true &&
 alias vpn-off='ts set --exit-node= && sleep 2 && echo "出口 IP: $(curl -s --max-time 10 ifconfig.me)"'
 ```
 
-想要菜单栏常驻显示当前是否走出口节点，见 [SwiftBar 菜单栏状态盘](./SwiftBar%20菜单栏状态盘.md)。
+想要菜单栏常驻显示当前是否走出口节点，见 [Tailscale 菜单栏状态盘](./Headscale%20自建网络部署/Tailscale%20菜单栏状态盘.md)。
 
 ### iOS / iPadOS
 
