@@ -122,23 +122,70 @@ curl -s -o /dev/null --connect-timeout 6 http://<IP>:<PORT>/; echo $?
 - 列表为空时 `users list -o json` 返回 `null` 而非 `[]`，直接迭代会抛 TypeError
 - `nodes list-routes` 的 Approved 和 Available 都含 `0.0.0.0/0`，验证是否批准必须查 JSON 的 `approved_routes`，grep 字符串会误判
 
-## 已知上游 Bug：online 状态位不可靠
+## macOS GUI 无法管理 Exit Node
 
-Headscale 下发给客户端的 online 状态位是错的，实测：
+macOS 官方 GUI 的 Exit Nodes 页面永远显示 "No available exit nodes"，但 CLI 一切正常。
+
+> 2026-08 复核，推翻了本笔记早先"headscale 下发的 online 状态位是错的"这一判断。
+> 当时观测到的 `Online=False, Active=True` 是节点刚启动时的瞬时状态，不是持续性缺陷。
+
+复核时客户端拿到的数据完全正确：
 
 ```text
-zy MacBook Pro   Online=False   Active=True    ← 正在通信却报离线
-zy的MacBook Air  Online=True    Active=False
+vps-exit | Online True | ExitNodeOption True
+         | AllowedIPs ['0.0.0.0/0', '100.64.0.1/32', '::/0', 'fd7a:115c:a1e0::1/128']
 ```
 
-**两个影响**：
+`ExitNodeOption=True` 就是"可作为出口节点"的标志位，双栈路由也齐全。tailscaled 知道它是
+Exit Node，是 GUI 没有显示。真实原因有两个，彼此独立：
 
-- **macOS GUI 的 Exit Nodes 菜单显示 "No Exit Nodes Available"**，因为 GUI 依赖该字段筛选可用节点。CLI 不看这个字段，所以 `tailscale exit-node list` 能正常列出
-- `headscale nodes list` 的在线状态不可信，判断设备是否真在线要用客户端的 `tailscale status`
+**一、新窗口 UI 依赖 admin console API。** 1.88+ 引入的 windowed UI 是围绕 Tailscale 自家
+SaaS 后台设计的——它的启用开关在 admin console 的 Feature previews 里，界面正中间放着
+"Open in Admin Console" 按钮。设备与出口节点列表走 control server 的 admin web API，而
+headscale 只实现了 **control protocol**（让客户端能组网），从不实现 admin API。GUI 要不到
+数据，于是列表为空。CLI 走 LocalAPI，只读本地 netmap，因此不受影响。
 
-相关 issue：[tailscale#5628][bug1]、[headscale#804][bug2]（后者标记已关闭，但 v0.29.3 实测仍存在）。Android 客户端不受影响，说明是客户端实现差异。
+**二、菜单栏图标没有 Exit Node 状态位。** 从 app 二进制提取出的完整图标状态机：
 
-**结论：macOS 上一律用 CLI 管理 Exit Node，不要跟 GUI 较劲。**
+```text
+StatusBarIconDimmed                            未连接
+StatusBarIconDot1 … Dot16                      连接中动画
+StatusBarIconDefaultRouterOnline / Offline     已连接
+StatusBarIconErrorOnline / Offline             出错
+```
+
+没有任何一个表示"正在走出口节点"。即便退回旧菜单栏 UI，也无法一眼看出 Exit Node 是否开着。
+
+### 官方修复的可能性：低
+
+| Issue | 开 | 关 | 结局 |
+| --- | --- | --- | --- |
+| [tailscale#5628][bug1] | 2022-09-13 | 次日 | 转给 headscale，定性为非己方问题 |
+| [headscale#804][bug2] | 2022-09-14 | 2023-03-02 | 标记 COMPLETED |
+
+不是"挂了四年没人管"。真实情况是 Tailscale 对 custom control server 没有兼容义务，而 GUI
+正在往自家 admin console 深度绑定的方向走。**这个差距会扩大而非缩小**，不是等一个补丁的事。
+CLI 依赖的 LocalAPI 只吃 netmap，headscale 把 netmap 喂对就够，这条路才是稳定的。
+
+### 附带发现：Exit Node 必须双栈通告
+
+bradfitz 在 #804 中指出的硬性要求：Tailscale 只有在节点**同时**通告 `0.0.0.0/0` 和 `::/0`
+时才认它是 Exit Node，与该机是否真有 IPv6 出网无关。只批准 IPv4 路由会导致 Exit Node 永远
+不出现——这才是部署脚本保留 `net.ipv6.conf.all.forwarding = 1` 的真正理由（早先记的理由
+"tailscale 会告警"不够硬）。本机核对结果：
+
+```text
+vps-exit | approved: ['0.0.0.0/0', '::/0']
+```
+
+### 结论
+
+macOS 上一律用 CLI 管理 Exit Node，不要跟 GUI 较劲。需要常驻的状态展示，见
+[SwiftBar 菜单栏状态盘](./SwiftBar%20菜单栏状态盘.md)——用 SwiftBar 把 CLI 输出挂到菜单栏，
+取代官方 GUI 的展示职能。
+
+另记：`headscale nodes list` 的在线状态在节点刚启动时会短暂不准，判断设备是否真在线以客户端
+的 `tailscale status` 为准。
 
 ## 客户端接入
 
@@ -163,6 +210,8 @@ alias vpn-on='ts set --exit-node=100.64.0.1 --exit-node-allow-lan-access=true &&
 alias vpn-off='ts set --exit-node= && sleep 2 && echo "出口 IP: $(curl -s --max-time 10 ifconfig.me)"'
 ```
 
+想要菜单栏常驻显示当前是否走出口节点，见 [SwiftBar 菜单栏状态盘](./SwiftBar%20菜单栏状态盘.md)。
+
 ### iOS / iPadOS
 
 需 Tailscale ≥ 1.38.1，两种入口：
@@ -170,7 +219,7 @@ alias vpn-off='ts set --exit-node= && sleep 2 && echo "出口 IP: $(curl -s --ma
 - App 内：账户图标 → Log in → 右上角选项 → **Use custom coordination server**
 - 系统设置 → Tailscale → **ALTERNATE COORDINATION SERVER URL**
 
-注意：iPadOS 无 CLI，若同样受 online 状态位 bug 影响，Exit Node 将无法使用（未实测）。
+注意：iPadOS 无 CLI，Exit Node 只能从 GUI 选择，同样受上述 admin API 缺失的影响，很可能列不出可用出口节点，且没有 CLI 兜底（未实测）。
 
 ### Linux
 
