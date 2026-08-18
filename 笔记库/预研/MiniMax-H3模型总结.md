@@ -47,7 +47,54 @@ H3 的核心不是“视频模型外接一个音频模块”，而是把多模�
                        视频                                  立体声音频
 ```
 
+ ```mermaid
+   flowchart LR
+       T["文本"] -->
+ E["H3-Encoder<br/>Qwen3-VL-32B"]
+       IV["图片 / 视频"] --> E
+       IV --> VVEnc["H3-VisualVAE<br/>编码"]
+       A["音频"] --> AVEnc["H3-AudioVAE<br/>编
+ 码"]
 
+       E --> PACK["Packed Multimodal
+ Sequence<br/>+ 3D MM-RoPE"]
+       VVEnc --> PACK
+       AVEnc --> PACK
+
+       PACK --> OT["H3-Omni-Transformer<br/>联
+ 合预测 video/audio latents"]
+
+       OT --> VL["Video Latents"]
+       OT --> AL["Audio Latents"]
+
+       VL --> VVD["H3-VisualVAE<br/>解码"]
+       AL --> AVD["H3-AudioVAE<br/>解码"]
+
+       VVD --> V["视频"]
+       AVD --> S["立体声音频"]
+
+       classDef input
+ fill:#e8f1ff,stroke:#3973ac,stroke-width:1.5p
+ x
+       classDef encoder
+ fill:#fff2cc,stroke:#bf9000,stroke-width:1.5p
+ x
+       classDef transformer
+ fill:#f4cccc,stroke:#990000,stroke-width:1.5p
+ x
+       classDef decoder
+ fill:#d9ead3,stroke:#38761d,stroke-width:1.5p
+ x
+       classDef output
+ fill:#eadcf8,stroke:#674ea7,stroke-width:1.5p
+ x
+
+       class T,IV,A input
+       class E,VVEnc,AVEnc encoder
+       class PACK,OT transformer
+       class VVD,AVD decoder
+       class V,S output
+ ```
 
 ### 1. H3-Encoder
 
