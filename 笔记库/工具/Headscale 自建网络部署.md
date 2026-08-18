@@ -61,11 +61,15 @@ scp headscale-setup.sh ubuntu@43.155.173.41:/tmp/
 ssh ubuntu@43.155.173.41 'sudo bash /tmp/headscale-setup.sh --domain hs.yiko.site --user zy'
 ```
 
-脚本位置：`~/work/2026/vps/headscale-setup.sh`
-
 脚本覆盖：前置检查 → DNS 校验 → 防火墙 → Headscale 安装配置 → Caddy 反代 → 服务启动 → 入网 → Exit Node → 自验收 → 输出客户端接入命令。
 
 迁移域名时改 `--domain` 重跑即可，脚本会检测控制面变更并提示重新注册节点。
+
+脚本全文与逐段解析（含设计原则、部署中修掉的 6 个 bug）见子笔记：
+
+- [部署脚本解析](./Headscale%20自建网络部署/部署脚本解析.md)
+
+工作副本位于 `~/work/2026/vps/headscale-setup.sh`，以子笔记内容为准。
 
 ### 脚本管不到的两件事
 
