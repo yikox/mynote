@@ -299,8 +299,18 @@ sudo headscale nodes list
 - [x] `tailscale status` 显示 `direct`（P2P 直连成功）
 - [x] Exit Node 开启后公网 IP 变为 VPS IP，关闭后恢复
 - [ ] Mac 可 `ssh gpu-01`（GPU-01 待接入）
-- [ ] tailnet SSH 可用（`ssh ubuntu@100.64.0.1`）
-- [ ] VPS 公网 SSH 关闭
+- [x] tailnet SSH 可用（`ssh ubuntu@100.64.0.1` 免密，证明 `ufw allow in on tailscale0` 生效）
+- [ ] VPS 公网 SSH 关闭（**前置条件**：所有要用的机器都已能通过 tailnet 免密登录）
+
+> 公钥是按机器部署的，`authorized_keys` 目前只有 MacBook Air 一把。其余机器无论走公网 IP
+> 还是 tailnet 地址都会要密码——这与 tailnet 无关。关闭公网 22 前必须先补齐，否则未部署公钥
+> 的机器将彻底无法登录，只能走腾讯云 VNC 控制台救援。
+>
+> 补钥匙：在已免密的机器上执行
+> ```bash
+> ssh ubuntu@100.64.0.1 'cat >> ~/.ssh/authorized_keys' < 新机器的_id_ed25519.pub
+> ```
+> Lighthouse 的 `ubuntu` 用户通常没设密码，`ssh-copy-id` 走不通。
 
 ## 待办
 
