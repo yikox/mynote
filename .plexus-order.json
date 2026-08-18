@@ -4,7 +4,8 @@
     "": [
       "n:笔记库",
       "n:inbox",
-      "f:resource-dir:assets"
+      "n:assets",
+      "n:神经网络"
     ],
     "笔记库": [
       "n:GPU编程",
@@ -53,7 +54,9 @@
       "n:AI 工具提效",
       "n:提示词集合",
       "n:Mac机器设置(睡眠)",
-      "n:Headscale 自建网络部署"
+      "n:Headscale 自建网络部署",
+      "n:SwiftBar 菜单栏状态盘",
+      "n:网络链路测速"
     ],
     "笔记库/工具/三方库": [
       "n:rumps库使用"
@@ -67,9 +70,6 @@
       "n:Plexus AI 助手透明化与用户自动化改造规划书",
       "n:Plexus iOS 开发与验收指南",
       "n:Codex Agent 设置"
-    ],
-    "笔记库/工具/Headscale 自建网络部署": [
-      "n:部署脚本解析"
     ],
     "笔记库/工具/SQL基本语法": [
       "n:MySQL 5.6 课程笔记"
@@ -124,8 +124,7 @@
       "n:Sparse-Linear-Attention技术分析",
       "n:SVDQuant",
       "n:Triton-distributed序列并行Attention研究",
-      "n:bugs",
-      "n:MiniMax-H3模型总结"
+      "n:bugs"
     ],
     "笔记库/预研/浮点精度": [
       "n:MX与NVFP4",
