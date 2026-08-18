@@ -227,6 +227,8 @@ sudo headscale nodes list
 
 中继比直连多 264ms，所以 P2P 是否打通对体验影响很大。
 
+以上数据由 [网络链路测速](./网络链路测速.md) 中的 `nettest.py` 测得。跨境链路单次波动大，重测时至少跑 2~3 次看区间。
+
 ## 验收清单
 
 - [x] `https://hs.yiko.site/health` 返回 `{"status":"pass"}`
