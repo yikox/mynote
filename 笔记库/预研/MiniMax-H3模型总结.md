@@ -28,7 +28,6 @@ H3 的核心不是“视频模型外接一个音频模块”，而是把多模�
 > 33B 指 H3-Omni-Transformer 核心，不等于完整推理栈的总参数量。完整栈还包括 Qwen3-VL-32B 编码器、VisualVAE、AudioVAE 和处理器；因此不能用 33B × 2 bytes 直接当作整套部署的显存预算。
 
 ## 系统架构
-
 ```mermaid
 flowchart TB
     subgraph INPUT["输入"]
