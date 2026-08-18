@@ -29,24 +29,6 @@ H3 的核心不是“视频模型外接一个音频模块”，而是把多模�
 
 ## 系统架构
 
-```text
-文本 ───────────────┐
-图片 / 视频 ────────┼─> H3-Encoder（Qwen3-VL-32B）──┐
-图片 / 视频 ────────┘                              │
-                                                   ├─> packed multimodal sequence
-视频 ──> H3-VisualVAE ──> visual latents ──────────┤       + 3D MM-RoPE
-音频 ──> H3-AudioVAE ──> audio latents ────────────┘
-                                                        │
-                                      H3-Omni-Transformer
-                                     联合预测 video/audio latents
-                                             │
-                         ┌──────────────────┴──────────────────┐
-                         ▼                                     ▼
-                 H3-VisualVAE 解码                       H3-AudioVAE 解码
-                         ▼                                     ▼
-                       视频                                  立体声音频
-```
-
 ```mermaid
 flowchart TB
     subgraph INPUT["输入"]
