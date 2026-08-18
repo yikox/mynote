@@ -83,6 +83,11 @@ Exit Node 状态本身从本地 `status --json` 就能确定，不需要外部�
 
 TS=/Applications/Tailscale.app/Contents/MacOS/Tailscale
 
+# SwiftBar 从插件目录调用本脚本，$0 是软链路径，而该目录含空格
+# （~/Library/Application Support/…），会把菜单项里 bash= 的值截断，点击失效。
+SELF=$(readlink "$0" 2>/dev/null); [ -n "$SELF" ] || SELF="$0"
+SELF="$(cd "$(dirname "$SELF")" && pwd)/$(basename "$SELF")"
+
 case "$1" in
   exit-on)  "$TS" set --exit-node="$2"; exit ;;
   exit-off) "$TS" set --exit-node=;     exit ;;
@@ -96,7 +101,7 @@ esac
 ```
 
 脚本有两种运行身份：SwiftBar 定时调用（无参数，输出菜单）和菜单项点击回调（带动作参数，执行后
-立刻 `exit`）。`case` 放最前面，让回调路径不必解析任何状态。
+立刻 `exit`）。`case` 放最前面，让回调路径不必解析任何状态。`SELF` 两行是踩坑修的——详见 [SwiftBar](../SwiftBar.md) 的「编写要点」。
 
 `${ip:-查询失败}` 保证 curl 超时时通知里不是空白。
 
@@ -138,7 +143,7 @@ echo "---"
 
 if [ "$STATE" != "Running" ]; then
   echo "未连接（$STATE）"
-  echo "连接 | bash=$0 param1=up terminal=false refresh=true"
+  echo "连接 | bash="$SELF" param1=up terminal=false refresh=true"
   exit
 fi
 
@@ -156,7 +161,7 @@ echo "---"
 ```bash
 echo "出口节点"
 if [ -n "$EXITNAME" ]; then
-  echo "--关闭（直连） | bash=$0 param1=exit-off terminal=false refresh=true"
+  echo "--关闭（直连） | bash="$SELF" param1=exit-off terminal=false refresh=true"
 else
   echo "--✓ 关闭（直连） | font=Menlo"
 fi
@@ -166,7 +171,7 @@ while IFS=$'\t' read -r active name ip; do
   if [ "$active" = "true" ]; then
     echo "--✓ $name | font=Menlo"
   else
-    echo "--$name | bash=$0 param1=exit-on param2=$ip terminal=false refresh=true"
+    echo "--$name | bash="$SELF" param1=exit-on param2=$ip terminal=false refresh=true"
   fi
 done
 ```
@@ -185,8 +190,8 @@ jq -r '.Peer[]? | "\(if .Online then "🟢" else "⚪️" end) \(.HostName)  \(.
 while read -r line; do echo "--$line | font=Menlo"; done
 
 echo "---"
-echo "显示出口 IP | bash=$0 param1=showip terminal=false"
-echo "断开 | bash=$0 param1=down terminal=false refresh=true"
+echo "显示出口 IP | bash="$SELF" param1=showip terminal=false"
+echo "断开 | bash="$SELF" param1=down terminal=false refresh=true"
 ```
 
 "显示出口 IP" 不带 `refresh=true`：它不改变任何状态，刷新纯属浪费。

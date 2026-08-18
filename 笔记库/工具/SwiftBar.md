@@ -72,8 +72,23 @@ open -a SwiftBar
 
 **菜单项文本里的 `|` 会被当作参数分隔符**，正文中必须避开，否则后半截会被当成参数解析。
 
-**动作用 `bash=$0 param1=<动作>` 回调脚本自身**，不要在菜单项里直接拼命令。带 `=` 和空格的参数
+**动作用 `bash=<脚本自身> param1=<动作>` 回调**，不要在菜单项里直接拼命令。带 `=` 和空格的参数
 在 SwiftBar 的引号规则下极易出错；让脚本开头用 `case "$1"` 分派，一次性绕开，也把逻辑收在一处。
+
+**但不能直接写 `bash=$0`。** 插件目录路径是
+`~/Library/Application Support/SwiftBar/Plugins`，`Application Support` 中间那个空格会把
+`bash=` 的值截断，**表现为点击完全没反应、也没有任何报错**。若插件是软链，解析回本体路径即可
+避开；无论如何都要绝对化并加引号：
+
+```bash
+SELF=$(readlink "$0" 2>/dev/null); [ -n "$SELF" ] || SELF="$0"
+SELF="$(cd "$(dirname "$SELF")" && pwd)/$(basename "$SELF")"
+
+echo "断开 | bash=\"$SELF\" param1=down terminal=false refresh=true"
+```
+
+调试办法：直接从软链路径运行插件（`"$DIR/x.3s.sh"`），肉眼检查输出里的 `bash=` 是不是完整
+路径——SwiftBar 静默失败，不看输出查不出来。
 
 **刷新间隔按数据来源定，不按"想多快看到"定。** 读本地状态（文件、socket、本机命令）可以 3 秒；
 凡是发网络请求的，一律别放进轮询——做成菜单项点击触发，结果走系统通知：
