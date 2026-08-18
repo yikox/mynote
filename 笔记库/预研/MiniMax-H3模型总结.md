@@ -48,26 +48,44 @@ H3 的核心不是“视频模型外接一个音频模块”，而是把多模�
 ```
 
 ```mermaid
-flowchart LR
-    text["文本"] --> encoder["H3-Encoder / Qwen3-VL-32B"]
-    media["图片 / 视频"] --> encoder
-    media --> visual_encode["H3-VisualVAE / 编码"]
-    audio["音频"] --> audio_encode["H3-AudioVAE / 编码"]
+flowchart TB
+    subgraph INPUT["输入"]
+        text["文本 / 指令"]
+        media["图片 / 视频参考"]
+        audio["音频参考"]
+    end
 
-    encoder --> sequence["Packed multimodal sequence / 3D MM-RoPE"]
-    visual_encode --> sequence
-    audio_encode --> sequence
+    subgraph ENCODE["编码"]
+        encoder["H3-Encoder<br/>Qwen3-VL-32B"]
+        visual_encode["H3-VisualVAE<br/>编码"]
+        audio_encode["H3-AudioVAE<br/>编码"]
+    end
 
-    sequence --> transformer["H3-Omni-Transformer / 联合预测 video/audio latents"]
-    transformer --> video_latents["Video latents"]
-    transformer --> audio_latents["Audio latents"]
+    text -->|文本 tokens| encoder
+    media -->|视觉语义输入| encoder
+    media -->|帧 / 像素| visual_encode
+    audio -->|音频波形| audio_encode
 
-    video_latents --> visual_decode["H3-VisualVAE / 解码"]
-    audio_latents --> audio_decode["H3-AudioVAE / 解码"]
+    encoder -->|第 50 层 hidden states| semantic["文本 / 视觉语义<br/>参考序列"]
+    visual_encode -->|视觉 latent| visual_seq["视觉 latent 序列<br/>f16t4d24 / patchify"]
+    audio_encode -->|音频 latent| audio_seq["音频 latent 序列<br/>40 Hz / stereo"]
 
-    visual_decode --> video["视频"]
-    audio_decode --> stereo["立体声音频"]
+    semantic -->|打包| packed["Packed multimodal sequence<br/>语义参考序列 + 视觉/音频 latent"]
+    visual_seq -->|打包| packed
+    audio_seq -->|打包| packed
+
+    packed -->|多模态条件序列| transformer["H3-Omni-Transformer<br/>联合预测 video/audio latent"]
+    transformer -->|生成 video latent| generated_video["生成视频 latent"]
+    transformer -->|生成 audio latent| generated_audio["生成音频 latent"]
+
+    generated_video -->|视频 latent| visual_decode["H3-VisualVAE<br/>解码"]
+    generated_audio -->|音频 latent| audio_decode["H3-AudioVAE<br/>解码"]
+
+    visual_decode -->|视频帧| video["视频"]
+    audio_decode -->|左右声道波形| stereo["立体声音频"]
 ```
+
+> 图中“语义参考序列”特指 H3-Encoder 输出的第 50 层 hidden states；它不是最终视频 latent。VisualVAE 和 AudioVAE 分别输出视觉 latent 序列与音频 latent 序列，三者被打包后输入 H3-Omni-Transformer。Transformer 输出的仍是生成 latent，最后才由两个 VAE 解码为视频和立体声音频。
 
 ### 1. H3-Encoder
 
