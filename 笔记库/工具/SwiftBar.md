@@ -110,8 +110,3 @@ osascript -e "display notification \"内容\" with title \"标题\""
 原有图标突然消失，多半是这个原因，不是配置被改。验证方法：退出 SwiftBar，看消失的图标是否回来。
 
 要精确控制留哪些图标，可用 Ice（开源）或 Bartender 折叠管理。
-
-## 实例
-
-- [Tailscale 菜单栏状态盘](./Headscale%20自建网络部署/Tailscale%20菜单栏状态盘.md)——官方 GUI
-  在 headscale 下无法列出 Exit Node，用 SwiftBar 接管状态展示与切换
