@@ -57,13 +57,13 @@ open -a SwiftBar
 
 常用参数写在 `|` 之后：
 
-| 参数 | 作用 |
-| --- | --- |
-| `bash=` / `param1=` … | 点击时执行的命令与参数 |
-| `terminal=false` | 后台执行，不弹终端窗口 |
-| `refresh=true` | 执行完立刻重跑插件刷新显示 |
+| 参数                         | 作用                          |
+| ---------------------------- | ----------------------------- |
+| `bash=` / `param1=` …        | 点击时执行的命令与参数        |
+| `terminal=false`             | 后台执行，不弹终端窗口        |
+| `refresh=true`               | 执行完立刻重跑插件刷新显示    |
 | `font=` / `size=` / `color=` | 排版；等宽对齐用 `font=Menlo` |
-| `sfimage=` | 用 SF Symbols 图标代替 emoji |
+| `sfimage=`                   | 用 SF Symbols 图标代替 emoji  |
 
 插件类型除常规的"跑完即退"外，还支持 Streamable（长驻进程持续输出）、Shortcuts（调用系统
 快捷指令）、Ephemeral（通过 URL scheme 临时插入菜单项）。日常够用的是常规型。
