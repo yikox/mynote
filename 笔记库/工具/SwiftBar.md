@@ -231,7 +231,7 @@ Ephemeral 插件通过 URL Scheme 或 Shortcut 临时创建菜单项，适合：
 
 ### 3.2 复杂刷新策略
 
-简单刷新直接写在文件名中。更复杂的时间表可以使用 `schedule` 元数据和 Cron 风格表达式，例如在脚本元数据中指定每小时的第 1、16、31、46 分钟执行；多个时间表可以用 `|` 分隔。具体语法以当前版本 [README](https://github.com/swiftbar/SwiftBar) 为准。
+简单刷新直接写在文件名中。更复杂的时间表可以使用 `schedule` 元数据和 Cron 风格表达式；官方 README 的示例是 `# 01,16,31,46`，表示每小时的第 1、16、31、46 分钟执行，多个时间表可以用 `|` 分隔。具体语法以当前版本 [README](https://github.com/swiftbar/SwiftBar) 为准。
 
 外部程序也可以通过 URL Scheme 控制 SwiftBar：
 
