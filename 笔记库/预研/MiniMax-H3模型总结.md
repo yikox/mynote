@@ -74,7 +74,72 @@ H3 使用 Qwen3-VL-32B 的完整预训练权重作为语义编码器，并把第
 
 ### 2. 统一的 packed sequence
 
-各模态被转换为对应 token/latent 后，组成一个统一的多模态序列。H3 不在 attention 或 FFN 内为每个模态复制一套大结构：模态特定参数主要集中在输入/输出层和 AdaLN 分支，attention 与 FFN 主体保持共享。这是它从“多专家流水线”转向统一任务接口的关键设计。
+各模态被转换为对应 token/latent 后，经过一组输入整理步骤，组成统一的 packed multimodal sequence。它本身不是一个独立的“大模型模块”，更像是把不同形状、不同语义空间的表示整理成 Transformer 可以统一处理的 hidden-state 序列。官方高层文档没有公开每种 token 的固定排列和全部运行时字段，下面是根据公开架构描述和模型配置抽象出的逻辑流程。
+
+#### 处理步骤
+
+1. **分别得到各模态表示**
+
+   - 文本先经过 H3-Encoder（Qwen3-VL-32B），取第 50 层 hidden states，形成文本语义序列。
+   - 图片/视频同时经过 H3-Encoder 和 H3-VisualVAE：前者产生视觉语义/参考序列，后者产生视觉 latent。
+   - 音频只经过 H3-AudioVAE，产生音频 latent；左右声道在 latent 空间中独立处理。
+
+2. **整理各模态的局部布局**
+
+   - VisualVAE 的 latent 是 `f16t4d24`：24 个通道、时间压缩 4×、空间压缩 16×。
+   - 视觉 latent 在进入 Transformer 前按 `1 × 2 × 2`（时间、高、宽）进行 patchify，把相邻 latent 位置合并成视觉 token；有效空间下采样变为 32×。
+   - AudioVAE 将每个声道压缩为 40 Hz 的音频 latent 序列。
+   - 文本 hidden states、视觉语义序列、视觉 latent 和音频 latent 分别经过输入适配/投影，映射到 H3-Omni-Transformer 的共同 hidden size `5376`。这一步只改变表示维度，不负责跨模态推理。
+
+3. **准备生成目标槽位**
+
+   在生成采样时，packed sequence 不只有参考条件，还要包含待预测的视频和音频 latent 槽位。槽位中的内容是当前 timestep 的待去噪状态，模型会在每次迭代中更新这些位置。不同任务只是参考序列的组成不同，例如：
+
+   ```text
+   T2VA：   文本语义序列 + 待生成视频 latent + 待生成音频 latent
+   Ref2VA： 文本语义序列 + 视觉/音频参考 latent + 待生成视频/音频 latent
+   FL2VA：  文本语义序列 + 首帧/末帧条件 + 中间待生成 latent
+   ```
+
+   这是生成过程的逻辑视图；公开 README 没有说明所有任务的精确槽位排列，因此上面的顺序不应当理解为固定的官方内存布局。
+
+4. **沿序列维度拼接**
+
+   概念上可以写成：
+
+   ```python
+   semantic_text = project_text(text_hidden_states)
+   semantic_visual = project_visual(visual_hidden_states)
+   visual_seq = project_visual(patchify(video_latent))
+   audio_seq = project_audio(audio_latent)
+
+   condition = concat(
+       semantic_text,
+       semantic_visual,
+       visual_seq,
+       audio_seq,
+       dim=sequence_dimension,
+   )
+
+   packed = concat(
+       condition,
+       target_video_latent_t,
+       target_audio_latent_t,
+       dim=sequence_dimension,
+   )
+   ```
+
+   这段伪代码只表达逻辑，不代表官方源码中的函数名或固定排列。最终主干看到的是一个统一的序列张量，可抽象为 `H_t ∈ R^{B × L × 5376}`；其中 `L` 是文本、视觉、音频以及生成目标槽位的总长度。
+
+5. **附加边界和位置信息**
+
+   拼接后还需要让模型知道每段 token 的来源和位置。实现层面通常要维护序列长度/offset、模态或任务边界、参考条件与生成目标的角色信息，以及用于 MM-RoPE 的位置坐标。视觉 token 使用 `(t, h, w)` 表示时间和两个空间维度；特殊 token 和 tokenizer 配置还承担任务分隔或控制作用。这些是索引、嵌入或布局元数据，不是另一套模态专属 Transformer。
+
+6. **进入主干前的轻量处理**
+
+   H3 的 Transformer 配置中还列出了 `token_refiner_num_layers=2`，说明输入/条件路径中存在一个小型 token refiner。它与 50 层 H3-Omni-Transformer 主干不是同一量级；公开高层文档没有进一步说明它作用于哪些 token，因此这里不把它强行等同于 `concat` 操作本身。
+
+完成上述步骤后，H3-Omni-Transformer 才对整个 packed sequence 执行共享的 Attention 和 FFN。初始开源推理采用 full attention，因此参考文本、视觉 token、音频 token 和生成目标 token 可以在同一序列中建立跨模态关系。模态特定部分主要留在输入/输出投影和 AdaLN 分支：AdaLN 根据 timestep 及模态条件对共享 block 的 hidden states 做 scale、shift、gate 等调制；Transformer 最后通过不同输出路径预测视频与音频 latent，再交给两个 VAE 解码。这就是 H3 用一个统一主干替代多套模态专家流水线的具体含义。
 
 ### 3. H3-Omni-Transformer
 
