@@ -145,7 +145,7 @@ open -a SwiftBar
 | `param1=`、`param2=` | 传给脚本的参数 |
 | `terminal=false` | 后台执行，不打开终端窗口 |
 | `terminal=true` | 在终端中执行 |
-| `refresh=true` | 动作完成后刷新插件 |
+| `refresh=true` | 点击该菜单项时重新执行/刷新插件 |
 | `color=` | 设置文字颜色 |
 | `font=`、`size=` | 设置字体和大小 |
 | `tooltip=` | 鼠标悬停提示 |
