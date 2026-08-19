@@ -89,7 +89,7 @@ H3 使用 Qwen3-VL-32B 的完整预训练权重作为语义编码器，并把第
    - VisualVAE 的 latent 是 `f16t4d24`：24 个通道、时间压缩 4×、空间压缩 16×。
    - 视觉 latent 在进入 Transformer 前按 `1 × 2 × 2`（时间、高、宽）进行 patchify，把相邻 latent 位置合并成视觉 token；有效空间下采样变为 32×。
    - AudioVAE 将每个声道压缩为 40 Hz 的音频 latent 序列。
-   - ，
+   - 文本 hidden states、视觉语义序列、视觉 latent 和音频 latent 分别经过输入适配/投影，映射到 H3-Omni-Transformer 的共同 hidden size `5376`。这一步只改变表示维度，不负责跨模态推理。
 
 3. **准备生成目标槽位**
 
