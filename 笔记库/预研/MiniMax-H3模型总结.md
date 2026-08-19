@@ -223,3 +223,4 @@ H3 的 2K 输出不是简单外挂一个传统超分辨率模型：先由 H3-Bas
 2. [MiniMax-AI/MiniMax-H3 GitHub](https://github.com/MiniMax-AI/MiniMax-H3) — 开源架构说明、模型变体、部署示例和复现脚本。
 3. [MiniMaxAI/MiniMax-H3 Hugging Face 模型卡](https://huggingface.co/MiniMaxAI/MiniMax-H3) — 参数规模、模型配置、规格、精度和许可证。
 4. [MiniMax H3 开源公告](https://www.minimax.io/news/minimax-h3-open-source) — H3-Encoder、VisualVAE、AudioVAE 和开源边界的补充说明。
+5. [FL2VA Transformer 配置](https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/FL2VA/transformer/config.json) — hidden size、latent dimensions 和 `token_refiner_num_layers` 等配置字段。
