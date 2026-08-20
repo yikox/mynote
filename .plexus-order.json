@@ -56,7 +56,8 @@
       "n:Headscale 自建网络部署",
       "n:网络链路测速",
       "n:SwiftBar",
-      "n:tmux"
+      "n:tmux",
+      "n:Agent 使用 tmux"
     ],
     "笔记库/工具/三方库": [
       "n:rumps库使用"
