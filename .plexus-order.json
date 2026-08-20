@@ -55,7 +55,8 @@
       "n:Mac机器设置(睡眠)",
       "n:Headscale 自建网络部署",
       "n:网络链路测速",
-      "n:SwiftBar"
+      "n:SwiftBar",
+      "n:tmux"
     ],
     "笔记库/工具/三方库": [
       "n:rumps库使用"
