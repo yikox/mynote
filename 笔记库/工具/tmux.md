@@ -240,7 +240,7 @@ work session
     └── pane 1: logs
 ```
 
-### 2.3 前缀键：必须先松开 Ctrl
+### 2.5 前缀键：必须先松开 Ctrl
 
 tmux 默认前缀键是 `Ctrl-b`，它不是一个完整命令，而是告诉 tmux：
 
