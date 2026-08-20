@@ -24,14 +24,14 @@ Terminal.app / iTerm2 / SSH
 
 ### 1.1 各层对象
 
-| 对象 | 含义 |
-| --- | --- |
-| **client** | 当前 Terminal/iTerm2 中连接 tmux 的客户端 |
-| **server** | 后台 tmux 服务，保存 session、window、pane 和终端状态 |
-| **session** | 一个持久化工作区，例如一个项目或一台远程机器 |
-| **window** | session 中的虚拟标签页 |
-| **pane** | window 中的分屏终端，每个 pane 都有独立 PTY 和 Shell |
-| **PTY** | tmux 与 Shell/程序之间的伪终端 |
+| 对象        | 含义                                                  |
+| ----------- | ----------------------------------------------------- |
+| **client**  | 当前 Terminal/iTerm2 中连接 tmux 的客户端             |
+| **server**  | 后台 tmux 服务，保存 session、window、pane 和终端状态 |
+| **session** | 一个持久化工作区，例如一个项目或一台远程机器          |
+| **window**  | session 中的虚拟标签页                                |
+| **pane**    | window 中的分屏终端，每个 pane 都有独立 PTY 和 Shell  |
+| **PTY**     | tmux 与 Shell/程序之间的伪终端                        |
 
 ### 1.2 输入输出路径
 
