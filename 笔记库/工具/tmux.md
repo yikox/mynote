@@ -154,23 +154,23 @@ echo "$TMUX"
 
 下表中的 `Prefix` 默认就是 `Ctrl-b`，每个操作都要先按并**松开** `Ctrl-b`，再按第二个键：
 
-| 按键 | 作用 |
-| --- | --- |
-| `Prefix d` | 分离当前 client，程序继续运行 |
-| `Prefix c` | 新建 window |
-| `Prefix n` / `p` | 下一个 / 上一个 window |
-| `Prefix 0`–`9` | 切换到对应编号的 window |
-| `Prefix %` | 左右分屏 |
-| `Prefix "` | 上下分屏 |
-| `Prefix o` | 切换 pane |
-| `Prefix z` | 放大或恢复当前 pane |
-| `Prefix x` | 关闭当前 pane |
-| `Prefix [` | 进入滚动/复制模式 |
-| `Prefix ]` | 粘贴 |
-| `Prefix s` | 选择 session |
-| `Prefix w` | 选择 window |
-| `Prefix ,` | 重命名 window |
-| `Prefix :` | 打开 tmux 命令行 |
+| 按键             | 作用                          |
+| ---------------- | ----------------------------- |
+| `Prefix d`       | 分离当前 client，程序继续运行 |
+| `Prefix c`       | 新建 window                   |
+| `Prefix n` / `p` | 下一个 / 上一个 window        |
+| `Prefix 0`–`9`   | 切换到对应编号的 window       |
+| `Prefix %`       | 左右分屏                      |
+| `Prefix "`       | 上下分屏                      |
+| `Prefix o`       | 切换 pane                     |
+| `Prefix z`       | 放大或恢复当前 pane           |
+| `Prefix x`       | 关闭当前 pane                 |
+| `Prefix [`       | 进入滚动/复制模式             |
+| `Prefix ]`       | 粘贴                          |
+| `Prefix s`       | 选择 session                  |
+| `Prefix w`       | 选择 window                   |
+| `Prefix ,`       | 重命名 window                 |
+| `Prefix :`       | 打开 tmux 命令行              |
 
 关闭 pane 中的 Shell：
 
