@@ -82,7 +82,7 @@ tmux attach -t work
 
 新的 client 会接管原来的 session，并恢复窗口、pane 和滚动内容。
 
-## 2. macOS 安装与基本使用
+## 2. 简单使用（macOS）
 
 ### 2.1 安装
 
@@ -93,7 +93,7 @@ brew install tmux
 tmux -V
 ```
 
-当前系统若已安装，也可以直接运行：
+然后创建第一个 session：
 
 ```bash
 tmux new -s work
@@ -101,24 +101,144 @@ tmux new -s work
 
 Terminal.app 和 iTerm2 都只是 tmux 的显示前端，Apple Silicon 与 Intel Mac 在 tmux 的逻辑上没有区别。
 
-### 2.2 Session 命令
+### 2.2 tmux 操控的维度
 
-```bash
-tmux new -s work          # 创建并进入 session
-tmux ls                   # 查看所有 session
-tmux attach -t work       # 连接已有 session
-tmux new -As work         # 有则连接，无则创建
-tmux detach-client        # 从当前 client 分离
-tmux kill-session -t work # 删除 session
+tmux 不是只有一个“窗口”概念，而是一个层级结构：
+
+```text
+server
+└── session          生命周期和工作区
+    ├── window 0     标签页
+    │   ├── pane 0   实际运行 Shell/程序的终端
+    │   └── pane 1
+    └── window 1
 ```
 
-推荐用法：
+| 你要做的事情 | 主要操作对象 |
+| --- | --- |
+| 创建、分离、重新接入、整体关闭 | **session** |
+| 新建标签、切换标签、重命名标签 | **window** |
+| 分屏、切换分屏、关闭分屏 | **pane** |
+| 当前终端连接 | **client**，它只是显示连接，不是工作区 |
 
-```bash
-tmux new -As main
+因此，日常可以这样理解：
+
+```text
+session = 项目工作区
+window  = 标签页
+pane    = 真正执行命令的终端
 ```
 
-同一个项目只需要一个固定名称，重复执行即可进入原来的工作区。
+命令也可以用目标地址定位对象：
+
+```text
+session:window.pane
+例如：work:1.0
+```
+
+### 2.3 创建、关闭、分离与重新接入
+
+#### 创建并进入
+
+```bash
+tmux new -s work
+```
+
+这条命令会启动 tmux server，并创建：
+
+```text
+work session
+└── window 0
+    └── pane 0
+        └── zsh
+```
+
+随后在这个 pane 中运行命令即可：
+
+```bash
+python server.py
+```
+
+#### 分离但不关闭
+
+当程序正在运行时，执行：
+
+```text
+1. 按住 Control，按 b
+2. 松开 Control 和 b
+3. 再单独按 d
+```
+
+也就是：
+
+```text
+Ctrl-b，然后松开，再按 d
+```
+
+**不能一直按住 Ctrl 再按 d**；那会变成 `Ctrl-d`，不会执行 tmux 的 detach 操作。分离后，client 退出，但 session、pane 和程序继续运行。
+
+也可以使用命令：
+
+```bash
+tmux detach-client
+```
+
+#### 查看并重新接入
+
+```bash
+tmux ls
+tmux attach -t work
+```
+
+更方便的“有则接入、无则创建”：
+
+```bash
+tmux new -As work
+```
+
+#### 关闭
+
+关闭有不同范围：
+
+```bash
+exit                         # 退出当前 pane 的 Shell
+tmux kill-window -t work:0   # 关闭一个 window
+tmux kill-session -t work    # 关闭整个 session 及其中的 pane
+tmux kill-server             # 关闭当前用户的所有 tmux session
+```
+
+也可以使用快捷键：
+
+```text
+Prefix x    关闭当前 pane
+Prefix &    关闭当前 window
+```
+
+`exit`、关闭 pane、关闭 window 和关闭 session 都会终止其中仍在运行的前台程序；**分离（detach）则不会**。
+
+### 2.4 Window 和 Pane 的基本操作
+
+```text
+Prefix c    新建 window
+Prefix n/p  切换下一个/上一个 window
+Prefix %    左右分屏
+Prefix "    上下分屏
+Prefix o    切换 pane
+Prefix z    放大或恢复当前 pane
+Prefix x    关闭当前 pane
+```
+
+一个常见的开发工作区可能是：
+
+```text
+work session
+├── window 0: editor
+│   ├── pane 0: vim
+│   └── pane 1: shell
+└── window 1: server
+    ├── pane 0: API server
+    └── pane 1: logs
+```
 
 ### 2.3 前缀键：必须先松开 Ctrl
 
