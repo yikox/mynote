@@ -61,7 +61,7 @@ smoothing 走到这一步就停了，所以 smoothing 的 W4A4 效果崩。SVDQu
 $$\hat{W} = U \Sigma V^\top = \sum_{i=1}^{r} \sigma_i \, u_i v_i^\top + \underbrace{\sum_{i=r+1}^{c} \sigma_i \, u_i v_i^\top}_{\text{小奇异值，截掉}}$$
 
 取前 $r$ 个奇异值（论文用 $r=32$，远小于 $c$），得到**低秩近似**：
-/
+
 $$L_1 = U_r \, \Sigma_r^{1/2} \in \mathbb{R}^{c \times r}, \quad L_2 = \Sigma_r^{1/2} \, V_r^\top \in \mathbb{R}^{r \times d}$$
 
 于是：
